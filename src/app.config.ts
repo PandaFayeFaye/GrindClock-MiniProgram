@@ -1,6 +1,7 @@
 export default defineAppConfig({
   pages: [
-    'pages/index/index'
+    'pages/index/index',
+    'pages/employer-form/index'
   ],
   window: {
     backgroundTextStyle: 'light',
@@ -10,4 +11,4 @@ export default defineAppConfig({
     backgroundColor: '#FBF7EC'
   },
   cloud: true
-})
+} as any)

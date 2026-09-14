@@ -5,7 +5,7 @@ import './app.scss'
 
 // Cloud environment id -- fill this in from 云开发控制台 once the environment is
 // created (Phase 0). Everything else (db reads/writes) assumes this is set.
-export const CLOUD_ENV_ID = ''
+export const CLOUD_ENV_ID = 'cloudbase-d0go2ovbsd2343e4a'
 
 function App({ children }: PropsWithChildren<any>) {
   useLaunch(() => {

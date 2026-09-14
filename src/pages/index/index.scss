@@ -1,0 +1,131 @@
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 64rpx;
+  padding: 64rpx;
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+.home-title {
+  font-size: 80rpx;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.income-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  background: var(--accent-yellow);
+  border: 3px solid var(--border-bold);
+  border-radius: var(--radius-bold);
+  padding: 56rpx 64rpx;
+  box-shadow: var(--shadow-bold);
+}
+
+.income-label {
+  font-size: 48rpx;
+  font-weight: 700;
+}
+
+.income-value {
+  font-size: 112rpx;
+  font-weight: 900;
+}
+
+.income-note {
+  font-size: 44rpx;
+  opacity: 0.75;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48rpx;
+  padding: 160rpx 0;
+}
+
+.empty-hint {
+  font-size: 52rpx;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 40rpx;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: var(--radius-quiet);
+  padding: 48rpx;
+}
+
+.dot {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 16rpx;
+  border: 2px solid var(--border-bold);
+  flex-shrink: 0;
+}
+
+.row-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-title {
+  font-size: 56rpx;
+  font-weight: 800;
+}
+
+.punch-btn {
+  font-size: 48rpx;
+  font-weight: 900;
+  padding: 0 56rpx;
+  height: 144rpx;
+  line-height: 144rpx;
+  border: 2px solid var(--border-bold);
+  border-radius: 32rpx;
+  background: var(--accent-blue);
+  color: #fff;
+  box-shadow: 6rpx 6rpx 0 var(--border-bold);
+}
+
+.punch-btn.working {
+  background: var(--accent-coral);
+  box-shadow: none;
+}
+
+.punch-btn::after {
+  border: none;
+}
+
+.add-btn {
+  margin-top: 16rpx;
+  height: 176rpx;
+  line-height: 176rpx;
+  border-radius: 40rpx;
+  border: 2.5px solid var(--border-bold);
+  background: var(--accent-coral);
+  color: var(--border-bold);
+  font-weight: 900;
+  font-size: 52rpx;
+  box-shadow: var(--shadow-bold-sm);
+}
+
+.add-btn::after {
+  border: none;
+}
+
+.add-btn.secondary {
+  background: var(--bg-surface);
+}
