@@ -3,7 +3,8 @@ export default defineAppConfig({
     'pages/index/index',
     'pages/stats/index',
     'pages/employer-form/index',
-    'pages/backfill/index'
+    'pages/backfill/index',
+    'pages/batch-backfill/index'
   ],
   window: {
     backgroundTextStyle: 'light',

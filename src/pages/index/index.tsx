@@ -141,6 +141,9 @@ export default function Index() {
           <Button className="add-btn secondary" onClick={() => Taro.navigateTo({ url: "/pages/backfill/index" })}>
             补录搬砖时长
           </Button>
+          <Button className="add-btn secondary" onClick={() => Taro.navigateTo({ url: "/pages/batch-backfill/index" })}>
+            批量补录搬砖时长
+          </Button>
           <Button className="add-btn secondary" onClick={() => Taro.navigateTo({ url: "/pages/employer-form/index" })}>
             + 添加打工副本
           </Button>

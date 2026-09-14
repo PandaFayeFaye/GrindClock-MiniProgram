@@ -77,6 +77,16 @@ export function deleteTimeEntry(entryId: string) {
   return timeEntriesCollection().doc(entryId).remove({});
 }
 
+// CloudBase's client SDK has no batched-write API like Firestore's writeBatch
+// -- each of these is just N independent requests fired together.
+export function addManualEntries(entries: Omit<TimeEntry, "id">[]) {
+  return Promise.all(entries.map((data) => addManualEntry(data)));
+}
+
+export function deleteTimeEntries(entryIds: string[]) {
+  return Promise.all(entryIds.map((id) => deleteTimeEntry(id)));
+}
+
 export function clockIn(employerId: string, startTime: number) {
   return addManualEntry({
     employerId,
