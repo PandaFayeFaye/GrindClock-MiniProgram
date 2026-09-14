@@ -8,6 +8,7 @@ import { formatGroupedPay, DEFAULT_CURRENCY, currencySymbol } from "../../lib/cu
 import { startOfWeek, startOfMonth, latestMoodOrFallback } from "../../lib/stats";
 import { PET_STAGES, currentPetStageIndex, hoursSinceFed, isPetHungry } from "../../lib/pet";
 import { todaysSchedule, scheduleDurationHours, combineDateAndTime } from "../../lib/schedule";
+import { SETTINGS_KEYS, getLocalToggle } from "../../lib/settings";
 import type { AnimalKey } from "../../lib/avatar";
 import { CompanionWidget } from "../../components/CompanionWidget";
 import { PunchConfirmModal, type PunchConfirmData } from "../../components/PunchConfirmModal";
@@ -29,6 +30,7 @@ export default function Index() {
   const [leftRange, setLeftRange] = useState<"today" | "week">("today");
   const [animal, setAnimal] = useState<AnimalKey | undefined>(undefined);
   const [mbti, setMbti] = useState<string | undefined>(undefined);
+  const [simpleMode, setSimpleMode] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -48,6 +50,7 @@ export default function Index() {
 
   useDidShow(() => {
     reload();
+    setSimpleMode(getLocalToggle(SETTINGS_KEYS.simpleMode, false));
   });
 
   // Team-logged entries (workerId set) belong to a delegated worker, not the
@@ -335,7 +338,7 @@ export default function Index() {
         </View>
       )}
 
-      {animal && (
+      {!simpleMode && animal && (
         <CompanionWidget
           animal={animal}
           mbti={mbti}

@@ -1,0 +1,165 @@
+.mood-curve-card {
+  background: var(--bg-surface);
+  border: 2.5px solid var(--border-bold);
+  border-radius: var(--radius-bold);
+  padding: 28rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.title {
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.mood-curve {
+  display: flex;
+  justify-content: space-between;
+  gap: 8rpx;
+}
+
+.mood-point-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.mood-point-track {
+  position: relative;
+  width: 100%;
+  height: 160rpx;
+  border-radius: 12rpx;
+  background: var(--bg-base);
+  border: 1.3px solid var(--border-quiet);
+}
+
+.mood-point {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  border: 2px solid var(--border-bold);
+}
+
+.mood-point.empty {
+  background: var(--border-quiet);
+  border-style: dashed;
+  width: 16rpx;
+  height: 16rpx;
+}
+
+.mood-point.loggable {
+  border-color: var(--accent-blue);
+}
+
+.mood-x-label {
+  font-size: 20rpx;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.mood-dist-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.mood-dist-chip {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 999px;
+  background: var(--bg-base);
+  border: 1.3px solid var(--border-quiet);
+  font-size: 21rpx;
+  font-weight: 700;
+}
+
+.mood-dist-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.mood-editor {
+  background: var(--bg-base);
+  border: 1.3px dashed var(--border-quiet);
+  border-radius: 20rpx;
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.mood-edit-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.mood-edit-tag {
+  padding: 10rpx 18rpx;
+  border-radius: 16rpx;
+  border: 1.8px solid var(--border-quiet);
+  background: var(--bg-surface);
+  font-size: 21rpx;
+  font-weight: 700;
+}
+
+.mood-edit-tag.selected {
+  border-color: var(--border-bold);
+  background: var(--accent-blue);
+  color: #fff;
+}
+
+.mood-edit-note {
+  padding: 16rpx 20rpx;
+  border: 1.8px solid var(--border-quiet);
+  border-radius: 16rpx;
+  background: var(--bg-surface);
+  font-size: 23rpx;
+}
+
+.mood-editor-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.mood-editor-cancel {
+  flex: 1;
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  border: 1.8px solid var(--border-bold);
+  background: var(--bg-surface);
+  font-weight: 800;
+  font-size: 23rpx;
+}
+
+.mood-editor-save {
+  flex: 2;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 16rpx;
+  border: 1.8px solid var(--border-bold);
+  background: var(--accent-green);
+  font-weight: 900;
+  font-size: 23rpx;
+}
+
+.mood-editor-save::after {
+  border: none;
+}
+
+.mood-companion {
+  font-size: 21rpx;
+  color: var(--text-muted);
+  font-weight: 700;
+}
