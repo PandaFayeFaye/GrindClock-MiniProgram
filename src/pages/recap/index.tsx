@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { View, Text } from "@tarojs/components";
+import { View, Text, Canvas } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries, fetchUserProfile } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
@@ -7,15 +7,18 @@ import { entryHours, entryOvertimePay, entryPay, lumpSumForPeriod } from "../../
 import { DEFAULT_CURRENCY, formatGroupedPay } from "../../lib/currency";
 import { currentStreak, dateKey, leaderboard, startOfMonth } from "../../lib/stats";
 import { TIERS, currentTierIndex } from "../../lib/tiers";
+import { renderRecapShareImage, RECAP_CANVAS_SIZE } from "../../lib/renderRecapImage";
 import type { Employer, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
 const SLIDE_COUNT = 6;
+const SHARE_CANVAS_ID = "recapShareCanvas";
 
 export default function Recap() {
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [allEntries, setAllEntries] = useState<TimeEntry[]>([]);
   const [slide, setSlide] = useState(0);
+  const [generatingShare, setGeneratingShare] = useState(false);
 
   useDidShow(() => {
     Promise.all([fetchEmployers(), fetchTimeEntries(), fetchUserProfile()]).then(([empDocs, entryDocs]) => {
@@ -116,6 +119,28 @@ export default function Recap() {
     setSlide(Math.max(0, Math.min(SLIDE_COUNT - 1, next)));
   }
 
+  async function handleGenerateShare() {
+    setGeneratingShare(true);
+    try {
+      const tempPath = await renderRecapShareImage(SHARE_CANVAS_ID, {
+        monthLabel,
+        totalHours: totalHours.toFixed(0),
+        totalPayText: formatGroupedPay(totalPayByCurrency),
+        streak,
+        topEmployer,
+        hardestDay,
+        heatCells,
+        tierLabel: tier.label,
+      });
+      await Taro.previewImage({ urls: [tempPath], current: tempPath });
+    } catch (err) {
+      console.error("Failed to generate recap share image", err);
+      Taro.showToast({ title: "生成分享图失败，重试一下", icon: "none" });
+    } finally {
+      setGeneratingShare(false);
+    }
+  }
+
   return (
     <View className="recap-page">
       <View className="story-dots">
@@ -189,6 +214,9 @@ export default function Recap() {
             <Text className="eyebrow">当前称号</Text>
             <Text className="tier-reveal">{tier.label}</Text>
             <View className="actions">
+              <View className={`share-btn${generatingShare ? " disabled" : ""}`} onClick={generatingShare ? undefined : handleGenerateShare}>
+                <Text>{generatingShare ? "生成中..." : "生成分享图"}</Text>
+              </View>
               <View className="detail-link" onClick={() => Taro.switchTab({ url: "/pages/stats/index" })}>
                 <Text>查看完整明细</Text>
               </View>
@@ -196,6 +224,11 @@ export default function Recap() {
           </View>
         )}
       </View>
+
+      <Canvas
+        canvasId={SHARE_CANVAS_ID}
+        style={{ position: "fixed", left: "-9999px", top: "0", width: `${RECAP_CANVAS_SIZE.width}px`, height: `${RECAP_CANVAS_SIZE.height}px` }}
+      />
     </View>
   );
 }

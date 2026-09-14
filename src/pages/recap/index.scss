@@ -180,3 +180,18 @@
   font-weight: 800;
   color: #fff;
 }
+
+.share-btn {
+  text-align: center;
+  padding: 24rpx 0;
+  border-radius: 20rpx;
+  background: var(--accent-yellow);
+  font-size: 26rpx;
+  font-weight: 900;
+  color: #1A1A1A;
+  margin-bottom: 20rpx;
+}
+
+.share-btn.disabled {
+  opacity: 0.6;
+}

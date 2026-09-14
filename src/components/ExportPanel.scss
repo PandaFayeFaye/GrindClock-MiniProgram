@@ -63,7 +63,13 @@
   text-align: center;
 }
 
+.export-action-row {
+  display: flex;
+  gap: 20rpx;
+}
+
 .export-action-btn {
+  flex: 1;
   height: 92rpx;
   line-height: 92rpx;
   text-align: center;
@@ -73,6 +79,11 @@
   color: #fff;
   font-weight: 900;
   font-size: 28rpx;
+}
+
+.export-action-btn.secondary {
+  background: var(--bg-surface);
+  color: var(--border-bold);
 }
 
 .export-action-btn.disabled {
