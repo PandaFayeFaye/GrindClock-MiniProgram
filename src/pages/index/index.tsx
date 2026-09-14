@@ -1,15 +1,18 @@
 import { useState, useCallback, useMemo } from "react";
 import { View, Text, Button } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
-import { fetchEmployers, fetchTimeEntries, fetchUserProfile, clockIn, clockOut } from "../../lib/cloud";
+import { fetchEmployers, fetchTimeEntries, fetchUserProfile, clockIn, clockOut, addManualEntry } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
 import { entryHours, entryOvertimePay, entryPay, mergedHoursToday } from "../../lib/pay";
 import { formatGroupedPay, DEFAULT_CURRENCY, currencySymbol } from "../../lib/currency";
 import { startOfWeek, startOfMonth, latestMoodOrFallback } from "../../lib/stats";
 import { PET_STAGES, currentPetStageIndex, hoursSinceFed, isPetHungry } from "../../lib/pet";
+import { todaysSchedule, scheduleDurationHours, combineDateAndTime } from "../../lib/schedule";
 import type { AnimalKey } from "../../lib/avatar";
 import { CompanionWidget } from "../../components/CompanionWidget";
 import { PunchConfirmModal, type PunchConfirmData } from "../../components/PunchConfirmModal";
+import { RetroClockInModal } from "../../components/RetroClockInModal";
+import { ScheduleConfirmModal } from "../../components/ScheduleConfirmModal";
 import type { Employer, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
@@ -120,6 +123,8 @@ export default function Index() {
       : "TA刚吃饱，很满足地趴着～";
 
   const [confirming, setConfirming] = useState<{ employer: Employer; entry: TimeEntry } | null>(null);
+  const [retroEmployer, setRetroEmployer] = useState<Employer | null>(null);
+  const [scheduleConfirmEmployer, setScheduleConfirmEmployer] = useState<Employer | null>(null);
 
   async function handlePunch(employer: Employer) {
     const active = activeByEmployer.get(employer.id);
@@ -154,6 +159,49 @@ export default function Index() {
       reload();
     } catch (err) {
       console.error("Clock-out failed", err);
+      Taro.showToast({ title: "打卡失败，重试一下", icon: "none" });
+    }
+  }
+
+  async function handleRetroConfirm(startTime: number) {
+    if (!retroEmployer) return;
+    setRetroEmployer(null);
+    if (activeByEmployer.has(retroEmployer.id)) return;
+    try {
+      await clockIn(retroEmployer.id, startTime);
+      reload();
+    } catch (err) {
+      console.error("Retro clock-in failed", err);
+      Taro.showToast({ title: "补打卡失败，重试一下", icon: "none" });
+    }
+  }
+
+  async function handleScheduleConfirm(start: string, end: string) {
+    if (!scheduleConfirmEmployer) return;
+    const today = new Date();
+    const startTime = combineDateAndTime(today, start);
+    let endTime = combineDateAndTime(today, end);
+    if (endTime <= startTime) endTime += 24 * 3_600_000;
+
+    const scheduled = todaysSchedule(scheduleConfirmEmployer, today);
+    const supportsAutoOvertime = scheduled !== null
+      && (scheduleConfirmEmployer.payType === "monthly" || scheduleConfirmEmployer.payType === "comprehensive");
+    const enteredHours = (endTime - startTime) / 3_600_000;
+    const overtimeHours = supportsAutoOvertime && scheduled ? Math.max(0, enteredHours - scheduleDurationHours(scheduled)) : 0;
+
+    setScheduleConfirmEmployer(null);
+    try {
+      await addManualEntry({
+        employerId: scheduleConfirmEmployer.id,
+        startTime,
+        endTime,
+        status: "confirmed",
+        source: "manual",
+        ...(overtimeHours > 0.05 ? { overtimeHours } : {}),
+      });
+      reload();
+    } catch (err) {
+      console.error("Schedule confirm failed", err);
       Taro.showToast({ title: "打卡失败，重试一下", icon: "none" });
     }
   }
@@ -210,6 +258,30 @@ export default function Index() {
             const empHours = todaysHoursByEmployer.get(emp.id) ?? 0;
             const empOvertime = todaysOvertimeByEmployer.get(emp.id) ?? 0;
             const empPay = todaysPayByEmployer.get(emp.id) ?? 0;
+            const schedule = todaysSchedule(emp);
+            const showScheduleCard = !!schedule && !active && !employerIdsWithEntryToday.has(emp.id);
+            const longShift = active && Date.now() - active.startTime > 14 * 3_600_000;
+
+            if (showScheduleCard && schedule) {
+              return (
+                <View className="row-wrap schedule-card" key={emp.id}>
+                  <View className="row">
+                    <View className="dot" style={{ background: emp.color }} />
+                    <View
+                      className="row-name"
+                      onClick={() => Taro.navigateTo({ url: `/pages/employer-form/index?id=${emp.id}` })}
+                    >
+                      <Text className="row-title">{emp.name}</Text>
+                      <Text className="row-schedule-note">今日排班 {schedule.start}-{schedule.end}</Text>
+                    </View>
+                    <Button className="punch-btn schedule-btn" onClick={() => setScheduleConfirmEmployer(emp)}>
+                      确认打卡
+                    </Button>
+                  </View>
+                </View>
+              );
+            }
+
             return (
               <View className="row-wrap" key={emp.id}>
                 <View className="row">
@@ -233,6 +305,16 @@ export default function Index() {
                       今日已工作 {empHours.toFixed(1)}h · 已赚 {currencySymbol(emp.currency)}{empPay.toFixed(1)}
                       {empOvertime > 0.05 ? `（含加班${empOvertime.toFixed(1)}h）` : ""}
                     </Text>
+                  </View>
+                )}
+                {!active && !employerIdsWithEntryToday.has(emp.id) && (
+                  <View className="retro-row-btn" onClick={() => setRetroEmployer(emp)}>
+                    <Text>忘记打卡了？补一个</Text>
+                  </View>
+                )}
+                {longShift && active && (
+                  <View className="retro-row-btn long-shift" onClick={() => handlePunch(emp)}>
+                    <Text>已经上班 {Math.floor((Date.now() - active.startTime) / 3_600_000)} 小时了，记得下班打卡</Text>
                   </View>
                 )}
               </View>
@@ -275,6 +357,27 @@ export default function Index() {
           onConfirm={handleConfirmClockOut}
         />
       )}
+
+      {retroEmployer && (
+        <RetroClockInModal
+          employer={retroEmployer}
+          onCancel={() => setRetroEmployer(null)}
+          onConfirm={handleRetroConfirm}
+        />
+      )}
+
+      {scheduleConfirmEmployer && (() => {
+        const schedule = todaysSchedule(scheduleConfirmEmployer);
+        if (!schedule) return null;
+        return (
+          <ScheduleConfirmModal
+            employer={scheduleConfirmEmployer}
+            scheduled={schedule}
+            onCancel={() => setScheduleConfirmEmployer(null)}
+            onConfirm={handleScheduleConfirm}
+          />
+        );
+      })()}
     </View>
   );
 }

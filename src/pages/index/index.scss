@@ -169,6 +169,37 @@
   color: #2A9D5C;
 }
 
+.row-schedule-note {
+  display: block;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 4rpx;
+}
+
+.schedule-card {
+  border-color: var(--accent-yellow);
+}
+
+.schedule-btn {
+  background: var(--accent-yellow);
+  color: var(--border-bold);
+}
+
+.retro-row-btn {
+  padding: 14rpx 24rpx;
+  border-top: 1.3px dashed var(--border-quiet);
+  font-size: 21rpx;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.retro-row-btn.long-shift {
+  color: var(--accent-coral);
+  border-top-color: var(--accent-coral);
+  background: rgba(255, 107, 107, 0.08);
+}
+
 .add-btn {
   margin-top: 8rpx;
   height: 88rpx;
