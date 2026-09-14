@@ -8,11 +8,103 @@
   background: var(--bg-base);
 }
 
-.home-title {
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+}
+
+.banner-avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 96rpx;
+  height: 96rpx;
+  background: var(--accent-yellow);
+  border: 2.5px solid var(--border-bold);
+  border-radius: 999px;
+  padding: 6rpx;
+  box-shadow: var(--shadow-bold-sm);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.banner-avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner-title {
   font-family: var(--font-display);
-  font-size: 40rpx;
-  font-weight: 900;
+  font-size: 30rpx;
   color: var(--text-primary);
+  display: block;
+}
+
+.home-tier-chip {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+  padding: 8rpx 20rpx;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 999px;
+  max-width: 480rpx;
+}
+
+.home-tier-name {
+  font-size: 20rpx;
+  font-weight: 900;
+  color: var(--accent-purple);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.home-tier-track {
+  flex: 1;
+  height: 12rpx;
+  border-radius: 8rpx;
+  background: var(--bg-base);
+  border: 1.3px solid var(--border-quiet);
+  overflow: hidden;
+  min-width: 60rpx;
+}
+
+.home-tier-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent-purple);
+}
+
+.home-tier-next {
+  font-size: 18rpx;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.combo-badge {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  background: var(--accent-purple);
+  border: 2px solid var(--border-bold);
+  border-radius: 20rpx;
+  padding: 12rpx 20rpx;
+}
+
+.combo-badge-text {
+  font-size: 23rpx;
+  font-weight: 900;
+  color: var(--border-bold);
 }
 
 .income-cards-row {
@@ -115,6 +207,11 @@
   overflow: hidden;
 }
 
+.row-wrap.is-working {
+  border-color: var(--accent-coral);
+  background: #FFF3F1;
+}
+
 .row {
   display: flex;
   align-items: center;
@@ -180,12 +277,13 @@
 }
 
 .schedule-card {
-  border-color: var(--accent-yellow);
+  border-color: var(--accent-blue);
+  background: #EEF1FD;
 }
 
 .schedule-btn {
-  background: var(--accent-yellow);
-  color: var(--border-bold);
+  background: var(--accent-blue);
+  color: #fff;
 }
 
 .retro-row-btn {
@@ -221,4 +319,72 @@
 
 .add-btn.secondary {
   background: var(--bg-surface);
+}
+
+.fab-wrap {
+  position: fixed;
+  right: 48rpx;
+  bottom: 220rpx;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 24rpx;
+  z-index: 20;
+}
+
+.fab-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.fab-menu-label {
+  background: var(--border-bold);
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 800;
+  padding: 16rpx 24rpx;
+  border-radius: 16rpx;
+  white-space: nowrap;
+}
+
+.fab-mini {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 28rpx;
+  border: 2.5px solid var(--border-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-bold-sm);
+  flex-shrink: 0;
+}
+
+.fab-mini-text {
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.fab {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 32rpx;
+  background: var(--accent-coral);
+  border: 3px solid var(--border-bold);
+  color: var(--border-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-bold);
+}
+
+.fab.open {
+  transform: rotate(45deg);
+}
+
+.fab-plus {
+  font-size: 56rpx;
+  font-weight: 700;
+  line-height: 1;
 }

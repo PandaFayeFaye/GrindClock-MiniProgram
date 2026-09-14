@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { View, Text, Button } from "@tarojs/components";
+import { View, Text, Button, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries, fetchUserProfile, clockIn, clockOut, addManualEntry } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
@@ -10,7 +10,8 @@ import { PET_STAGES, currentPetStageIndex, hoursSinceFed, isPetHungry } from "..
 import { todaysSchedule, scheduleDurationHours, combineDateAndTime } from "../../lib/schedule";
 import { SETTINGS_KEYS, getLocalToggle } from "../../lib/settings";
 import { hasOnboarded, markOnboarded, hasSeenCoachTour } from "../../lib/onboarding";
-import type { AnimalKey } from "../../lib/avatar";
+import { TIERS, TIER_COLORS, currentTierIndex } from "../../lib/tiers";
+import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
 import { CompanionWidget } from "../../components/CompanionWidget";
 import { PunchConfirmModal, type PunchConfirmData } from "../../components/PunchConfirmModal";
 import { RetroClockInModal } from "../../components/RetroClockInModal";
@@ -36,8 +37,10 @@ export default function Index() {
   const [leftRange, setLeftRange] = useState<"today" | "week">("today");
   const [animal, setAnimal] = useState<AnimalKey | undefined>(undefined);
   const [mbti, setMbti] = useState<string | undefined>(undefined);
+  const [nickname, setNickname] = useState("");
   const [simpleMode, setSimpleMode] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -49,6 +52,7 @@ export default function Index() {
       setAllEntries(allEnts);
       setAnimal(profile?.animal as AnimalKey | undefined);
       setMbti(profile?.mbti);
+      setNickname(profile?.nickname ?? "");
 
       if (!hasCheckedFirstRunGate) {
         hasCheckedFirstRunGate = true;
@@ -125,6 +129,13 @@ export default function Index() {
     () => entries.filter((e) => e.status === "confirmed" && e.endTime != null).reduce((s, e) => s + entryHours(e), 0),
     [entries],
   );
+  const currentTierIdx = currentTierIndex(totalHoursAllTime);
+  const currentTier = TIERS[currentTierIdx];
+  const nextTier = TIERS[currentTierIdx + 1];
+  const tierProgressPct = nextTier
+    ? Math.min(100, Math.round(((totalHoursAllTime - currentTier.threshold) / (nextTier.threshold - currentTier.threshold)) * 100))
+    : 100;
+  const workingCount = activeByEmployer.size;
   const lastFedAt = useMemo(() => {
     const fedTimes = entries.filter((e) => e.status === "confirmed" && e.endTime != null).map((e) => e.endTime as number);
     return fedTimes.length > 0 ? Math.max(...fedTimes) : null;
@@ -233,7 +244,27 @@ export default function Index() {
 
   return (
     <View className="home-page">
-      <Text className="home-title">首页</Text>
+      <View className="banner">
+        <View className="banner-avatar">
+          <Image src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" className="banner-avatar-img" />
+        </View>
+        <View className="banner-text">
+          <Text className="banner-title">{nickname ? `${nickname}，牛马辛苦了` : "牛马辛苦了，今天也要加油搬砖"}</Text>
+          <View className="home-tier-chip" onClick={() => Taro.navigateTo({ url: "/pages/badges/index" })}>
+            <Text className="home-tier-name" style={{ color: TIER_COLORS[currentTierIdx] }}>{currentTier.label}</Text>
+            <View className="home-tier-track">
+              <View className="home-tier-fill" style={{ width: `${tierProgressPct}%`, background: TIER_COLORS[currentTierIdx] }} />
+            </View>
+            {nextTier && <Text className="home-tier-next">{nextTier.label}</Text>}
+          </View>
+        </View>
+      </View>
+
+      {workingCount >= 2 && (
+        <View className="combo-badge">
+          <Text className="combo-badge-text">同时打{workingCount}份工中，牛马附体！</Text>
+        </View>
+      )}
 
       <View className="income-cards-row">
         <View className="income-card">
@@ -308,7 +339,7 @@ export default function Index() {
             }
 
             return (
-              <View className="row-wrap" key={emp.id}>
+              <View className={`row-wrap${active ? " is-working" : ""}`} key={emp.id}>
                 <View className="row">
                   <View className="dot" style={{ background: emp.color }} />
                   <View
@@ -345,18 +376,34 @@ export default function Index() {
               </View>
             );
           })}
-          <Button className="add-btn secondary" onClick={() => Taro.navigateTo({ url: "/pages/ai-capture/index" })}>
-            AI 记工（拍照/语音）
-          </Button>
-          <Button className="add-btn secondary" onClick={() => Taro.navigateTo({ url: "/pages/backfill/index" })}>
-            补录搬砖时长
-          </Button>
-          <Button className="add-btn secondary" onClick={() => Taro.navigateTo({ url: "/pages/batch-backfill/index" })}>
-            批量补录搬砖时长
-          </Button>
-          <Button className="add-btn secondary" onClick={() => Taro.navigateTo({ url: "/pages/employer-form/index" })}>
-            + 添加打工副本
-          </Button>
+        </View>
+      )}
+
+      {activeEmployers.length > 0 && (
+        <View className="fab-wrap">
+          {menuOpen && (
+            <>
+              <View className="fab-menu-item" onClick={() => { setMenuOpen(false); Taro.navigateTo({ url: "/pages/ai-capture/index" }); }}>
+                <Text className="fab-menu-label">AI 记工</Text>
+                <View className="fab-mini" style={{ background: "#B084F5" }}><Text className="fab-mini-text">AI</Text></View>
+              </View>
+              <View className="fab-menu-item" onClick={() => { setMenuOpen(false); Taro.navigateTo({ url: "/pages/backfill/index" }); }}>
+                <Text className="fab-menu-label">补录搬砖时长</Text>
+                <View className="fab-mini" style={{ background: "#FFD93D" }}><Text className="fab-mini-text">补</Text></View>
+              </View>
+              <View className="fab-menu-item" onClick={() => { setMenuOpen(false); Taro.navigateTo({ url: "/pages/batch-backfill/index" }); }}>
+                <Text className="fab-menu-label">批量补录</Text>
+                <View className="fab-mini" style={{ background: "#39C97A" }}><Text className="fab-mini-text">批</Text></View>
+              </View>
+              <View className="fab-menu-item" onClick={() => { setMenuOpen(false); Taro.navigateTo({ url: "/pages/employer-form/index" }); }}>
+                <Text className="fab-menu-label">添加打工副本</Text>
+                <View className="fab-mini" style={{ background: "#5AC8FA" }}><Text className="fab-mini-text">+</Text></View>
+              </View>
+            </>
+          )}
+          <View className={`fab${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
+            <Text className="fab-plus">+</Text>
+          </View>
         </View>
       )}
 
