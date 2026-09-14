@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { View, Text, Input, Picker, Button } from "@tarojs/components";
-import Taro from "@tarojs/taro";
+import Taro, { useRouter } from "@tarojs/taro";
 import { fetchEmployers, addManualEntry } from "../../lib/cloud";
 import { toEmployer } from "../../lib/adapt";
 import { todaysSchedule, scheduleDurationHours } from "../../lib/schedule";
@@ -24,6 +24,8 @@ function toDateInputValue(d: Date) {
 }
 
 export default function Backfill() {
+  const router = useRouter();
+  const workerId = router.params.workerId;
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [employerIdx, setEmployerIdx] = useState(0);
   const [date, setDate] = useState(toDateInputValue(new Date()));
@@ -70,6 +72,7 @@ export default function Backfill() {
         endTime,
         status: "confirmed",
         source: "manual",
+        ...(workerId ? { workerId } : {}),
         ...(mood ? { mood } : {}),
         ...(overtimeHoursValue ? { overtimeHours: overtimeHoursValue } : {}),
       });

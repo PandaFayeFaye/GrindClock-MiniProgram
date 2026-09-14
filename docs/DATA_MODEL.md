@@ -51,6 +51,18 @@
 | `mbti` | string? | |
 | `nickname` | string? | |
 
+### `workers`
+对应网页版 `users/{uid}/workers`——组长模式下代记录的团队成员（不是登录用户，只是组长手动建的名单）。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `_openid` | string | 属于哪个组长账号 |
+| `name` | string | |
+| `note` | string? | |
+| `defaultHourlyRate` | number? | |
+
+代记录产生的 `timeEntries` 会带上 `workerId`（指向这个集合的 `_id`），首页/统计页统计时要过滤掉 `workerId` 存在的记录，不能混进组长自己的个人数据。
+
 ## 权限规则
 
 云开发数据库默认权限规则选 **"仅创建者可读写"**（`{"read": "doc._openid == auth.openid", "write": "doc._openid == auth.openid"}`），这样每个集合都不需要在业务代码里手写权限判断，云端会自动拦截别人读写你的数据——效果等价于网页版 `firestore.rules` 里那条 `request.auth.uid == uid` 规则。

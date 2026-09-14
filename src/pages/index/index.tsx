@@ -18,7 +18,7 @@ function startOfToday() {
 
 export default function Index() {
   const [employers, setEmployers] = useState<Employer[]>([]);
-  const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [allEntries, setAllEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [leftRange, setLeftRange] = useState<"today" | "week">("today");
 
@@ -27,7 +27,7 @@ export default function Index() {
     try {
       const [empDocs, entryDocs] = await Promise.all([fetchEmployers(), fetchTimeEntries()]);
       setEmployers(empDocs.map(toEmployer));
-      setEntries(entryDocs.map(toTimeEntry));
+      setAllEntries(entryDocs.map(toTimeEntry));
     } catch (err) {
       console.error("Failed to load home data", err);
       Taro.showToast({ title: "加载失败，下拉重试", icon: "none" });
@@ -39,6 +39,10 @@ export default function Index() {
   useDidShow(() => {
     reload();
   });
+
+  // Team-logged entries (workerId set) belong to a delegated worker, not the
+  // signed-in user -- they must never mix into the personal totals below.
+  const entries = useMemo(() => allEntries.filter((e) => !e.workerId), [allEntries]);
 
   const activeEmployers = employers.filter((e) => !e.archived);
   const employerById = useMemo(() => new Map(employers.map((e) => [e.id, e])), [employers]);

@@ -1,5 +1,5 @@
 import Taro from "@tarojs/taro";
-import type { Employer, TimeEntry } from "./types";
+import type { Employer, TimeEntry, Worker } from "./types";
 
 // Mirrors the web app's src/lib/firestore.ts shape so page code reads the
 // same way on both sides. Security is enforced by the WeChat CloudBase
@@ -21,6 +21,23 @@ export function timeEntriesCollection() {
 
 export function userProfileCollection() {
   return db().collection("userProfile");
+}
+
+export function workersCollection() {
+  return db().collection("workers");
+}
+
+export interface CloudWorker extends Omit<Worker, "id"> {
+  _id: string;
+}
+
+export async function fetchWorkers(): Promise<CloudWorker[]> {
+  const res = await workersCollection().get();
+  return res.data as CloudWorker[];
+}
+
+export function addWorker(data: Omit<Worker, "id">) {
+  return workersCollection().add({ data });
 }
 
 export interface CloudEmployer extends Omit<Employer, "id"> {

@@ -112,6 +112,14 @@ export default function Me() {
         </View>
       </View>
 
+      <View className="section">
+        <Text className="section-label">团队</Text>
+        <View className="nav-row" onClick={() => Taro.navigateTo({ url: "/pages/team/index" })}>
+          <Text>团队代记搬砖时长（组长模式）</Text>
+          <Text className="nav-arrow">›</Text>
+        </View>
+      </View>
+
       {archivedEmployers.length > 0 && (
         <View className="section">
           <Text className="section-label">已停用的副本</Text>
