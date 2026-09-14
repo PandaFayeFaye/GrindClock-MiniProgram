@@ -9,7 +9,8 @@ export default defineAppConfig({
     'pages/net-pay/index',
     'pages/badges/index',
     'pages/team/index',
-    'pages/worker-form/index'
+    'pages/worker-form/index',
+    'pages/recap/index'
   ],
   window: {
     backgroundTextStyle: 'light',

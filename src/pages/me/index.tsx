@@ -110,6 +110,10 @@ export default function Me() {
           <Text>净收益对比</Text>
           <Text className="nav-arrow">›</Text>
         </View>
+        <View className="nav-row" onClick={() => Taro.navigateTo({ url: "/pages/recap/index" })}>
+          <Text>本月战绩总结</Text>
+          <Text className="nav-arrow">›</Text>
+        </View>
       </View>
 
       <View className="section">
