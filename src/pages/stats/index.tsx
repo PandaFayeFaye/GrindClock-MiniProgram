@@ -6,6 +6,7 @@ import { toEmployer, toTimeEntry } from "../../lib/adapt";
 import { entryHours, entryOvertimePay, entryPay } from "../../lib/pay";
 import { currencySymbol, formatGroupedPay, DEFAULT_CURRENCY } from "../../lib/currency";
 import { startOfWeek, startOfMonth } from "../../lib/stats";
+import { ExportPanel } from "../../components/ExportPanel";
 import type { Employer, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
@@ -28,6 +29,7 @@ export default function Stats() {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<RangeKey>("month");
+  const [exportOpen, setExportOpen] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -106,7 +108,22 @@ export default function Stats() {
         </View>
       )}
 
-      <Text className="list-title">明细</Text>
+      <View className="list-title-row">
+        <Text className="list-title">明细</Text>
+        <View className={`export-btn${confirmed.length === 0 ? " disabled" : ""}`} onClick={() => confirmed.length > 0 && setExportOpen(true)}>
+          <Text>导出CSV</Text>
+        </View>
+      </View>
+
+      {exportOpen && (
+        <ExportPanel
+          entries={confirmed}
+          employerById={employerById}
+          filenameBase={`grindclock-明细-${range}`}
+          onClose={() => setExportOpen(false)}
+        />
+      )}
+
       {loading ? (
         <Text className="empty-hint">加载中...</Text>
       ) : confirmed.length === 0 ? (

@@ -91,10 +91,29 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+.list-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .list-title {
   font-size: 24rpx;
   font-weight: 900;
   color: var(--text-muted);
+}
+
+.export-btn {
+  padding: 8rpx 22rpx;
+  border-radius: 999px;
+  border: 1.8px solid var(--border-bold);
+  background: var(--bg-surface);
+  font-size: 20rpx;
+  font-weight: 800;
+}
+
+.export-btn.disabled {
+  opacity: 0.4;
 }
 
 .empty-hint {
