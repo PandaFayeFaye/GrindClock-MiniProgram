@@ -1,11 +1,12 @@
 import { useState, useCallback } from "react";
-import { View, Text, Input } from "@tarojs/components";
+import { View, Text, Input, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries, fetchUserProfile, setUserProfile, reactivateEmployer } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
 import { entryHours } from "../../lib/pay";
 import { currentStreak } from "../../lib/stats";
 import { TIERS, TIER_COLORS, currentTierIndex } from "../../lib/tiers";
+import { characterImageSrc, mbtiGroupColor, type AnimalKey } from "../../lib/avatar";
 import type { Employer, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
@@ -16,6 +17,8 @@ export default function Me() {
   const [editingNickname, setEditingNickname] = useState(false);
   const [nicknameDraft, setNicknameDraft] = useState("");
   const [loading, setLoading] = useState(true);
+  const [animal, setAnimal] = useState<AnimalKey | undefined>(undefined);
+  const [mbti, setMbti] = useState<string | undefined>(undefined);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -24,6 +27,8 @@ export default function Me() {
       setEmployers(empDocs.map(toEmployer));
       setEntries(entryDocs.map(toTimeEntry));
       setNickname(profile?.nickname ?? "");
+      setAnimal(profile?.animal as AnimalKey | undefined);
+      setMbti(profile?.mbti);
     } catch (err) {
       console.error("Failed to load me page", err);
       Taro.showToast({ title: "加载失败，下拉重试", icon: "none" });
@@ -75,6 +80,13 @@ export default function Me() {
       <Text className="me-title">我的</Text>
 
       <View className="profile-hero">
+        <View
+          className="avatar-btn"
+          style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}
+          onClick={() => Taro.navigateTo({ url: `/packageCharacters/pages/avatar-picker/index?animal=${animal ?? "cow"}${mbti ? `&mbti=${mbti}` : ""}` })}
+        >
+          <Image className="avatar-btn-img" src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" />
+        </View>
         {editingNickname ? (
           <Input
             className="nickname-input"

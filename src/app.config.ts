@@ -13,6 +13,12 @@ export default defineAppConfig({
     'pages/recap/index',
     'pages/ai-capture/index'
   ],
+  subPackages: [
+    {
+      root: 'packageCharacters',
+      pages: ['pages/avatar-picker/index']
+    }
+  ],
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#FBF7EC',

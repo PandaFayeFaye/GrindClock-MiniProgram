@@ -1,11 +1,14 @@
 import { useState, useCallback, useMemo } from "react";
 import { View, Text, Button } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
-import { fetchEmployers, fetchTimeEntries, clockIn, clockOut } from "../../lib/cloud";
+import { fetchEmployers, fetchTimeEntries, fetchUserProfile, clockIn, clockOut } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
 import { entryHours, entryOvertimePay, entryPay, mergedHoursToday } from "../../lib/pay";
 import { formatGroupedPay, DEFAULT_CURRENCY, currencySymbol } from "../../lib/currency";
-import { startOfWeek, startOfMonth } from "../../lib/stats";
+import { startOfWeek, startOfMonth, latestMoodOrFallback } from "../../lib/stats";
+import { PET_STAGES, currentPetStageIndex, hoursSinceFed, isPetHungry } from "../../lib/pet";
+import type { AnimalKey } from "../../lib/avatar";
+import { CompanionWidget } from "../../components/CompanionWidget";
 import { PunchConfirmModal, type PunchConfirmData } from "../../components/PunchConfirmModal";
 import type { Employer, TimeEntry } from "../../lib/types";
 import "./index.scss";
@@ -21,13 +24,17 @@ export default function Index() {
   const [allEntries, setAllEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [leftRange, setLeftRange] = useState<"today" | "week">("today");
+  const [animal, setAnimal] = useState<AnimalKey | undefined>(undefined);
+  const [mbti, setMbti] = useState<string | undefined>(undefined);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [empDocs, entryDocs] = await Promise.all([fetchEmployers(), fetchTimeEntries()]);
+      const [empDocs, entryDocs, profile] = await Promise.all([fetchEmployers(), fetchTimeEntries(), fetchUserProfile()]);
       setEmployers(empDocs.map(toEmployer));
       setAllEntries(entryDocs.map(toTimeEntry));
+      setAnimal(profile?.animal as AnimalKey | undefined);
+      setMbti(profile?.mbti);
     } catch (err) {
       console.error("Failed to load home data", err);
       Taro.showToast({ title: "加载失败，下拉重试", icon: "none" });
@@ -85,6 +92,32 @@ export default function Index() {
   const monthStart = startOfMonth();
   const leftSummary = useMemo(() => summarizeRange(leftRangeStart, leftRange === "today"), [summarizeRange, leftRangeStart, leftRange]);
   const monthSummary = useMemo(() => summarizeRange(monthStart, false), [summarizeRange, monthStart]);
+
+  const totalHoursAllTime = useMemo(
+    () => entries.filter((e) => e.status === "confirmed" && e.endTime != null).reduce((s, e) => s + entryHours(e), 0),
+    [entries],
+  );
+  const lastFedAt = useMemo(() => {
+    const fedTimes = entries.filter((e) => e.status === "confirmed" && e.endTime != null).map((e) => e.endTime as number);
+    return fedTimes.length > 0 ? Math.max(...fedTimes) : null;
+  }, [entries]);
+  const petStageIdx = currentPetStageIndex(totalHoursAllTime);
+  const petStage = PET_STAGES[petStageIdx];
+  const nextPetStage = PET_STAGES[petStageIdx + 1];
+  const petHungry = isPetHungry(lastFedAt);
+  const hungryHours = Math.floor(hoursSinceFed(lastFedAt));
+  const companionMood = useMemo(() => latestMoodOrFallback(entries), [entries]);
+  const petProgressPct = nextPetStage
+    ? Math.min(100, Math.round(((totalHoursAllTime - petStage.threshold) / (nextPetStage.threshold - petStage.threshold)) * 100))
+    : 100;
+  const petProgressCaption = nextPetStage
+    ? `还差 ${(nextPetStage.threshold - totalHoursAllTime).toFixed(0)} 小时喂到下一阶段`
+    : "TA已经进化成传说形态啦！";
+  const petMoodCaption = lastFedAt == null
+    ? "TA还饿着肚子，打第一次卡喂养TA吧！"
+    : petHungry
+      ? `TA已经 ${hungryHours} 小时没吃饭了，打卡喂养TA吧～`
+      : "TA刚吃饱，很满足地趴着～";
 
   const [confirming, setConfirming] = useState<{ employer: Employer; entry: TimeEntry } | null>(null);
 
@@ -218,6 +251,20 @@ export default function Index() {
             + 添加打工副本
           </Button>
         </View>
+      )}
+
+      {animal && (
+        <CompanionWidget
+          animal={animal}
+          mbti={mbti}
+          stageName={petStage.name}
+          stageAccessory={petStage.accessory}
+          hungry={petHungry}
+          progressPct={petProgressPct}
+          progressCaption={petProgressCaption}
+          moodCaption={petMoodCaption}
+          userMood={companionMood}
+        />
       )}
 
       {confirming && (

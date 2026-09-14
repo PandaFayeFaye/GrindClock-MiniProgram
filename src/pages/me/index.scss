@@ -28,6 +28,26 @@
   font-weight: 900;
 }
 
+.avatar-btn {
+  align-self: flex-start;
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  border: 3px solid #1A1A1A;
+  background: var(--bg-surface);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 6rpx;
+  box-sizing: border-box;
+}
+
+.avatar-btn-img {
+  width: 100%;
+  height: 100%;
+}
+
 .nickname.placeholder {
   opacity: 0.5;
   font-weight: 700;

@@ -1,9 +1,7 @@
-import type { DictKey } from "./i18n";
-
 export type PetAccessory = "star" | "crown";
 
 export type PetStage = {
-  nameKey: DictKey;
+  name: string;
   threshold: number;
   scale: number;
   accessory?: PetAccessory;
@@ -13,11 +11,11 @@ export type PetStage = {
 // form as cumulative worked hours ("feeding") add up. Thresholds intentionally
 // match lib/tiers.ts so the job-title path and the companion's growth line up.
 export const PET_STAGES: PetStage[] = [
-  { nameKey: "petStageEgg", threshold: 0, scale: 0.72 },
-  { nameKey: "petStageBaby", threshold: 10, scale: 0.86 },
-  { nameKey: "petStageGrowing", threshold: 50, scale: 1 },
-  { nameKey: "petStageStrong", threshold: 200, scale: 1.12, accessory: "star" },
-  { nameKey: "petStageLegend", threshold: 500, scale: 1.25, accessory: "crown" },
+  { name: "破壳蛋崽", threshold: 0, scale: 0.72 },
+  { name: "打工幼崽", threshold: 10, scale: 0.86 },
+  { name: "拼命练习生", threshold: 50, scale: 1 },
+  { name: "搬砖战士", threshold: 200, scale: 1.12, accessory: "star" },
+  { name: "传说牛马", threshold: 500, scale: 1.25, accessory: "crown" },
 ];
 
 export function currentPetStageIndex(totalHours: number): number {
