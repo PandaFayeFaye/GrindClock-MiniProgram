@@ -98,7 +98,10 @@ export default function Index() {
             return (
               <View className="row" key={emp.id}>
                 <View className="dot" style={{ background: emp.color }} />
-                <View className="row-name">
+                <View
+                  className="row-name"
+                  onClick={() => Taro.navigateTo({ url: `/pages/employer-form/index?id=${emp.id}` })}
+                >
                   <Text className="row-title">{emp.name}</Text>
                 </View>
                 <Button

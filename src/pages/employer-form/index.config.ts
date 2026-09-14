@@ -1,3 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: "添加打工副本",
+  navigationBarTitleText: "打工副本",
 });

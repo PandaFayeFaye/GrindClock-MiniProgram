@@ -39,6 +39,11 @@ export async function fetchEmployers(): Promise<CloudEmployer[]> {
   return res.data as CloudEmployer[];
 }
 
+export async function fetchEmployerById(employerId: string): Promise<CloudEmployer | null> {
+  const res = await employersCollection().doc(employerId).get({});
+  return (res.data as unknown as CloudEmployer) ?? null;
+}
+
 export async function fetchTimeEntries(): Promise<CloudTimeEntry[]> {
   const res = await timeEntriesCollection().orderBy("startTime", "desc").get();
   return res.data as CloudTimeEntry[];
