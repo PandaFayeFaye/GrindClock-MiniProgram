@@ -6,12 +6,12 @@
 
 1. **开通腾讯云 OCR / ASR 服务**：登录 [腾讯云控制台](https://console.cloud.tencent.com/)，开通"文字识别 OCR"（通用印刷体识别）和"语音识别 ASR"（一句话识别）。
 2. **获取密钥**：在"访问管理 - API密钥管理"里创建一个 SecretId / SecretKey。
-3. **在云函数里配置环境变量**：在微信开发者工具中，右键 `cloudfunctions/ocrRecognize` → 云端配置 → 环境变量，添加：
-   - `TENCENTCLOUD_SECRETID`
-   - `TENCENTCLOUD_SECRETKEY`
+3. **先上传部署**：右键每个云函数文件夹（`ocrRecognize`、`asrRecognize`）→ "创建并部署：云端安装依赖"（会自动装 package.json 里的依赖）。
+4. **在云开发控制台网页版配置环境变量**：云函数列表 → 点进对应函数 → 配置云函数。注意：环境变量的 Key **不能以 `TENCENTCLOUD_`、`QCLOUD_`、`SCF_` 开头**（腾讯云保留前缀，会报 `InvalidParameterValue.Environment` 错误），代码里用的变量名是：
+   - `TC_API_SECRET_ID`
+   - `TC_API_SECRET_KEY`
    
-   `asrRecognize` 同样配置一遍。
-4. **上传并部署**：右键每个云函数文件夹 → "上传并部署：云端安装依赖"（会自动装 package.json 里的依赖）。
+   同时建议把"执行超时"从默认的 3 秒调大到 10 秒左右（调用外部 OCR/ASR API 网络请求 3 秒经常不够）。`asrRecognize` 同样配置一遍。
 5. **测试**：在小程序里进入"AI 记工"页，拍一张排班表照片或说一句话试试。如果失败，去云开发控制台的"云函数"日志里看报错。
 
 ## 费用提示

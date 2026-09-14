@@ -22,8 +22,8 @@ exports.main = async (event) => {
 
     const client = new OcrClient({
       credential: {
-        secretId: process.env.TENCENTCLOUD_SECRETID,
-        secretKey: process.env.TENCENTCLOUD_SECRETKEY,
+        secretId: process.env.TC_API_SECRET_ID,
+        secretKey: process.env.TC_API_SECRET_KEY,
       },
       region: "ap-guangzhou",
       profile: {
