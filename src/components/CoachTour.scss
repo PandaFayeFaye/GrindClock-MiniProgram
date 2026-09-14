@@ -1,0 +1,62 @@
+.coach-tour-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 48rpx;
+  box-sizing: border-box;
+}
+
+.coach-tour-card {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 3px solid var(--border-bold);
+  border-radius: var(--radius-bold);
+  padding: 40rpx 36rpx;
+  box-shadow: var(--shadow-bold);
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.coach-tour-progress {
+  font-size: 20rpx;
+  font-weight: 900;
+  color: var(--accent-coral);
+}
+
+.coach-tour-title {
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.coach-tour-body {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.coach-tour-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12rpx;
+}
+
+.coach-tour-skip {
+  font-size: 22rpx;
+  color: var(--text-muted);
+  padding: 12rpx;
+}
+
+.coach-tour-next {
+  padding: 16rpx 40rpx;
+  border-radius: 20rpx;
+  border: 2px solid var(--border-bold);
+  background: var(--accent-yellow);
+  font-weight: 900;
+  font-size: 24rpx;
+}

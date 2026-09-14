@@ -11,7 +11,8 @@ export default defineAppConfig({
     'pages/team/index',
     'pages/worker-form/index',
     'pages/recap/index',
-    'pages/ai-capture/index'
+    'pages/ai-capture/index',
+    'pages/onboarding/index'
   ],
   subPackages: [
     {

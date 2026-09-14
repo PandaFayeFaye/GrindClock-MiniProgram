@@ -9,11 +9,13 @@ import { startOfWeek, startOfMonth, latestMoodOrFallback } from "../../lib/stats
 import { PET_STAGES, currentPetStageIndex, hoursSinceFed, isPetHungry } from "../../lib/pet";
 import { todaysSchedule, scheduleDurationHours, combineDateAndTime } from "../../lib/schedule";
 import { SETTINGS_KEYS, getLocalToggle } from "../../lib/settings";
+import { hasOnboarded, markOnboarded, hasSeenCoachTour } from "../../lib/onboarding";
 import type { AnimalKey } from "../../lib/avatar";
 import { CompanionWidget } from "../../components/CompanionWidget";
 import { PunchConfirmModal, type PunchConfirmData } from "../../components/PunchConfirmModal";
 import { RetroClockInModal } from "../../components/RetroClockInModal";
 import { ScheduleConfirmModal } from "../../components/ScheduleConfirmModal";
+import { CoachTour, HOME_COACH_STEPS } from "../../components/CoachTour";
 import type { Employer, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
@@ -23,6 +25,10 @@ function startOfToday() {
   return d.getTime();
 }
 
+// Module-level so the onboarding/coach-tour gate only ever runs once per app
+// launch, not on every Home re-show (switching tabs back and forth, etc.).
+let hasCheckedFirstRunGate = false;
+
 export default function Index() {
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [allEntries, setAllEntries] = useState<TimeEntry[]>([]);
@@ -31,15 +37,31 @@ export default function Index() {
   const [animal, setAnimal] = useState<AnimalKey | undefined>(undefined);
   const [mbti, setMbti] = useState<string | undefined>(undefined);
   const [simpleMode, setSimpleMode] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
       const [empDocs, entryDocs, profile] = await Promise.all([fetchEmployers(), fetchTimeEntries(), fetchUserProfile()]);
-      setEmployers(empDocs.map(toEmployer));
-      setAllEntries(entryDocs.map(toTimeEntry));
+      const emps = empDocs.map(toEmployer);
+      const allEnts = entryDocs.map(toTimeEntry);
+      setEmployers(emps);
+      setAllEntries(allEnts);
       setAnimal(profile?.animal as AnimalKey | undefined);
       setMbti(profile?.mbti);
+
+      if (!hasCheckedFirstRunGate) {
+        hasCheckedFirstRunGate = true;
+        if (!hasOnboarded()) {
+          if (emps.length === 0 && allEnts.length === 0) {
+            Taro.navigateTo({ url: "/pages/onboarding/index" });
+          } else {
+            markOnboarded();
+          }
+        } else if (!hasSeenCoachTour()) {
+          setTimeout(() => setShowTour(true), 600);
+        }
+      }
     } catch (err) {
       console.error("Failed to load home data", err);
       Taro.showToast({ title: "加载失败，下拉重试", icon: "none" });
@@ -381,6 +403,8 @@ export default function Index() {
           />
         );
       })()}
+
+      {showTour && <CoachTour steps={HOME_COACH_STEPS} onDone={() => setShowTour(false)} />}
     </View>
   );
 }
