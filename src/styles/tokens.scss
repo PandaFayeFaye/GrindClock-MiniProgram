@@ -50,6 +50,11 @@ page {
   --space-8: 32px;
   --space-10: 40px;
 
+  // 3. fonts -- ZCOOL KuaiLe loaded globally via Taro.loadFontFace() in
+  // src/app.ts (a subsetted local TTF, not this Google Fonts @import, since
+  // mini programs can't reach an arbitrary CDN the way a web page can).
+  --font-display: "ZCOOL KuaiLe", sans-serif;
+
   background: var(--bg-base);
   color: var(--text-primary);
 }

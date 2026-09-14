@@ -14,6 +14,18 @@ function App({ children }: PropsWithChildren<any>) {
     } else {
       console.warn('CLOUD_ENV_ID not set yet -- see docs/DATA_MODEL.md')
     }
+
+    // Web app's display font (ZCOOL KuaiLe) for page titles / big stat numbers,
+    // subsetted to just the characters this app actually uses (~100KB TTF,
+    // see assets/fonts/). WOFF2 is unreliable on older iOS per WeChat's own
+    // docs, hence TTF. Loaded once, globally, at launch -- WXSS @font-face with
+    // a locally-bundled file is flaky across client versions, wx.loadFontFace
+    // is the documented reliable path.
+    Taro.loadFontFace({
+      family: 'ZCOOL KuaiLe',
+      source: 'url("/fonts/ZCOOLKuaiLe-subset.ttf")',
+      global: true,
+    }).catch((err) => console.warn('Failed to load display font', err))
   })
 
   // children 是将要会渲染的页面
