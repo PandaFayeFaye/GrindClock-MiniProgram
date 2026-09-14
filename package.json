@@ -31,10 +31,6 @@
     "dev:jd": "npm run build:jd -- --watch",
     "dev:harmony-hybrid": "npm run build:harmony-hybrid -- --watch"
   },
-  "browserslist": [
-    "defaults and fully supports es6-module",
-    "maintained node versions"
-  ],
   "author": "",
   "dependencies": {
     "@babel/runtime": "^7.24.4",
