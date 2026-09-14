@@ -195,6 +195,28 @@
   color: var(--text-muted);
 }
 
+.time-range-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.time-range-value {
+  flex: 1;
+}
+
+.time-range-sep {
+  font-size: 26rpx;
+  color: var(--text-muted);
+}
+
+.time-range-clear {
+  font-size: 22rpx;
+  color: var(--accent-coral);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .batch-list {
   display: flex;
   flex-direction: column;

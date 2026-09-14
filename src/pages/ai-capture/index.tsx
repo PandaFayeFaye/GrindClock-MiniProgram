@@ -157,6 +157,9 @@ export default function AICapture() {
   function handleManualEntry() {
     setRecognizedText("");
     setCaptureSource("manual");
+    setStartTimeStr("");
+    setEndTimeStr("");
+    setHours("");
     setReviewMode("single");
   }
 
@@ -346,6 +349,32 @@ export default function AICapture() {
           <Picker mode="date" value={date} onChange={(e) => setDate(e.detail.value)}>
             <View className="picker-value">{date}</View>
           </Picker>
+        </View>
+
+        <View className="field">
+          <Text className="field-label">上下班时间（可选，识别到才会显示）</Text>
+          <View className="time-range-row">
+            <Picker
+              mode="time"
+              value={startTimeStr || "09:00"}
+              onChange={(e) => setStartTimeStr(e.detail.value)}
+            >
+              <View className="picker-value time-range-value">{startTimeStr || "未识别"}</View>
+            </Picker>
+            <Text className="time-range-sep">-</Text>
+            <Picker
+              mode="time"
+              value={endTimeStr || "18:00"}
+              onChange={(e) => setEndTimeStr(e.detail.value)}
+            >
+              <View className="picker-value time-range-value">{endTimeStr || "未识别"}</View>
+            </Picker>
+            {(startTimeStr || endTimeStr) && (
+              <View className="time-range-clear" onClick={() => { setStartTimeStr(""); setEndTimeStr(""); }}>
+                <Text>清除</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         <View className="field">
