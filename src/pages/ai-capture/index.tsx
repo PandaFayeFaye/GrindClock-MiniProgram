@@ -75,9 +75,11 @@ export default function AICapture() {
         name: "ocrRecognize",
         data: { fileID: uploadRes.fileID },
       });
+      console.log("ocrRecognize result", callRes.result);
       const text = (callRes.result as any)?.text ?? "";
       if (!text) {
-        Taro.showToast({ title: "没识别出文字，试试手动填", icon: "none" });
+        const errMsg = (callRes.result as any)?.error;
+        Taro.showToast({ title: errMsg ? "识别出错，看控制台日志" : "没识别出文字，试试手动填", icon: "none" });
         setMode("idle");
         return;
       }
@@ -104,9 +106,11 @@ export default function AICapture() {
           name: "asrRecognize",
           data: { fileID: uploadRes.fileID },
         });
+        console.log("asrRecognize result", callRes.result);
         const text = (callRes.result as any)?.text ?? "";
         if (!text) {
-          Taro.showToast({ title: "没听清，试试手动填", icon: "none" });
+          const errMsg = (callRes.result as any)?.error;
+          Taro.showToast({ title: errMsg ? "识别出错，看控制台日志" : "没听清，试试手动填", icon: "none" });
           setMode("idle");
           return;
         }
@@ -123,7 +127,7 @@ export default function AICapture() {
       Taro.showToast({ title: "录音失败", icon: "none" });
       setMode("idle");
     });
-    recorder.start({ format: "mp3", duration: 30000 });
+    recorder.start({ format: "mp3", duration: 30000, sampleRate: 16000, numberOfChannels: 1, encodeBitRate: 96000 });
     setMode("recording");
   }
 
