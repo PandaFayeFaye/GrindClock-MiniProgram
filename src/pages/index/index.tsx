@@ -5,6 +5,7 @@ import { fetchEmployers, fetchTimeEntries, clockIn, clockOut } from "../../lib/c
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
 import { entryHours, entryPay } from "../../lib/pay";
 import { formatGroupedPay, DEFAULT_CURRENCY } from "../../lib/currency";
+import { PunchConfirmModal, type PunchConfirmData } from "../../components/PunchConfirmModal";
 import type { Employer, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
@@ -57,17 +58,41 @@ export default function Index() {
     todaysPayByCurrency.set(cur, (todaysPayByCurrency.get(cur) ?? 0) + entryPay(emp, e));
   }
 
+  const [confirming, setConfirming] = useState<{ employer: Employer; entry: TimeEntry } | null>(null);
+
   async function handlePunch(employer: Employer) {
     const active = activeByEmployer.get(employer.id);
+    if (active) {
+      setConfirming({ employer, entry: active });
+      return;
+    }
     try {
-      if (active) {
-        await clockOut(active.id, Date.now());
-      } else {
-        await clockIn(employer.id, Date.now());
-      }
+      await clockIn(employer.id, Date.now());
       reload();
     } catch (err) {
-      console.error("Punch failed", err);
+      console.error("Clock-in failed", err);
+      Taro.showToast({ title: "打卡失败，重试一下", icon: "none" });
+    }
+  }
+
+  async function handleConfirmClockOut(data: PunchConfirmData) {
+    if (!confirming) return;
+    try {
+      await clockOut(confirming.entry.id, {
+        endTime: data.endTime,
+        ...(data.mood ? { mood: data.mood } : {}),
+        ...(data.moodNote ? { moodNote: data.moodNote } : {}),
+        ...(data.note ? { note: data.note } : {}),
+        ...(data.adjustment ? { adjustment: data.adjustment } : {}),
+        isOvertime: data.isOvertime,
+        isHoliday: data.isHoliday,
+        ...(data.orderCount !== undefined ? { orderCount: data.orderCount } : {}),
+        ...(data.overtimeHours !== undefined ? { overtimeHours: data.overtimeHours } : {}),
+      });
+      setConfirming(null);
+      reload();
+    } catch (err) {
+      console.error("Clock-out failed", err);
       Taro.showToast({ title: "打卡失败，重试一下", icon: "none" });
     }
   }
@@ -120,6 +145,15 @@ export default function Index() {
             + 添加打工副本
           </Button>
         </View>
+      )}
+
+      {confirming && (
+        <PunchConfirmModal
+          employer={confirming.employer}
+          entry={confirming.entry}
+          onCancel={() => setConfirming(null)}
+          onConfirm={handleConfirmClockOut}
+        />
       )}
     </View>
   );

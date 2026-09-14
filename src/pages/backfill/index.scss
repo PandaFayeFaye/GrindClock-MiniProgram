@@ -83,3 +83,67 @@
 .save-btn::after {
   border: none;
 }
+
+.overtime-detected {
+  background: var(--bg-surface);
+  border: 2px solid var(--accent-coral);
+  border-radius: 24rpx;
+  padding: 24rpx 28rpx;
+}
+
+.ot-title {
+  font-size: 24rpx;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.overtime-detected-note {
+  font-size: 21rpx;
+  color: var(--text-muted);
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.ot-block + .ot-block {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1.3px dashed var(--border-quiet);
+}
+
+.ot-block-label {
+  font-size: 19rpx;
+  font-weight: 800;
+  color: var(--accent-coral);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.overtime-detected-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.ot-hours-input {
+  width: 160rpx;
+  box-sizing: border-box;
+  padding: 16rpx 20rpx;
+  border: 2px solid var(--border-bold);
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  background: var(--bg-surface);
+}
+
+.overtime-detected-unit {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.overtime-detected-mult {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}

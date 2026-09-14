@@ -1,5 +1,5 @@
 import Taro from "@tarojs/taro";
-import type { Employer, Mood, TimeEntry } from "./types";
+import type { Employer, TimeEntry } from "./types";
 
 // Mirrors the web app's src/lib/firestore.ts shape so page code reads the
 // same way on both sides. Security is enforced by the WeChat CloudBase
@@ -87,8 +87,8 @@ export function clockIn(employerId: string, startTime: number) {
   } as Omit<TimeEntry, "id">);
 }
 
-export function clockOut(entryId: string, endTime: number, extra?: { mood?: Mood; moodNote?: string; overtimeHours?: number }) {
-  return updateTimeEntry(entryId, { endTime, ...extra });
+export function clockOut(entryId: string, data: Partial<TimeEntry> & { endTime: number }) {
+  return updateTimeEntry(entryId, data);
 }
 
 export async function fetchUserProfile(): Promise<{ animal?: string; mbti?: string; nickname?: string } | null> {

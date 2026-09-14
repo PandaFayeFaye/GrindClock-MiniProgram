@@ -3,6 +3,8 @@ import { View, Text, Input, Picker, Button } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { fetchEmployers, addManualEntry } from "../../lib/cloud";
 import { toEmployer } from "../../lib/adapt";
+import { todaysSchedule, scheduleDurationHours } from "../../lib/schedule";
+import { currencySymbol } from "../../lib/currency";
 import type { Employer, Mood } from "../../lib/types";
 import "./index.scss";
 
@@ -27,6 +29,8 @@ export default function Backfill() {
   const [date, setDate] = useState(toDateInputValue(new Date()));
   const [hours, setHours] = useState("");
   const [mood, setMood] = useState<Mood | undefined>(undefined);
+  const [overtimeHoursStr, setOvertimeHoursStr] = useState("");
+  const [overtimeTouched, setOvertimeTouched] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -36,6 +40,15 @@ export default function Backfill() {
   }, []);
 
   const employer = employers[employerIdx];
+  const enteredHours = Number(hours) || 0;
+  const schedule = employer ? todaysSchedule(employer, new Date(date)) : null;
+  const scheduledHours = schedule ? scheduleDurationHours(schedule) : 0;
+  const supportsAutoOvertime = !!schedule && !!employer && (employer.payType === "monthly" || employer.payType === "comprehensive");
+  const detectedOvertimeHours = supportsAutoOvertime ? Math.max(0, enteredHours - scheduledHours) : 0;
+  const showOvertimeSection = supportsAutoOvertime && detectedOvertimeHours > 0.05;
+  const overtimeHoursValue = showOvertimeSection
+    ? Number(overtimeTouched ? overtimeHoursStr : detectedOvertimeHours.toFixed(1)) || 0
+    : undefined;
 
   async function handleSave() {
     if (!employer) {
@@ -58,6 +71,7 @@ export default function Backfill() {
         status: "confirmed",
         source: "manual",
         ...(mood ? { mood } : {}),
+        ...(overtimeHoursValue ? { overtimeHours: overtimeHoursValue } : {}),
       });
       Taro.navigateBack();
     } catch (err) {
@@ -100,9 +114,36 @@ export default function Backfill() {
           type="digit"
           placeholder="比如：6"
           value={hours}
-          onInput={(e) => setHours(e.detail.value)}
+          onInput={(e) => { setHours(e.detail.value); setOvertimeTouched(false); }}
         />
       </View>
+
+      {showOvertimeSection && employer && (
+        <View className="overtime-detected">
+          <Text className="ot-title">检测到加班</Text>
+          <Text className="overtime-detected-note">排班 {scheduledHours.toFixed(1)} 小时，实际填写 {enteredHours.toFixed(1)} 小时</Text>
+          <View className="ot-block">
+            <Text className="ot-block-label">额外超出时长（加班）</Text>
+            <View className="overtime-detected-row">
+              <Input
+                className="ot-hours-input"
+                type="digit"
+                value={overtimeTouched ? overtimeHoursStr : detectedOvertimeHours.toFixed(1)}
+                onInput={(e) => { setOvertimeTouched(true); setOvertimeHoursStr(e.detail.value); }}
+              />
+              <Text className="overtime-detected-unit">小时</Text>
+            </View>
+          </View>
+          <View className="ot-block">
+            <Text className="ot-block-label">加班计算规则</Text>
+            <Text className="overtime-detected-mult">
+              {employer.overtimeRateMode === "fixed" && employer.overtimeHourlyRate
+                ? `按固定加班时薪 ${currencySymbol(employer.currency)}${employer.overtimeHourlyRate}/小时计算`
+                : `按 ${(employer.overtimeMultiplier ?? 1.5).toFixed(1)}x 加班工资计算`}
+            </Text>
+          </View>
+        </View>
+      )}
 
       <View className="field">
         <Text className="field-label">今天感觉怎么样？（可选）</Text>
