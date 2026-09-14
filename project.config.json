@@ -1,0 +1,15 @@
+{
+  "miniprogramRoot": "./dist",
+  "projectname": "grindclock-miniprogram",
+  "description": "牛马打卡机 GrindClock - WeChat Mini Program",
+  "appid": "wx14d20805711b10f1",
+  "setting": {
+    "urlCheck": true,
+    "es6": false,
+    "enhance": false,
+    "compileHotReLoad": false,
+    "postcss": false,
+    "minified": false
+  },
+  "compileType": "miniprogram"
+}

@@ -1,0 +1,55 @@
+// Design tokens ported from the web app's src/styles/tokens.css.
+// WXSS has no `:root` selector -- `page{}` is the mini-program equivalent for
+// global custom properties (supported since base library 2.9.2+).
+//
+// NOT ported: the Google Fonts @import for ZCOOL KuaiLe / Noto Sans SC.
+// Mini programs can't load fonts from an arbitrary CDN the way a web page can
+// -- using these display fonts here means bundling .ttf files locally via
+// @font-face with a local path, which adds package size (mini programs cap
+// each package at 2MB). Decide in Phase 2 whether that's worth it, or fall
+// back to the system font everywhere.
+
+page {
+  // 2.1 base palette
+  --bg-base: #FBF7EC;
+  --bg-surface: #FFFFFF;
+  --border-quiet: #DDD6C2;
+  --border-bold: #1A1A1A;
+  --text-primary: #1A1A1A;
+  --text-muted: rgba(26, 26, 26, 0.6);
+
+  // 2.2 brand accents
+  --accent-yellow: #FFD93D;
+  --accent-blue: #4361EE;
+  --accent-coral: #FF6B6B;
+  --accent-shadow-yellow: #FFB800;
+  --accent-green: #39C97A;
+  --accent-purple: #B084F5;
+  --accent-skyblue: #5AC8FA;
+
+  // 2.4 semantic
+  --semantic-success: #39C97A;
+  --semantic-warning: #FFB800;
+  --semantic-error: #E14B4B;
+
+  // 5. radius + shadow
+  --radius-quiet: 14px;
+  --radius-bold: 16px;
+  --radius-poster: 24px;
+  --radius-pill: 999px;
+  --shadow-bold: 5px 5px 0 var(--border-bold);
+  --shadow-bold-sm: 3px 3px 0 var(--border-bold);
+
+  // 4. spacing (4px grid)
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
