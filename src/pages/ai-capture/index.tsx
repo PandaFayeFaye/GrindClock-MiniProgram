@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { View, Text, Input, Picker, Button } from "@tarojs/components";
 import Taro from "@tarojs/taro";
-import { fetchEmployers, addManualEntry } from "../../lib/cloud";
+import { fetchEmployers, addManualEntry, addManualEntries } from "../../lib/cloud";
 import { toEmployer } from "../../lib/adapt";
 import { parseSpeechToDraft } from "../../lib/parseSpeechToDraft";
-import type { Employer, Mood } from "../../lib/types";
+import { parseScheduleTable, WEEKDAY_LABELS, type ScheduleRow } from "../../lib/parseScheduleTable";
+import type { Employer, Mood, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
 const MOOD_OPTIONS: { key: Mood; label: string }[] = [
@@ -19,6 +20,7 @@ const MOOD_OPTIONS: { key: Mood; label: string }[] = [
 ];
 
 type Mode = "idle" | "recording" | "recognizing";
+type ReviewMode = "none" | "single" | "batch";
 
 function toDateInputValue(d: Date) {
   return d.toISOString().slice(0, 10);
@@ -29,7 +31,7 @@ export default function AICapture() {
   const [mode, setMode] = useState<Mode>("idle");
   const [recognizedText, setRecognizedText] = useState("");
   const [captureSource, setCaptureSource] = useState<"manual" | "ocr" | "voice">("manual");
-  const [reviewing, setReviewing] = useState(false);
+  const [reviewMode, setReviewMode] = useState<ReviewMode>("none");
 
   const [employerIdx, setEmployerIdx] = useState(0);
   const [date, setDate] = useState(toDateInputValue(new Date()));
@@ -39,6 +41,8 @@ export default function AICapture() {
   const [mood, setMood] = useState<Mood | undefined>(undefined);
   const [saving, setSaving] = useState(false);
 
+  const [batchRows, setBatchRows] = useState<ScheduleRow[]>([]);
+
   useEffect(() => {
     fetchEmployers().then((docs) => {
       setEmployers(docs.map(toEmployer).filter((e) => !e.archived));
@@ -46,6 +50,18 @@ export default function AICapture() {
   }, []);
 
   function applyDraft(text: string) {
+    const table = parseScheduleTable(text, employers);
+    if (table.rows.length > 0) {
+      if (table.employerId) {
+        const idx = employers.findIndex((e) => e.id === table.employerId);
+        if (idx >= 0) setEmployerIdx(idx);
+      }
+      setBatchRows(table.rows);
+      setRecognizedText(text);
+      setReviewMode("batch");
+      return;
+    }
+
     const draft = parseSpeechToDraft(text, employers);
     if (draft.employerId) {
       const idx = employers.findIndex((e) => e.id === draft.employerId);
@@ -58,7 +74,7 @@ export default function AICapture() {
     setStartTimeStr(draft.startTimeStr ?? "");
     setEndTimeStr(draft.endTimeStr ?? "");
     setRecognizedText(text);
-    setReviewing(true);
+    setReviewMode("single");
   }
 
   async function handleChoosePhoto() {
@@ -138,7 +154,7 @@ export default function AICapture() {
   function handleManualEntry() {
     setRecognizedText("");
     setCaptureSource("manual");
-    setReviewing(true);
+    setReviewMode("single");
   }
 
   async function handleSave() {
@@ -183,7 +199,119 @@ export default function AICapture() {
     }
   }
 
-  if (reviewing) {
+  function updateBatchRow(idx: number, patch: Partial<ScheduleRow>) {
+    setBatchRows((rows) => rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  }
+
+  function removeBatchRow(idx: number) {
+    setBatchRows((rows) => rows.filter((_, i) => i !== idx));
+  }
+
+  async function handleSaveBatch() {
+    const employer = employers[employerIdx];
+    if (!employer) {
+      Taro.showToast({ title: "先添加一个打工副本吧", icon: "none" });
+      return;
+    }
+    if (batchRows.length === 0) {
+      Taro.showToast({ title: "没有可保存的记录", icon: "none" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const entries: Omit<TimeEntry, "id">[] = batchRows.map((row) => {
+        let startTime = new Date(`${row.date}T${row.startTimeStr}:00`).getTime();
+        let endTime = new Date(`${row.date}T${row.endTimeStr}:00`).getTime();
+        if (endTime <= startTime) endTime += 24 * 3_600_000;
+        return {
+          employerId: employer.id,
+          startTime,
+          endTime,
+          status: "confirmed",
+          source: captureSource,
+          note: `AI记工识别原文：${recognizedText}`,
+        };
+      });
+      await addManualEntries(entries);
+      Taro.showToast({ title: `已保存 ${entries.length} 条记录`, icon: "success" });
+      Taro.navigateBack();
+    } catch (err) {
+      console.error("Failed to save batch AI-captured entries", err);
+      Taro.showToast({ title: "保存失败，重试一下", icon: "none" });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (reviewMode === "batch") {
+    return (
+      <View className="ai-capture-page">
+        <Text className="page-title">确认识别结果（{batchRows.length} 条排班）</Text>
+        <View className="recognized-block">
+          <Text className="recognized-label">识别原文</Text>
+          <Text className="recognized-text">{recognizedText}</Text>
+        </View>
+
+        <View className="field">
+          <Text className="field-label">打工副本</Text>
+          {employers.length === 0 ? (
+            <Text className="empty-hint">还没有打工副本，先去首页添加一个</Text>
+          ) : (
+            <Picker
+              mode="selector"
+              range={employers.map((e) => e.name)}
+              value={employerIdx}
+              onChange={(e) => setEmployerIdx(Number(e.detail.value))}
+            >
+              <View className="picker-value">{employers[employerIdx]?.name}</View>
+            </Picker>
+          )}
+        </View>
+
+        <View className="batch-list">
+          {batchRows.map((row, idx) => (
+            <View className="batch-row" key={idx}>
+              <View className="batch-row-header">
+                <Text className="batch-row-day">{WEEKDAY_LABELS[row.weekday]} · {row.date}</Text>
+                <View className="batch-row-remove" onClick={() => removeBatchRow(idx)}>
+                  <Text>删除</Text>
+                </View>
+              </View>
+              <View className="batch-row-fields">
+                <Picker mode="date" value={row.date} onChange={(e) => updateBatchRow(idx, { date: e.detail.value })}>
+                  <View className="batch-mini-value">{row.date}</View>
+                </Picker>
+                <Picker mode="time" value={row.startTimeStr} onChange={(e) => updateBatchRow(idx, { startTimeStr: e.detail.value })}>
+                  <View className="batch-mini-value">{row.startTimeStr}</View>
+                </Picker>
+                <Text className="batch-row-sep">-</Text>
+                <Picker mode="time" value={row.endTimeStr} onChange={(e) => updateBatchRow(idx, { endTimeStr: e.detail.value })}>
+                  <View className="batch-mini-value">{row.endTimeStr}</View>
+                </Picker>
+                <Input
+                  className="batch-hours-input"
+                  type="digit"
+                  value={String(row.hours)}
+                  onInput={(e) => updateBatchRow(idx, { hours: Number(e.detail.value) || 0 })}
+                />
+                <Text className="batch-row-unit">h</Text>
+              </View>
+            </View>
+          ))}
+          {batchRows.length === 0 && <Text className="empty-hint">已全部删除，返回重新识别</Text>}
+        </View>
+
+        <Button className="save-btn" loading={saving} onClick={handleSaveBatch}>
+          保存全部 {batchRows.length} 条
+        </Button>
+        <View className="back-link" onClick={() => setReviewMode("none")}>
+          <Text>返回重新识别</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (reviewMode === "single") {
     return (
       <View className="ai-capture-page">
         <Text className="page-title">确认识别结果</Text>
@@ -246,7 +374,7 @@ export default function AICapture() {
         <Button className="save-btn" loading={saving} onClick={handleSave}>
           保存
         </Button>
-        <View className="back-link" onClick={() => setReviewing(false)}>
+        <View className="back-link" onClick={() => setReviewMode("none")}>
           <Text>返回重新识别</Text>
         </View>
       </View>
@@ -256,7 +384,7 @@ export default function AICapture() {
   return (
     <View className="ai-capture-page">
       <Text className="page-title">AI 记工</Text>
-      <Text className="page-hint">拍一张排班表照片，或者说一句话，AI 帮你识别工时信息，保存前你都可以修改确认。</Text>
+      <Text className="page-hint">拍一张排班表照片，或者说一句话，AI 帮你识别工时信息，保存前你都可以修改确认。整周排班表会自动拆成多条记录。</Text>
 
       <View className="capture-actions">
         <View className={`capture-card${mode === "recognizing" ? " disabled" : ""}`} onClick={mode === "idle" ? handleChoosePhoto : undefined}>

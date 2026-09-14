@@ -194,3 +194,71 @@
   font-size: 24rpx;
   color: var(--text-muted);
 }
+
+.batch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.batch-row {
+  background: var(--bg-surface);
+  border: 2px solid var(--border-bold);
+  border-radius: 20rpx;
+  padding: 20rpx 24rpx;
+}
+
+.batch-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.batch-row-day {
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.batch-row-remove {
+  font-size: 22rpx;
+  color: var(--accent-coral);
+  font-weight: 700;
+}
+
+.batch-row-fields {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.batch-mini-value {
+  padding: 12rpx 16rpx;
+  border: 2px solid var(--border-quiet);
+  border-radius: 14rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  background: var(--bg-base);
+}
+
+.batch-row-sep {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.batch-hours-input {
+  width: 80rpx;
+  box-sizing: border-box;
+  padding: 12rpx;
+  border: 2px solid var(--border-quiet);
+  border-radius: 14rpx;
+  font-size: 24rpx;
+  background: var(--bg-base);
+  text-align: center;
+}
+
+.batch-row-unit {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
