@@ -1,0 +1,166 @@
+.badge-page {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+  padding: 32rpx;
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-bold);
+  border-radius: var(--radius-bold);
+  padding: 32rpx 36rpx;
+  box-shadow: var(--shadow-bold-sm);
+}
+
+.hero-title {
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.hero-track {
+  height: 16rpx;
+  border-radius: 8rpx;
+  background: var(--bg-base);
+  border: 1.3px solid var(--border-quiet);
+  overflow: hidden;
+}
+
+.hero-fill {
+  display: block;
+  height: 100%;
+}
+
+.hero-note {
+  font-size: 21rpx;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.section-label {
+  font-size: 24rpx;
+  font-weight: 900;
+  color: var(--text-muted);
+}
+
+.tier-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.tier-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 24rpx;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 20rpx;
+  opacity: 0.55;
+}
+
+.tier-item.unlocked {
+  opacity: 1;
+}
+
+.tier-item.current {
+  border-color: var(--border-bold);
+  box-shadow: var(--shadow-bold-sm);
+}
+
+.tier-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--bg-base);
+  border: 2px solid var(--border-quiet);
+}
+
+.tier-item.unlocked .tier-icon {
+  border-color: var(--border-bold);
+}
+
+.tier-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.tier-name {
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.tier-cond {
+  font-size: 19rpx;
+  color: var(--text-muted);
+}
+
+.tier-current-tag {
+  font-size: 19rpx;
+  font-weight: 800;
+  color: var(--accent-blue);
+  flex-shrink: 0;
+}
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 28rpx 16rpx;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 20rpx;
+  opacity: 0.5;
+  text-align: center;
+}
+
+.badge.unlocked {
+  opacity: 1;
+  border-color: var(--border-bold);
+}
+
+.badge-ic {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: var(--bg-base);
+  border: 2px solid var(--border-quiet);
+}
+
+.badge.unlocked .badge-ic {
+  border-color: var(--border-bold);
+}
+
+.badge-name {
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.badge-cond {
+  font-size: 18rpx;
+  color: var(--text-muted);
+  line-height: 1.4;
+}

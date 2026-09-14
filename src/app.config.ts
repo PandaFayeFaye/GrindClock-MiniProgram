@@ -6,7 +6,8 @@ export default defineAppConfig({
     'pages/backfill/index',
     'pages/batch-backfill/index',
     'pages/me/index',
-    'pages/net-pay/index'
+    'pages/net-pay/index',
+    'pages/badges/index'
   ],
   window: {
     backgroundTextStyle: 'light',

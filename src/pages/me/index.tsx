@@ -93,9 +93,10 @@ export default function Me() {
             {nickname || "点击设置昵称"}
           </Text>
         )}
-        <View className="tier-row">
+        <View className="tier-row" onClick={() => Taro.navigateTo({ url: "/pages/badges/index" })}>
           <Text className="tier-chip" style={{ background: TIER_COLORS[tierIdx] }}>{tier.label}</Text>
           {streak > 0 && <Text className="streak-chip">连续 {streak} 天</Text>}
+          <Text className="tier-arrow">成就墙 ›</Text>
         </View>
         <View className="tier-track">
           <View className="tier-fill" style={{ width: `${tierProgressPct}%`, background: TIER_COLORS[tierIdx] }} />
