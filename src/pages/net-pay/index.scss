@@ -1,0 +1,120 @@
+.netpay-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  padding: 32rpx;
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+.note-card {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 20rpx;
+  padding: 24rpx 28rpx;
+  font-size: 21rpx;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 24rpx 0;
+}
+
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 20rpx;
+}
+
+.rank-row.top {
+  border-color: var(--border-bold);
+  background: #FFF8E8;
+  box-shadow: var(--shadow-bold-sm);
+}
+
+.rank-num {
+  width: 52rpx;
+  height: 52rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--border-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 900;
+  background: #fff;
+}
+
+.rank-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.rank-name {
+  font-size: 27rpx;
+  font-weight: 800;
+}
+
+.rank-detail {
+  font-size: 19rpx;
+  color: var(--text-muted);
+}
+
+.rank-actual {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.rank-actual .n {
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.rank-actual .l {
+  font-size: 18rpx;
+  color: var(--text-muted);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+  padding: 160rpx 0;
+}
+
+.empty-text {
+  font-size: 26rpx;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.empty-cta {
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0 40rpx;
+  border-radius: 20rpx;
+  border: 2.5px solid var(--border-bold);
+  background: var(--accent-coral);
+  color: var(--border-bold);
+  font-weight: 900;
+  font-size: 26rpx;
+}
+
+.empty-cta::after {
+  border: none;
+}

@@ -103,6 +103,14 @@ export default function Me() {
         {nextTier && <Text className="tier-next-hint">距离「{nextTier.label}」还差 {(nextTier.threshold - totalHours).toFixed(0)} 小时</Text>}
       </View>
 
+      <View className="section">
+        <Text className="section-label">数据洞察</Text>
+        <View className="nav-row" onClick={() => Taro.navigateTo({ url: "/pages/net-pay/index" })}>
+          <Text>净收益对比</Text>
+          <Text className="nav-arrow">›</Text>
+        </View>
+      </View>
+
       {archivedEmployers.length > 0 && (
         <View className="section">
           <Text className="section-label">已停用的副本</Text>

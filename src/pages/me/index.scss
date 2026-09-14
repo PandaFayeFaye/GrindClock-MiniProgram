@@ -142,3 +142,20 @@
   color: var(--text-muted);
   text-align: center;
 }
+
+.nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 28rpx;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 20rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.nav-arrow {
+  color: var(--text-muted);
+  font-size: 30rpx;
+}

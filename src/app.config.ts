@@ -5,7 +5,8 @@ export default defineAppConfig({
     'pages/employer-form/index',
     'pages/backfill/index',
     'pages/batch-backfill/index',
-    'pages/me/index'
+    'pages/me/index',
+    'pages/net-pay/index'
   ],
   window: {
     backgroundTextStyle: 'light',
