@@ -12,6 +12,27 @@
   font-weight: 900;
 }
 
+.range-row {
+  display: flex;
+  gap: 12rpx;
+}
+
+.range-chip {
+  flex-shrink: 0;
+  padding: 10rpx 24rpx;
+  border-radius: 999px;
+  border: 1.8px solid var(--border-bold);
+  background: var(--bg-surface);
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.range-chip.active {
+  background: var(--accent-blue);
+  border-color: var(--border-bold);
+  color: #fff;
+}
+
 .summary-card {
   display: flex;
   gap: 32rpx;
@@ -37,6 +58,37 @@
   font-size: 22rpx;
   font-weight: 700;
   margin-top: 4rpx;
+}
+
+.overtime-summary-card {
+  background: var(--accent-coral);
+  border: 3px solid var(--border-bold);
+  border-radius: var(--radius-bold);
+  padding: 28rpx 32rpx;
+  box-shadow: var(--shadow-bold);
+  color: #fff;
+}
+
+.overtime-summary-title {
+  font-size: 22rpx;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.overtime-summary-row {
+  display: flex;
+  gap: 32rpx;
+}
+
+.overtime-summary-row .num {
+  color: #fff;
+}
+
+.overtime-summary-row .lb {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .list-title {
@@ -93,8 +145,21 @@
   margin-top: 2rpx;
 }
 
+.pay-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
+  flex-shrink: 0;
+}
+
 .pay {
   font-size: 25rpx;
   font-weight: 800;
-  flex-shrink: 0;
+}
+
+.pay-ot-sub {
+  font-size: 18rpx;
+  font-weight: 700;
+  color: var(--accent-coral);
 }

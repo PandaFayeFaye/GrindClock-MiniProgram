@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { View, Text, Button } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries, clockIn, clockOut } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
-import { entryHours, entryPay } from "../../lib/pay";
-import { formatGroupedPay, DEFAULT_CURRENCY } from "../../lib/currency";
+import { entryHours, entryOvertimePay, entryPay, mergedHoursToday } from "../../lib/pay";
+import { formatGroupedPay, DEFAULT_CURRENCY, currencySymbol } from "../../lib/currency";
+import { startOfWeek, startOfMonth } from "../../lib/stats";
 import { PunchConfirmModal, type PunchConfirmData } from "../../components/PunchConfirmModal";
 import type { Employer, TimeEntry } from "../../lib/types";
 import "./index.scss";
@@ -19,6 +20,7 @@ export default function Index() {
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [leftRange, setLeftRange] = useState<"today" | "week">("today");
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -34,29 +36,51 @@ export default function Index() {
     }
   }, []);
 
-  // Re-fetch every time Home becomes visible (e.g. coming back from "add job"
-  // or after a punch) -- simplest correct approach before Phase 2 wires up a
-  // live watch() subscription.
   useDidShow(() => {
     reload();
   });
 
   const activeEmployers = employers.filter((e) => !e.archived);
-  const employerById = new Map(employers.map((e) => [e.id, e]));
+  const employerById = useMemo(() => new Map(employers.map((e) => [e.id, e])), [employers]);
   const activeByEmployer = new Map<string, TimeEntry>();
   for (const e of entries) {
     if (e.endTime == null) activeByEmployer.set(e.employerId, e);
   }
 
   const todaysEntries = entries.filter((e) => e.status === "confirmed" && e.endTime != null && e.startTime >= startOfToday());
-  const todaysHours = todaysEntries.reduce((s, e) => s + entryHours(e), 0);
-  const todaysPayByCurrency = new Map<string, number>();
+  const todaysHours = mergedHoursToday(entries);
+  const todaysHoursByEmployer = new Map<string, number>();
+  const todaysOvertimeByEmployer = new Map<string, number>();
+  const todaysPayByEmployer = new Map<string, number>();
   for (const e of todaysEntries) {
+    todaysHoursByEmployer.set(e.employerId, (todaysHoursByEmployer.get(e.employerId) ?? 0) + entryHours(e));
+    if (e.overtimeHours) todaysOvertimeByEmployer.set(e.employerId, (todaysOvertimeByEmployer.get(e.employerId) ?? 0) + e.overtimeHours);
     const emp = employerById.get(e.employerId);
-    if (!emp) continue;
-    const cur = emp.currency ?? DEFAULT_CURRENCY;
-    todaysPayByCurrency.set(cur, (todaysPayByCurrency.get(cur) ?? 0) + entryPay(emp, e));
+    if (emp) todaysPayByEmployer.set(e.employerId, (todaysPayByEmployer.get(e.employerId) ?? 0) + entryPay(emp, e));
   }
+  const employerIdsWithEntryToday = new Set(todaysEntries.map((e) => e.employerId));
+
+  const summarizeRange = useCallback((rangeStart: number, isToday: boolean) => {
+    const rangeEntries = entries.filter((e) => e.status === "confirmed" && e.startTime >= rangeStart);
+    const hours = isToday ? todaysHours : rangeEntries.reduce((s, e) => s + entryHours(e), 0);
+    const overtimeHours = rangeEntries.reduce((s, e) => s + (e.overtimeHours ?? 0), 0);
+    const payByCurrency = new Map<string, number>();
+    const overtimePayByCurrency = new Map<string, number>();
+    for (const e of rangeEntries) {
+      const emp = employerById.get(e.employerId);
+      if (!emp) continue;
+      const cur = emp.currency ?? DEFAULT_CURRENCY;
+      payByCurrency.set(cur, (payByCurrency.get(cur) ?? 0) + entryPay(emp, e));
+      const otPay = entryOvertimePay(emp, e);
+      if (otPay > 0) overtimePayByCurrency.set(cur, (overtimePayByCurrency.get(cur) ?? 0) + otPay);
+    }
+    return { hours, overtimeHours, payByCurrency, overtimePayByCurrency };
+  }, [entries, employerById, todaysHours]);
+
+  const leftRangeStart = leftRange === "week" ? startOfWeek() : startOfToday();
+  const monthStart = startOfMonth();
+  const leftSummary = useMemo(() => summarizeRange(leftRangeStart, leftRange === "today"), [summarizeRange, leftRangeStart, leftRange]);
+  const monthSummary = useMemo(() => summarizeRange(monthStart, false), [summarizeRange, monthStart]);
 
   const [confirming, setConfirming] = useState<{ employer: Employer; entry: TimeEntry } | null>(null);
 
@@ -101,10 +125,35 @@ export default function Index() {
     <View className="home-page">
       <Text className="home-title">首页</Text>
 
-      <View className="income-card">
-        <Text className="income-label">今日已赚</Text>
-        <Text className="income-value">{formatGroupedPay(todaysPayByCurrency, 1)}</Text>
-        <Text className="income-note">今日已工作 {todaysHours.toFixed(1)} 小时</Text>
+      <View className="income-cards-row">
+        <View className="income-card">
+          <View className="income-range-tabs">
+            <View className={`income-range-tab${leftRange === "today" ? " active" : ""}`} onClick={() => setLeftRange("today")}>
+              <Text>今日</Text>
+            </View>
+            <View className={`income-range-tab${leftRange === "week" ? " active" : ""}`} onClick={() => setLeftRange("week")}>
+              <Text>本周</Text>
+            </View>
+          </View>
+          <Text className="income-label">{leftRange === "week" ? "本周已赚" : "今日已赚"}</Text>
+          <Text className="income-value">{formatGroupedPay(leftSummary.payByCurrency, 1)}</Text>
+          <Text className="income-note">已工作 {leftSummary.hours.toFixed(1)} 小时</Text>
+          {leftSummary.overtimeHours > 0.05 && (
+            <Text className="income-overtime-note">其中加班 {leftSummary.overtimeHours.toFixed(1)}h · {formatGroupedPay(leftSummary.overtimePayByCurrency, 1)}</Text>
+          )}
+        </View>
+
+        <View className="income-card income-card-month">
+          <View className="income-range-tabs">
+            <View className="income-range-tab active"><Text>本月</Text></View>
+          </View>
+          <Text className="income-label">本月已赚</Text>
+          <Text className="income-value">{formatGroupedPay(monthSummary.payByCurrency, 1)}</Text>
+          <Text className="income-note">已工作 {monthSummary.hours.toFixed(1)} 小时</Text>
+          {monthSummary.overtimeHours > 0.05 && (
+            <Text className="income-overtime-note">其中加班 {monthSummary.overtimeHours.toFixed(1)}h · {formatGroupedPay(monthSummary.overtimePayByCurrency, 1)}</Text>
+          )}
+        </View>
       </View>
 
       {loading ? (
@@ -120,21 +169,35 @@ export default function Index() {
         <View className="list">
           {activeEmployers.map((emp) => {
             const active = activeByEmployer.get(emp.id);
+            const doneToday = !active && employerIdsWithEntryToday.has(emp.id);
+            const empHours = todaysHoursByEmployer.get(emp.id) ?? 0;
+            const empOvertime = todaysOvertimeByEmployer.get(emp.id) ?? 0;
+            const empPay = todaysPayByEmployer.get(emp.id) ?? 0;
             return (
-              <View className="row" key={emp.id}>
-                <View className="dot" style={{ background: emp.color }} />
-                <View
-                  className="row-name"
-                  onClick={() => Taro.navigateTo({ url: `/pages/employer-form/index?id=${emp.id}` })}
-                >
-                  <Text className="row-title">{emp.name}</Text>
+              <View className="row-wrap" key={emp.id}>
+                <View className="row">
+                  <View className="dot" style={{ background: emp.color }} />
+                  <View
+                    className="row-name"
+                    onClick={() => Taro.navigateTo({ url: `/pages/employer-form/index?id=${emp.id}` })}
+                  >
+                    <Text className="row-title">{emp.name}</Text>
+                  </View>
+                  <Button
+                    className={`punch-btn${active ? " working" : ""}`}
+                    onClick={() => handlePunch(emp)}
+                  >
+                    {active ? "下班打卡" : "上班打卡"}
+                  </Button>
                 </View>
-                <Button
-                  className={`punch-btn${active ? " working" : ""}`}
-                  onClick={() => handlePunch(emp)}
-                >
-                  {active ? "下班打卡" : "上班打卡"}
-                </Button>
+                {doneToday && (
+                  <View className="done-today-footer">
+                    <Text>
+                      今日已工作 {empHours.toFixed(1)}h · 已赚 {currencySymbol(emp.currency)}{empPay.toFixed(1)}
+                      {empOvertime > 0.05 ? `（含加班${empOvertime.toFixed(1)}h）` : ""}
+                    </Text>
+                  </View>
+                )}
               </View>
             );
           })}

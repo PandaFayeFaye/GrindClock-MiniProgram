@@ -1,42 +1,88 @@
 .home-page {
   display: flex;
   flex-direction: column;
-  gap: 64rpx;
-  padding: 64rpx;
+  gap: 32rpx;
+  padding: 32rpx;
   min-height: 100vh;
   background: var(--bg-base);
 }
 
 .home-title {
-  font-size: 80rpx;
+  font-size: 40rpx;
   font-weight: 900;
   color: var(--text-primary);
 }
 
+.income-cards-row {
+  display: flex;
+  gap: 20rpx;
+}
+
 .income-card {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 4rpx;
   background: var(--accent-yellow);
   border: 3px solid var(--border-bold);
   border-radius: var(--radius-bold);
-  padding: 56rpx 64rpx;
+  padding: 28rpx 32rpx;
   box-shadow: var(--shadow-bold);
 }
 
+.income-card-month {
+  background: var(--accent-purple);
+}
+
+.income-range-tabs {
+  display: flex;
+  gap: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.income-range-tab {
+  padding: 6rpx 20rpx;
+  border: 1.5px solid rgba(26, 26, 26, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  font-size: 21rpx;
+  font-weight: 800;
+  color: rgba(26, 26, 26, 0.6);
+}
+
+.income-range-tab.active {
+  background: var(--border-bold);
+  color: var(--accent-yellow);
+  border-color: var(--border-bold);
+}
+
+.income-card-month .income-range-tab.active {
+  color: var(--accent-purple);
+}
+
 .income-label {
-  font-size: 48rpx;
+  font-size: 23rpx;
   font-weight: 700;
 }
 
 .income-value {
-  font-size: 112rpx;
+  font-size: 44rpx;
   font-weight: 900;
 }
 
 .income-note {
-  font-size: 44rpx;
-  opacity: 0.75;
+  font-size: 22rpx;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.income-overtime-note {
+  font-size: 21rpx;
+  font-weight: 700;
+  color: var(--border-bold);
+  opacity: 0.65;
+  margin-top: 4rpx;
 }
 
 .empty-state {
@@ -48,7 +94,7 @@
 }
 
 .empty-hint {
-  font-size: 52rpx;
+  font-size: 26rpx;
   color: var(--text-muted);
   text-align: center;
 }
@@ -56,23 +102,27 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 32rpx;
+  gap: 16rpx;
+}
+
+.row-wrap {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 20rpx;
+  overflow: hidden;
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: 40rpx;
-  background: var(--bg-surface);
-  border: 1.5px solid var(--border-quiet);
-  border-radius: var(--radius-quiet);
-  padding: 48rpx;
+  gap: 20rpx;
+  padding: 24rpx;
 }
 
 .dot {
-  width: 40rpx;
-  height: 40rpx;
-  border-radius: 16rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 8rpx;
   border: 2px solid var(--border-bold);
   flex-shrink: 0;
 }
@@ -83,18 +133,18 @@
 }
 
 .row-title {
-  font-size: 56rpx;
+  font-size: 28rpx;
   font-weight: 800;
 }
 
 .punch-btn {
-  font-size: 48rpx;
+  font-size: 24rpx;
   font-weight: 900;
-  padding: 0 56rpx;
-  height: 144rpx;
-  line-height: 144rpx;
+  padding: 0 28rpx;
+  height: 72rpx;
+  line-height: 72rpx;
   border: 2px solid var(--border-bold);
-  border-radius: 32rpx;
+  border-radius: 16rpx;
   background: var(--accent-blue);
   color: #fff;
   box-shadow: 6rpx 6rpx 0 var(--border-bold);
@@ -109,16 +159,25 @@
   border: none;
 }
 
+.done-today-footer {
+  padding: 14rpx 24rpx;
+  border-top: 1.3px dashed var(--accent-green);
+  background: #F0FBF4;
+  font-size: 21rpx;
+  font-weight: 700;
+  color: #2A9D5C;
+}
+
 .add-btn {
-  margin-top: 16rpx;
-  height: 176rpx;
-  line-height: 176rpx;
-  border-radius: 40rpx;
+  margin-top: 8rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 20rpx;
   border: 2.5px solid var(--border-bold);
   background: var(--accent-coral);
   color: var(--border-bold);
   font-weight: 900;
-  font-size: 52rpx;
+  font-size: 26rpx;
   box-shadow: var(--shadow-bold-sm);
 }
 
