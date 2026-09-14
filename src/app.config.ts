@@ -12,13 +12,8 @@ export default defineAppConfig({
     'pages/worker-form/index',
     'pages/recap/index',
     'pages/ai-capture/index',
-    'pages/onboarding/index'
-  ],
-  subPackages: [
-    {
-      root: 'packageCharacters',
-      pages: ['pages/avatar-picker/index']
-    }
+    'pages/onboarding/index',
+    'pages/avatar-picker/index'
   ],
   window: {
     backgroundTextStyle: 'light',

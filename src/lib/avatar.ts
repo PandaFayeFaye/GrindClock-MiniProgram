@@ -35,15 +35,19 @@ export function mbtiGroupColor(mbti: string): string {
   return "#FFD93D"; // Explorers: ISTP/ISFP/ESTP/ESFP
 }
 
-// Illustrated portraits live in the packageCharacters subpackage (copied
-// verbatim by config/index.ts's copy.patterns, not bundled through webpack
-// as JS assets) so the 255 animal+MBTI portraits don't bloat the main
-// package. Referencing this absolute path triggers that subpackage's
-// download the first time an <Image> resolves it.
+// Illustrated portraits live in the main package (copied verbatim by
+// config/index.ts's copy.patterns, not bundled through webpack as JS
+// assets). They were originally split into a subpackage to keep the main
+// package small, but WeChat doesn't reliably load a subpackage's static
+// assets when referenced from a main-package page's <Image> src (only
+// navigating to a page IN that subpackage reliably triggers its download) --
+// the avatar showed up blank on Home/Me. Recompressed smaller (88x140,
+// 64-color palette, ~2.5KB each vs ~6KB) to fit all 255 in the main package
+// instead (~636KB total).
 export function characterImageSrc(animal: AnimalKey, mbti?: string): string {
   return mbti
-    ? `/packageCharacters/assets/characters/${animal}-${mbti}.png`
-    : `/packageCharacters/assets/characters/${animal}-default.png`;
+    ? `/characters/${animal}-${mbti}.png`
+    : `/characters/${animal}-default.png`;
 }
 
 export type PetAccessory = "star" | "crown";

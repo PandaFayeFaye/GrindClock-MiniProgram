@@ -25,7 +25,10 @@ function App({ children }: PropsWithChildren<any>) {
       family: 'ZCOOL KuaiLe',
       source: 'url("/fonts/ZCOOLKuaiLe-subset.ttf")',
       global: true,
-    }).catch((err) => console.warn('Failed to load display font', err))
+    }).then(
+      (res) => console.log('Display font loaded', res),
+      (err) => console.warn('Failed to load display font', err),
+    )
   })
 
   // children 是将要会渲染的页面

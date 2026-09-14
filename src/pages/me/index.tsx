@@ -98,7 +98,7 @@ export default function Me() {
         <View
           className="avatar-btn"
           style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}
-          onClick={() => Taro.navigateTo({ url: `/packageCharacters/pages/avatar-picker/index?animal=${animal ?? "cow"}${mbti ? `&mbti=${mbti}` : ""}` })}
+          onClick={() => Taro.navigateTo({ url: `/pages/avatar-picker/index?animal=${animal ?? "cow"}${mbti ? `&mbti=${mbti}` : ""}` })}
         >
           <Image className="avatar-btn-img" src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" />
         </View>
