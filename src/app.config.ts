@@ -10,7 +10,8 @@ export default defineAppConfig({
     'pages/badges/index',
     'pages/team/index',
     'pages/worker-form/index',
-    'pages/recap/index'
+    'pages/recap/index',
+    'pages/ai-capture/index'
   ],
   window: {
     backgroundTextStyle: 'light',

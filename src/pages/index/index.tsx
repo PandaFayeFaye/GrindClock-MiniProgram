@@ -205,6 +205,9 @@ export default function Index() {
               </View>
             );
           })}
+          <Button className="add-btn secondary" onClick={() => Taro.navigateTo({ url: "/pages/ai-capture/index" })}>
+            AI 记工（拍照/语音）
+          </Button>
           <Button className="add-btn secondary" onClick={() => Taro.navigateTo({ url: "/pages/backfill/index" })}>
             补录搬砖时长
           </Button>
