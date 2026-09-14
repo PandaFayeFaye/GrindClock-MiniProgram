@@ -4,7 +4,8 @@ export default defineAppConfig({
     'pages/stats/index',
     'pages/employer-form/index',
     'pages/backfill/index',
-    'pages/batch-backfill/index'
+    'pages/batch-backfill/index',
+    'pages/me/index'
   ],
   window: {
     backgroundTextStyle: 'light',
@@ -19,7 +20,8 @@ export default defineAppConfig({
     backgroundColor: '#FFFFFF',
     list: [
       { pagePath: 'pages/index/index', text: '首页' },
-      { pagePath: 'pages/stats/index', text: '统计' }
+      { pagePath: 'pages/stats/index', text: '统计' },
+      { pagePath: 'pages/me/index', text: '我的' }
     ]
   },
   cloud: true

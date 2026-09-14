@@ -1,0 +1,144 @@
+.me-page {
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
+  padding: 32rpx;
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+.me-title {
+  font-size: 40rpx;
+  font-weight: 900;
+}
+
+.profile-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  background: var(--accent-yellow);
+  border: 3px solid var(--border-bold);
+  border-radius: var(--radius-bold);
+  padding: 32rpx 36rpx;
+  box-shadow: var(--shadow-bold);
+}
+
+.nickname {
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.nickname.placeholder {
+  opacity: 0.5;
+  font-weight: 700;
+}
+
+.nickname-input {
+  font-size: 34rpx;
+  font-weight: 900;
+  border-bottom: 2px solid var(--border-bold);
+  padding-bottom: 4rpx;
+}
+
+.tier-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.tier-chip {
+  padding: 8rpx 20rpx;
+  border-radius: 999px;
+  border: 2px solid var(--border-bold);
+  font-size: 22rpx;
+  font-weight: 900;
+  color: var(--border-bold);
+}
+
+.streak-chip {
+  font-size: 21rpx;
+  font-weight: 800;
+  color: rgba(26, 26, 26, 0.7);
+}
+
+.tier-track {
+  height: 14rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1.3px solid rgba(26, 26, 26, 0.2);
+  overflow: hidden;
+}
+
+.tier-fill {
+  display: block;
+  height: 100%;
+}
+
+.tier-next-hint {
+  font-size: 20rpx;
+  color: rgba(26, 26, 26, 0.65);
+  font-weight: 700;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.section-label {
+  font-size: 24rpx;
+  font-weight: 900;
+  color: var(--text-muted);
+}
+
+.archived-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.archived-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 24rpx;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 20rpx;
+}
+
+.dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.archived-name {
+  flex: 1;
+  font-size: 26rpx;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.reactivate-chip {
+  padding: 10rpx 22rpx;
+  border-radius: 999px;
+  border: 2px solid var(--accent-green);
+  color: var(--accent-green);
+  font-size: 21rpx;
+  font-weight: 800;
+}
+
+.about-note {
+  font-size: 21rpx;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  text-align: center;
+}
