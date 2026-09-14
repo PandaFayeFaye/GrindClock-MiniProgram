@@ -2,7 +2,8 @@ export default defineAppConfig({
   pages: [
     'pages/index/index',
     'pages/stats/index',
-    'pages/employer-form/index'
+    'pages/employer-form/index',
+    'pages/backfill/index'
   ],
   window: {
     backgroundTextStyle: 'light',
