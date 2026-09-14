@@ -16,7 +16,10 @@ const WEEKDAY_LABEL: Record<WeekdayKey, string> = {
 type DayTimes = Partial<Record<WeekdayKey, { start: string; end: string }>>;
 
 function toDateInputValue(d: Date) {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export default function BatchBackfill() {
