@@ -39,9 +39,12 @@ function formatHHMM(totalMinutes: number): string {
 export function parseSpeechToDraft(text: string, employers: Employer[]): ParsedDraft {
   const employer = employers.find((e) => text.includes(e.name));
 
-  // Prefer an explicit time range ("16:00-21:00", "16点到21点", ...) -- it gives
-  // real start/end times, not just a duration guess.
-  const rangeRe = new RegExp(`(${TIME_TOKEN})\\s*(?:[-~—至]|到)\\s*(${TIME_TOKEN})`);
+  // Prefer an explicit time range ("16:00-21:00", "16点到21点", "16点上班到
+  // 20点下班", ...) -- it gives real start/end times, not just a duration
+  // guess. The [^0-9]{0,8} gaps tolerate spoken filler words like "上班"
+  // between the time and the connector, without crossing into an unrelated
+  // number elsewhere in the sentence (a digit immediately breaks the gap).
+  const rangeRe = new RegExp(`(${TIME_TOKEN})[^0-9]{0,8}(?:[-~—至]|到)[^0-9]{0,8}(${TIME_TOKEN})`);
   const rangeMatch = text.match(rangeRe);
   if (rangeMatch) {
     const startMin = parseTimeToken(rangeMatch[1]);

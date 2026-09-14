@@ -66,7 +66,7 @@ function toDateStr(d: Date) {
 export function parseScheduleTable(text: string, employers: Employer[]): { rows: ScheduleRow[]; employerId?: string } {
   const employer = employers.find((e) => text.includes(e.name));
   const lines = text.split(/\n+/);
-  const rangeRe = new RegExp(`(${TIME_TOKEN})\\s*(?:[-~—至]|到)\\s*(${TIME_TOKEN})`);
+  const rangeRe = new RegExp(`(${TIME_TOKEN})[^0-9]{0,8}(?:[-~—至]|到)[^0-9]{0,8}(${TIME_TOKEN})`);
   const monday = mondayOfCurrentWeek();
   const rows: ScheduleRow[] = [];
 
