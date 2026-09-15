@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { View, Text, Picker, Button } from "@tarojs/components";
+import { View, Text, Picker, Button, Image } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries, addManualEntries, deleteTimeEntries } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
@@ -234,7 +234,10 @@ export default function BatchBackfill() {
 
           {supportsAutoOvertime && (
             <View className="batch-ot-panel">
-              <Text className="ot-title">检测到加班</Text>
+              <View className="ot-title-row">
+                <Image className="ot-title-icon" src="/icons/flame-coral.png" mode="aspectFit" />
+                <Text className="ot-title">检测到加班</Text>
+              </View>
               <View className="ot-block">
                 <Text className="ot-block-label">额外超出时长（加班）</Text>
                 <Text className="batch-ot-note">超出排班的部分会自动记为加班</Text>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, Text, Input, Picker, Button } from "@tarojs/components";
+import { View, Text, Input, Picker, Button, Image } from "@tarojs/components";
 import Taro, { useRouter } from "@tarojs/taro";
 import { fetchEmployers, addManualEntry } from "../../lib/cloud";
 import { toEmployer } from "../../lib/adapt";
@@ -126,7 +126,10 @@ export default function Backfill() {
 
       {showOvertimeSection && employer && (
         <View className="overtime-detected">
-          <Text className="ot-title">检测到加班</Text>
+          <View className="ot-title-row">
+            <Image className="ot-title-icon" src="/icons/flame-coral.png" mode="aspectFit" />
+            <Text className="ot-title">检测到加班</Text>
+          </View>
           <Text className="overtime-detected-note">排班 {scheduledHours.toFixed(1)} 小时，实际填写 {enteredHours.toFixed(1)} 小时</Text>
           <View className="ot-block">
             <Text className="ot-block-label">额外超出时长（加班）</Text>
