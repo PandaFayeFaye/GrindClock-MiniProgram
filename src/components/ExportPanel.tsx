@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { View, Text, Canvas } from "@tarojs/components";
+import { useEffect, useMemo, useState } from "react";
+import { View, Text, Canvas, Picker } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { EXPORT_COLUMNS, exportEntriesCsv, exportEntriesImage, type ExportColumn } from "../lib/exportCsv";
 import type { Employer, TimeEntry } from "../lib/types";
@@ -22,6 +22,15 @@ export function ExportPanel({
   const [selected, setSelected] = useState<Set<ExportColumn>>(new Set(EXPORT_COLUMNS.map((c) => c.key)));
   const [exporting, setExporting] = useState<"csv" | "image" | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 300, height: 300 });
+  const [rangeStart, setRangeStart] = useState("");
+  const [rangeEnd, setRangeEnd] = useState("");
+
+  const rangedEntries = useMemo(() => {
+    if (!rangeStart && !rangeEnd) return entries;
+    const startMs = rangeStart ? new Date(`${rangeStart}T00:00:00`).getTime() : -Infinity;
+    const endMs = rangeEnd ? new Date(`${rangeEnd}T23:59:59`).getTime() : Infinity;
+    return entries.filter((e) => e.startTime >= startMs && e.startTime <= endMs);
+  }, [entries, rangeStart, rangeEnd]);
 
   // The custom tab bar paints above regular page content regardless of WXSS
   // z-index, which would otherwise hide this bottom sheet's own buttons.
@@ -44,13 +53,13 @@ export function ExportPanel({
 
   async function handleExportCsv() {
     if (exporting || activeColumns.length === 0) return;
-    if (entries.length === 0) {
+    if (rangedEntries.length === 0) {
       Taro.showToast({ title: "没有可导出的记录", icon: "none" });
       return;
     }
     setExporting("csv");
     try {
-      await exportEntriesCsv(entries, employerById, `${filenameBase}.csv`, activeColumns.map((c) => c.key), activeColumns.map((c) => c.label));
+      await exportEntriesCsv(rangedEntries, employerById, `${filenameBase}.csv`, activeColumns.map((c) => c.key), activeColumns.map((c) => c.label));
       onClose();
     } catch (err) {
       console.error("CSV export failed", err);
@@ -62,11 +71,11 @@ export function ExportPanel({
 
   async function handleExportImage() {
     if (exporting || activeColumns.length === 0) return;
-    if (entries.length > MAX_IMAGE_ROWS) {
+    if (rangedEntries.length > MAX_IMAGE_ROWS) {
       Taro.showToast({ title: "记录太多，图片导出建议改用CSV", icon: "none" });
       return;
     }
-    if (entries.length === 0) {
+    if (rangedEntries.length === 0) {
       Taro.showToast({ title: "没有可导出的记录", icon: "none" });
       return;
     }
@@ -75,7 +84,7 @@ export function ExportPanel({
       const tempPath = await exportEntriesImage(
         IMAGE_EXPORT_CANVAS_ID,
         setCanvasSize,
-        entries,
+        rangedEntries,
         employerById,
         activeColumns.map((c) => c.key),
         activeColumns.map((c) => c.label),
@@ -94,6 +103,23 @@ export function ExportPanel({
     <View className="export-panel-backdrop" onClick={onClose}>
       <View className="export-panel-sheet" onClick={(e) => e.stopPropagation()}>
         <View className="export-panel-handle" />
+        <Text className="export-panel-title">日期范围</Text>
+        <View className="export-range-row">
+          <Picker mode="date" value={rangeStart} end={rangeEnd || undefined} onChange={(e) => setRangeStart(e.detail.value)}>
+            <View className="export-range-value">{rangeStart || "不限开始日期"}</View>
+          </Picker>
+          <Text className="export-range-sep">至</Text>
+          <Picker mode="date" value={rangeEnd} start={rangeStart || undefined} onChange={(e) => setRangeEnd(e.detail.value)}>
+            <View className="export-range-value">{rangeEnd || "不限结束日期"}</View>
+          </Picker>
+          {(rangeStart || rangeEnd) && (
+            <View className="export-range-clear" onClick={() => { setRangeStart(""); setRangeEnd(""); }}>
+              <Text>清除</Text>
+            </View>
+          )}
+        </View>
+        <Text className="export-range-count">共 {rangedEntries.length} 条记录符合范围</Text>
+
         <Text className="export-panel-title">选择要导出的字段</Text>
         <View className="export-col-grid">
           {EXPORT_COLUMNS.map((c) => (

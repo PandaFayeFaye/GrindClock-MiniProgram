@@ -89,6 +89,12 @@ export default function Stats() {
     () => employers.filter((emp) => filterEmployerIds.size === 0 || filterEmployerIds.has(emp.id)),
     [employers, filterEmployerIds],
   );
+  // Unbounded by the page's own range toggle, so the export panel's own
+  // date-range picker can cover any span, not just whatever's on screen.
+  const exportableEntries = useMemo(
+    () => personalConfirmed.filter((e) => filterEmployerIds.size === 0 || filterEmployerIds.has(e.employerId)),
+    [personalConfirmed, filterEmployerIds],
+  );
 
   const totalHours = filteredEntries.reduce((s, e) => s + entryHours(e), 0);
   const totalOvertimeHours = filteredEntries.reduce((s, e) => s + (e.overtimeHours ?? 0), 0);
@@ -394,16 +400,16 @@ export default function Stats() {
 
       <View className="list-title-row" id="detail-list-section">
         <Text className="list-title">明细{range !== "all" ? `（${RANGES.find((r) => r.key === range)!.label}）` : ""}</Text>
-        <View className={`export-btn${filteredEntries.length === 0 ? " disabled" : ""}`} onClick={() => filteredEntries.length > 0 && setExportOpen(true)}>
+        <View className={`export-btn${exportableEntries.length === 0 ? " disabled" : ""}`} onClick={() => exportableEntries.length > 0 && setExportOpen(true)}>
           <Text>导出</Text>
         </View>
       </View>
 
       {exportOpen && (
         <ExportPanel
-          entries={filteredEntries}
+          entries={exportableEntries}
           employerById={employerById}
-          filenameBase={`grindclock-明细-${range}`}
+          filenameBase="grindclock-明细"
           onClose={() => setExportOpen(false)}
         />
       )}

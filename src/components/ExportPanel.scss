@@ -56,6 +56,51 @@
 .export-col-chip.selected {
   background: var(--border-bold);
   color: var(--accent-yellow);
+  box-shadow: var(--shadow-bold-sm);
+}
+
+.export-range-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: -16rpx;
+}
+
+.export-range-row picker {
+  flex: 1;
+  min-width: 0;
+}
+
+.export-range-value {
+  box-sizing: border-box;
+  padding: 18rpx 20rpx;
+  border: 2px solid var(--border-bold);
+  border-radius: 18rpx;
+  background: var(--bg-surface);
+  font-size: 23rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.export-range-sep {
+  font-size: 22rpx;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.export-range-clear {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--accent-coral);
+  white-space: nowrap;
+}
+
+.export-range-count {
+  font-size: 20rpx;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: -20rpx;
 }
 
 .export-panel-hint {
