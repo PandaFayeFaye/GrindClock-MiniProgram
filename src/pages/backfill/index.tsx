@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { View, Text, Input, Picker, Button, Image } from "@tarojs/components";
+import { View, Text, Input, Textarea, Picker, Button, Image, Switch } from "@tarojs/components";
 import Taro, { useRouter } from "@tarojs/taro";
 import { fetchEmployers, addManualEntry } from "../../lib/cloud";
 import { toEmployer } from "../../lib/adapt";
 import { todaysSchedule, scheduleDurationHours } from "../../lib/schedule";
 import { currencySymbol } from "../../lib/currency";
-import type { Employer, Mood } from "../../lib/types";
+import type { Adjustment, Employer, Mood } from "../../lib/types";
 import "./index.scss";
 
 const MOOD_OPTIONS: { key: Mood; label: string }[] = [
@@ -32,8 +32,17 @@ export default function Backfill() {
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [employerIdx, setEmployerIdx] = useState(0);
   const [date, setDate] = useState(toDateInputValue(new Date()));
+  const [mode, setMode] = useState<"duration" | "range">("duration");
   const [hours, setHours] = useState("");
+  const [minutes, setMinutes] = useState("0");
+  const [startTimeStr, setStartTimeStr] = useState("09:00");
+  const [endTimeStr, setEndTimeStr] = useState("18:00");
+  const [isOvertime, setIsOvertime] = useState(false);
+  const [isHoliday, setIsHoliday] = useState(false);
+  const [orderCount, setOrderCount] = useState("");
   const [mood, setMood] = useState<Mood | undefined>(undefined);
+  const [note, setNote] = useState("");
+  const [adjustments, setAdjustments] = useState<Adjustment[]>([]);
   const [overtimeHoursStr, setOvertimeHoursStr] = useState("");
   const [overtimeTouched, setOvertimeTouched] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -45,8 +54,32 @@ export default function Backfill() {
   }, []);
 
   const employer = employers[employerIdx];
-  const enteredHours = Number(hours) || 0;
-  const schedule = employer ? todaysSchedule(employer, new Date(date)) : null;
+  const isPerOrder = employer?.payType === "per-order";
+
+  useEffect(() => {
+    if (employer) setAdjustments(employer.defaultAdjustments ?? []);
+  }, [employer?.id]);
+
+  function computeRange(): { start: number; end: number } | null {
+    const dayStart = new Date(`${date}T00:00:00`).getTime();
+    if (mode === "duration") {
+      const h = Number(hours) || 0;
+      const m = Number(minutes) || 0;
+      if (h === 0 && m === 0) return null;
+      const start = dayStart + 9 * 3_600_000;
+      return { start, end: start + h * 3_600_000 + m * 60_000 };
+    }
+    const [sh, sm] = startTimeStr.split(":").map(Number);
+    const [eh, em] = endTimeStr.split(":").map(Number);
+    const start = dayStart + sh * 3_600_000 + sm * 60_000;
+    let end = dayStart + eh * 3_600_000 + em * 60_000;
+    if (end <= start) end += 24 * 3_600_000;
+    return { start, end };
+  }
+
+  const previewRange = computeRange();
+  const enteredHours = previewRange ? (previewRange.end - previewRange.start) / 3_600_000 : 0;
+  const schedule = employer ? todaysSchedule(employer, new Date(`${date}T00:00:00`)) : null;
   const scheduledHours = schedule ? scheduleDurationHours(schedule) : 0;
   const supportsAutoOvertime = !!schedule && !!employer && (employer.payType === "monthly" || employer.payType === "comprehensive");
   const detectedOvertimeHours = supportsAutoOvertime ? Math.max(0, enteredHours - scheduledHours) : 0;
@@ -60,24 +93,27 @@ export default function Backfill() {
       Taro.showToast({ title: "先添加一个打工副本吧", icon: "none" });
       return;
     }
-    const h = Number(hours);
-    if (!h || h <= 0) {
+    const range = computeRange();
+    if (!range) {
       Taro.showToast({ title: "填一下工时时长", icon: "none" });
       return;
     }
-    const startTime = new Date(`${date}T09:00:00`).getTime();
-    const endTime = startTime + h * 3_600_000;
     setSaving(true);
     try {
       await addManualEntry({
         employerId: employer.id,
-        startTime,
-        endTime,
+        startTime: range.start,
+        endTime: range.end,
         status: "confirmed",
         source: "manual",
+        isOvertime,
+        isHoliday,
         ...(workerId ? { workerId } : {}),
         ...(mood ? { mood } : {}),
         ...(overtimeHoursValue ? { overtimeHours: overtimeHoursValue } : {}),
+        ...(isPerOrder && orderCount ? { orderCount: Number(orderCount) } : {}),
+        ...(note.trim() ? { note: note.trim() } : {}),
+        ...(adjustments.length > 0 ? { adjustment: adjustments } : {}),
       });
       Taro.navigateBack();
     } catch (err) {
@@ -114,14 +150,61 @@ export default function Backfill() {
       </View>
 
       <View className="field">
-        <Text className="field-label">工时时长（小时）</Text>
-        <Input
-          className="hours-input"
-          type="digit"
-          placeholder="比如：6"
-          value={hours}
-          onInput={(e) => { setHours(e.detail.value); setOvertimeTouched(false); }}
-        />
+        <Text className="field-label">录入方式</Text>
+        <View className="mode-tabs">
+          <View className={`mode-tab${mode === "duration" ? " active" : ""}`} onClick={() => setMode("duration")}>
+            <Text>时长</Text>
+          </View>
+          <View className={`mode-tab${mode === "range" ? " active" : ""}`} onClick={() => setMode("range")}>
+            <Text>时间段</Text>
+          </View>
+        </View>
+      </View>
+
+      {mode === "duration" ? (
+        <View className="field">
+          <Text className="field-label">工时时长</Text>
+          <View className="time-row">
+            <Input
+              className="time-input"
+              type="digit"
+              placeholder="小时"
+              value={hours}
+              onInput={(e) => { setHours(e.detail.value); setOvertimeTouched(false); }}
+            />
+            <Text className="time-sep">小时</Text>
+            <Input
+              className="time-input"
+              type="digit"
+              placeholder="分钟"
+              value={minutes}
+              onInput={(e) => { setMinutes(e.detail.value); setOvertimeTouched(false); }}
+            />
+            <Text className="time-sep">分钟</Text>
+          </View>
+        </View>
+      ) : (
+        <View className="field">
+          <Text className="field-label">上下班时间</Text>
+          <View className="time-row">
+            <Picker mode="time" value={startTimeStr} onChange={(e) => { setStartTimeStr(e.detail.value); setOvertimeTouched(false); }}>
+              <View className="picker-value time-range-value">{startTimeStr}</View>
+            </Picker>
+            <Text className="time-sep">→</Text>
+            <Picker mode="time" value={endTimeStr} onChange={(e) => { setEndTimeStr(e.detail.value); setOvertimeTouched(false); }}>
+              <View className="picker-value time-range-value">{endTimeStr}</View>
+            </Picker>
+          </View>
+        </View>
+      )}
+
+      <View className="ot-toggle-row" onClick={() => setIsOvertime(!isOvertime)}>
+        <Text>整段按加班工资计算</Text>
+        <Switch checked={isOvertime} onChange={(e) => setIsOvertime(e.detail.value)} />
+      </View>
+      <View className="ot-toggle-row" onClick={() => setIsHoliday(!isHoliday)}>
+        <Text>整段按节假日工资计算</Text>
+        <Switch checked={isHoliday} onChange={(e) => setIsHoliday(e.detail.value)} />
       </View>
 
       {showOvertimeSection && employer && (
@@ -154,6 +237,19 @@ export default function Backfill() {
         </View>
       )}
 
+      {isPerOrder && (
+        <View className="field">
+          <Text className="field-label">单量</Text>
+          <Input
+            className="hours-input"
+            type="digit"
+            placeholder="比如：12"
+            value={orderCount}
+            onInput={(e) => setOrderCount(e.detail.value)}
+          />
+        </View>
+      )}
+
       <View className="field">
         <Text className="field-label">今天感觉怎么样？（可选）</Text>
         <View className="mood-grid">
@@ -167,6 +263,46 @@ export default function Backfill() {
             </View>
           ))}
         </View>
+      </View>
+
+      <View className="field">
+        <Text className="field-label">补贴/扣款（可选，已带入副本默认规则）</Text>
+        {adjustments.map((adj, i) => (
+          <View className="adj-row" key={i}>
+            <Picker
+              mode="selector"
+              range={["奖励", "扣款"]}
+              value={adj.type === "bonus" ? 0 : 1}
+              onChange={(e) => setAdjustments(adjustments.map((a, j) => (j === i ? { ...a, type: Number(e.detail.value) === 0 ? "bonus" : "deduction" } : a)))}
+            >
+              <View className="picker-value compact">{adj.type === "bonus" ? "奖励" : "扣款"}</View>
+            </Picker>
+            <Input
+              className="text-input compact"
+              type="digit"
+              placeholder="金额"
+              value={adj.amount ? String(adj.amount) : ""}
+              onInput={(e) => setAdjustments(adjustments.map((a, j) => (j === i ? { ...a, amount: Number(e.detail.value) || 0 } : a)))}
+            />
+            <Input
+              className="text-input compact"
+              placeholder="备注（如：夜班补贴）"
+              value={adj.note ?? ""}
+              onInput={(e) => setAdjustments(adjustments.map((a, j) => (j === i ? { ...a, note: e.detail.value } : a)))}
+            />
+            <View className="remove-adj-btn" onClick={() => setAdjustments(adjustments.filter((_, j) => j !== i))}>
+              <Text>×</Text>
+            </View>
+          </View>
+        ))}
+        <View className="add-adj-btn" onClick={() => setAdjustments([...adjustments, { type: "bonus", amount: 0 }])}>
+          <Text>+ 添加规则</Text>
+        </View>
+      </View>
+
+      <View className="field">
+        <Text className="field-label">备注（可选）</Text>
+        <Textarea className="note-input" placeholder="想记点什么都可以写这里" value={note} onInput={(e) => setNote(e.detail.value)} />
       </View>
 
       <View className="save-btn-bar">

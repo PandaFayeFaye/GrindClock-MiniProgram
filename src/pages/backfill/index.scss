@@ -60,6 +60,137 @@
   background: var(--bg-surface);
 }
 
+.mode-tabs {
+  display: flex;
+  gap: 8rpx;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 24rpx;
+  padding: 8rpx;
+}
+
+.mode-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 68rpx;
+  border-radius: 18rpx;
+  font-size: 25rpx;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.mode-tab.active {
+  background: var(--border-bold);
+  color: var(--accent-yellow);
+}
+
+.time-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.time-row picker {
+  flex: 1;
+  min-width: 0;
+}
+
+.time-input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0 24rpx;
+  border: 2.5px solid var(--border-bold);
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  background: var(--bg-surface);
+  text-align: center;
+}
+
+.time-sep {
+  font-size: 22rpx;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.time-range-value {
+  flex: 1;
+  text-align: center;
+}
+
+.ot-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 28rpx;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.adj-row {
+  display: grid;
+  grid-template-columns: 120rpx 120rpx 1fr 56rpx;
+  gap: 10rpx;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.picker-value.compact {
+  padding: 18rpx 20rpx;
+  font-size: 22rpx;
+}
+
+.text-input.compact {
+  height: 68rpx;
+  line-height: 68rpx;
+  padding: 0 22rpx;
+  border: 2px solid var(--border-bold);
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  background: var(--bg-surface);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.remove-adj-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56rpx;
+  font-size: 32rpx;
+  color: var(--text-muted);
+}
+
+.add-adj-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 68rpx;
+  border: 1.8px dashed var(--border-quiet);
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.note-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24rpx 28rpx;
+  border: 1.5px solid var(--border-quiet);
+  border-radius: 20rpx;
+  font-size: 26rpx;
+  background: var(--bg-surface);
+  min-height: 120rpx;
+}
+
 .mood-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
