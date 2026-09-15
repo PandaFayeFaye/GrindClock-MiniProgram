@@ -443,7 +443,12 @@ export default function AICapture() {
         </View>
       </View>
 
-      {mode === "recognizing" && <Text className="status-hint">识别中，请稍候…</Text>}
+      {mode === "recognizing" && (
+        <View className="status-hint-row">
+          <View className="mic-spinner" />
+          <Text className="status-hint">识别中，请稍候…</Text>
+        </View>
+      )}
 
       <View className="manual-link" onClick={handleManualEntry}>
         <Text>不用 AI，手动填一笔 ›</Text>

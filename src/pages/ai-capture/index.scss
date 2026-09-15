@@ -91,6 +91,26 @@
   color: var(--text-muted);
 }
 
+.status-hint-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+@keyframes mic-spin {
+  to { transform: rotate(360deg); }
+}
+
+.mic-spinner {
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  border: 4rpx solid var(--border-quiet);
+  border-top-color: var(--accent-blue);
+  animation: mic-spin 0.7s linear infinite;
+}
+
 .status-hint {
   text-align: center;
   font-size: 24rpx;

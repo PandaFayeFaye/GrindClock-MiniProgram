@@ -1,3 +1,8 @@
+@keyframes coach-spotlight-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .coach-tour-backdrop {
   position: fixed;
   inset: 0;
@@ -8,6 +13,12 @@
   z-index: 300;
   padding: 48rpx;
   box-sizing: border-box;
+  animation: coach-spotlight-in 0.25s ease both;
+}
+
+@keyframes coach-tooltip-in {
+  from { opacity: 0; transform: translateY(16rpx); }
+  to { opacity: 1; transform: none; }
 }
 
 .coach-tour-card {
@@ -20,6 +31,7 @@
   display: flex;
   flex-direction: column;
   gap: 16rpx;
+  animation: coach-tooltip-in 0.25s ease both;
 }
 
 .coach-tour-progress {
