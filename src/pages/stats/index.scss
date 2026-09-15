@@ -365,34 +365,37 @@
   display: none;
 }
 
-.goal-row {
+.goal-ring-row {
   display: flex;
-  align-items: center;
-  gap: 20rpx;
+  justify-content: center;
   margin-bottom: 16rpx;
 }
 
-.goal-track {
-  flex: 1;
-  height: 24rpx;
-  border-radius: 12rpx;
-  background: var(--bg-base);
+.goal-ring {
+  width: 220rpx;
+  height: 220rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1.5px solid var(--border-quiet);
-  overflow: hidden;
 }
 
-.goal-fill {
-  height: 100%;
-  background: var(--accent-purple);
+.goal-ring-inner {
+  width: 168rpx;
+  height: 168rpx;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-quiet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .goal-pct {
   font-family: var(--font-display);
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 900;
-  flex-shrink: 0;
-  min-width: 80rpx;
-  text-align: right;
 }
 
 .goal-note {

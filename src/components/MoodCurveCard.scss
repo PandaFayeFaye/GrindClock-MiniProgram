@@ -42,6 +42,14 @@
   height: 100%;
   border-radius: 50%;
   border: 2px solid var(--border-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mood-point-icon {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .mood-dot {

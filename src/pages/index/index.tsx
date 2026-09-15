@@ -248,7 +248,7 @@ export default function Index() {
       <View className="banner">
         <View className="banner-avatar">
           <View className="banner-avatar-inner" style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}>
-            <Image src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" className="banner-avatar-img" />
+            <Image src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFill" className="banner-avatar-img" />
             {mbti && <Text className="avatar-mbti-tag">{mbti}</Text>}
           </View>
         </View>

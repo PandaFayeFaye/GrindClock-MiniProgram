@@ -32,7 +32,7 @@ export default function AvatarPicker() {
   return (
     <View className="avatar-picker-page">
       <View className="avatar-preview" style={{ borderColor: ringColor }}>
-        <Image className="avatar-preview-img" src={characterImageSrc(animal, mbti)} mode="aspectFit" />
+        <Image className="avatar-preview-img" src={characterImageSrc(animal, mbti)} mode="aspectFill" />
       </View>
 
       <Text className="avatar-section-label">选择动物</Text>
@@ -43,7 +43,7 @@ export default function AvatarPicker() {
             className={`avatar-animal-btn${animal === a.key ? " selected" : ""}`}
             onClick={() => setAnimal(a.key)}
           >
-            <Image className="avatar-animal-thumb" src={characterImageSrc(a.key)} mode="aspectFit" />
+            <Image className="avatar-animal-thumb" src={characterImageSrc(a.key)} mode="aspectFill" />
             <Text>{a.label}</Text>
           </View>
         ))}

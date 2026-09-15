@@ -325,11 +325,17 @@ export default function Stats() {
       {viz === "rank" && (
         <View className="chart-card">
           <Text className="chart-title">本周目标</Text>
-          <View className="goal-row">
-            <View className="goal-track">
-              <View className="goal-fill" style={{ width: `${goalPct}%` }} />
+          <View className="goal-ring-row">
+            <View
+              className="goal-ring"
+              style={{
+                background: `conic-gradient(var(--accent-yellow) ${goalPct * 3.6}deg, var(--bg-base) ${goalPct * 3.6}deg)`,
+              }}
+            >
+              <View className="goal-ring-inner">
+                <Text className="goal-pct">{goalPct}%</Text>
+              </View>
             </View>
-            <Text className="goal-pct">{goalPct}%</Text>
           </View>
           {editingGoal ? (
             <Input

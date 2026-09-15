@@ -33,3 +33,14 @@ export const MOOD_KEYS: { key: Mood; label: string }[] = [
   { key: "grind", label: "爆肝" },
   { key: "heartbeat", label: "心动" },
 ];
+
+export const MOOD_ICON: Record<Mood, string> = {
+  crash: "/icons/mood-crash.png",
+  normal: "/icons/mood-normal.png",
+  great: "/icons/mood-great.png",
+  heartbeat: "/icons/mood-heartbeat.png",
+  slack: "/icons/mood-slack.png",
+  grind: "/icons/mood-grind.png",
+  ox: "/icons/mood-ox.png",
+  flat: "/icons/mood-flat.png",
+};

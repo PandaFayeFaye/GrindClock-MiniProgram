@@ -28,14 +28,14 @@
 .banner-avatar-inner {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   width: 96rpx;
   height: 96rpx;
   background: #F5F0E4;
   border: 2px solid var(--border-bold);
   border-radius: 50%;
-  overflow: visible;
+  overflow: hidden;
   box-sizing: border-box;
 }
 

@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { View, Text, Input, Button } from "@tarojs/components";
+import { View, Text, Input, Button, Image } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { updateTimeEntry } from "../lib/cloud";
 import { dateKey, moodDetailByDay, payByDay } from "../lib/stats";
-import { MOOD_KEYS, MOOD_Y, MOOD_COLOR } from "../lib/moods";
+import { MOOD_KEYS, MOOD_Y, MOOD_COLOR, MOOD_ICON } from "../lib/moods";
 import type { Employer, Mood, TimeEntry } from "../lib/types";
 import "./MoodCurveCard.scss";
 
@@ -95,7 +95,7 @@ export function MoodCurveCard({
 
   return (
     <View className="mood-curve-card">
-      <Text className="title">最近7天心情</Text>
+      <Text className="title">本周心情曲线（仅自己可见）</Text>
       <View className="mood-curve">
         {last7Days.map((d, i) => {
           const x = (i / 6) * 100;
@@ -108,7 +108,13 @@ export function MoodCurveCard({
               style={{ left: `${x}%`, top: `${y}%` }}
               onClick={() => openMoodEditor(d)}
             >
-              {d.mood ? <View className="mood-point-fill" style={{ background: MOOD_COLOR[d.mood] }} /> : <View className="mood-dot" />}
+              {d.mood ? (
+                <View className="mood-point-fill" style={{ background: MOOD_COLOR[d.mood] }}>
+                  <Image className="mood-point-icon" src={MOOD_ICON[d.mood]} mode="aspectFit" />
+                </View>
+              ) : (
+                <View className="mood-dot" />
+              )}
             </View>
           );
         })}
