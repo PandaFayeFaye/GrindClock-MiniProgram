@@ -152,6 +152,10 @@ export default function Backfill() {
       Taro.showToast({ title: "填一下工时时长", icon: "none" });
       return;
     }
+    if (range.end - range.start > 24 * 3_600_000) {
+      Taro.showToast({ title: "单次工时超过24小时，检查一下填对了没", icon: "none" });
+      return;
+    }
     setSaving(true);
     try {
       const base = {

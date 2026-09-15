@@ -174,6 +174,10 @@ export default function AICapture() {
       Taro.showToast({ title: "填一下工时时长", icon: "none" });
       return;
     }
+    if (h > 24) {
+      Taro.showToast({ title: "识别结果可能有误，单次工时超过24小时，检查一下", icon: "none" });
+      return;
+    }
     let startTime: number;
     let endTime: number;
     if (startTimeStr && endTimeStr) {

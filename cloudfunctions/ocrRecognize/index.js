@@ -35,7 +35,9 @@ exports.main = async (event) => {
     const text = (result.TextDetections || []).map((d) => d.DetectedText).join("\n");
     return { text };
   } catch (err) {
+    // Log the full error server-side, but never echo it verbatim back to the
+    // client -- it can carry Tencent SDK internals (request IDs, endpoints).
     console.error("ocrRecognize failed", err);
-    return { text: "", error: String(err) };
+    return { text: "", error: "ocr_failed" };
   }
 };
