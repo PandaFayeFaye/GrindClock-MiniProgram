@@ -67,6 +67,11 @@ export default function Stats() {
   useDidShow(() => {
     reload();
     Taro.eventCenter.trigger("tabBarChange", 1);
+    const pending = Taro.getStorageSync("pendingStatsRange") as RangeKey | "";
+    if (pending) {
+      setRange(pending);
+      Taro.removeStorageSync("pendingStatsRange");
+    }
   });
 
   const entries = useMemo(() => allEntries.filter((e) => !e.workerId), [allEntries]);

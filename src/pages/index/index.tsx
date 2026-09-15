@@ -263,6 +263,14 @@ export default function Index() {
     }
   }
 
+  // Taro.switchTab (required for a tab page) can't carry query params, so the
+  // desired range is handed off via storage and picked up by the stats
+  // page's own useDidShow instead.
+  function jumpToStats(range: "today" | "week" | "month") {
+    Taro.setStorageSync("pendingStatsRange", range);
+    Taro.switchTab({ url: "/pages/stats/index" });
+  }
+
   return (
     <View className="home-page">
       {!simpleMode && (
@@ -295,12 +303,12 @@ export default function Index() {
       )}
 
       <View className="income-cards-row">
-        <View className="income-card income-card-today">
+        <View className="income-card income-card-today" hoverClass="pressed" hoverStayTime={0} onClick={() => jumpToStats(leftRange)}>
           <View className="income-range-tabs">
-            <View className={`income-range-tab${leftRange === "today" ? " active" : ""}`} onClick={() => setLeftRange("today")}>
+            <View className={`income-range-tab${leftRange === "today" ? " active" : ""}`} onClick={(e) => { e.stopPropagation(); setLeftRange("today"); }}>
               <Text>今日</Text>
             </View>
-            <View className={`income-range-tab${leftRange === "week" ? " active" : ""}`} onClick={() => setLeftRange("week")}>
+            <View className={`income-range-tab${leftRange === "week" ? " active" : ""}`} onClick={(e) => { e.stopPropagation(); setLeftRange("week"); }}>
               <Text>本周</Text>
             </View>
           </View>
@@ -312,7 +320,7 @@ export default function Index() {
           )}
         </View>
 
-        <View className="income-card income-card-month">
+        <View className="income-card income-card-month" hoverClass="pressed" hoverStayTime={0} onClick={() => jumpToStats("month")}>
           <View className="income-range-tabs">
             <View className="income-range-tab active"><Text>本月</Text></View>
           </View>

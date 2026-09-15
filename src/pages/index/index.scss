@@ -170,6 +170,10 @@
   background: var(--accent-purple);
 }
 
+.income-card.pressed {
+  transform: scale(0.97);
+}
+
 .income-range-tabs {
   display: flex;
   gap: 8rpx;
