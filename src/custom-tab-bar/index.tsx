@@ -16,6 +16,7 @@ const TABS = [
 
 export default function CustomTabBar() {
   const [selected, setSelected] = useState(0);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     const handler = (idx: number) => setSelected(idx);
@@ -25,10 +26,27 @@ export default function CustomTabBar() {
     };
   }, []);
 
+  useEffect(() => {
+    // Taro/wx.hideTabBar() only toggles the native tabBar container -- it
+    // does nothing for a fully custom one, since this component's own
+    // render is what actually paints the bar. A full-screen modal that
+    // reaches the bottom of the screen has to ask this component directly
+    // to stop rendering while it's open, or its buttons end up hidden
+    // underneath the bar (the bar is a separate layer that always paints
+    // above regular page content regardless of WXSS z-index).
+    const handler = (v: boolean) => setVisible(v);
+    Taro.eventCenter.on("tabBarVisibility", handler);
+    return () => {
+      Taro.eventCenter.off("tabBarVisibility", handler);
+    };
+  }, []);
+
   function handleTap(tab: (typeof TABS)[number]) {
     setSelected(tab.index);
     Taro.switchTab({ url: tab.url });
   }
+
+  if (!visible) return null;
 
   return (
     <View className="tabbar-dock">

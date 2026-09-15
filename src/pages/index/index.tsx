@@ -172,16 +172,15 @@ export default function Index() {
   const [retroEmployer, setRetroEmployer] = useState<Employer | null>(null);
   const [scheduleConfirmEmployer, setScheduleConfirmEmployer] = useState<Employer | null>(null);
 
-  // The custom tab bar is a separate native layer that paints above regular
-  // page content regardless of WXSS z-index, so a bottom-sheet modal's own
-  // buttons can end up hidden underneath it. Hiding the tab bar while any of
-  // these full-screen modals is open is the standard workaround.
+  // The custom tab bar paints above regular page content regardless of WXSS
+  // z-index, so a bottom-sheet modal's own buttons can end up hidden
+  // underneath it. Taro/wx.hideTabBar() does nothing for a fully custom tab
+  // bar -- it has to be told directly to stop rendering (see
+  // custom-tab-bar/index.tsx's "tabBarVisibility" listener).
   useEffect(() => {
-    if (confirming || retroEmployer || scheduleConfirmEmployer || showTour) {
-      Taro.hideTabBar({ animation: false });
-    } else {
-      Taro.showTabBar({ animation: false });
-    }
+    const anyModalOpen = !!(confirming || retroEmployer || scheduleConfirmEmployer || showTour);
+    Taro.eventCenter.trigger("tabBarVisibility", !anyModalOpen);
+    return () => { Taro.eventCenter.trigger("tabBarVisibility", true); };
   }, [confirming, retroEmployer, scheduleConfirmEmployer, showTour]);
 
   async function handlePunch(employer: Employer) {

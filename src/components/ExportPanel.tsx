@@ -25,9 +25,11 @@ export function ExportPanel({
 
   // The custom tab bar paints above regular page content regardless of WXSS
   // z-index, which would otherwise hide this bottom sheet's own buttons.
+  // Taro/wx.hideTabBar() does nothing for a fully custom tab bar -- it has
+  // to be told directly to stop rendering (see custom-tab-bar/index.tsx).
   useEffect(() => {
-    Taro.hideTabBar({ animation: false });
-    return () => { Taro.showTabBar({ animation: false }); };
+    Taro.eventCenter.trigger("tabBarVisibility", false);
+    return () => { Taro.eventCenter.trigger("tabBarVisibility", true); };
   }, []);
 
   function toggle(col: ExportColumn) {
