@@ -1,6 +1,7 @@
 import { PropsWithChildren } from 'react'
 import Taro, { useLaunch } from '@tarojs/taro'
 
+import { DISPLAY_FONT_BASE64 } from './lib/displayFontBase64'
 import './app.scss'
 
 // Cloud environment id -- fill this in from 云开发控制台 once the environment is
@@ -23,23 +24,20 @@ function App({ children }: PropsWithChildren<any>) {
     // wx.loadFontFace's `source` internally goes through a *download task*
     // even for a package-relative path like "/fonts/x.ttf" -- since that's
     // not a fetchable URL, it fails with "createDownloadTask:fail invalid
-    // url" every time (silently falling back to the system font, so this
-    // was invisible until checked in the console). Reading the bundled file
-    // straight off disk and passing it as a base64 data URI sidesteps the
-    // download step entirely and is reliable on real devices.
-    try {
-      const base64 = Taro.getFileSystemManager().readFileSync('/fonts/ZCOOLKuaiLe-subset.ttf', 'base64') as string
-      Taro.loadFontFace({
-        family: 'ZCOOL KuaiLe',
-        source: `url("data:font/ttf;base64,${base64}")`,
-        global: true,
-      }).then(
-        (res) => console.log('Display font loaded', res),
-        (err) => console.warn('Failed to load display font', err),
-      )
-    } catch (err) {
-      console.warn('Failed to read display font file', err)
-    }
+    // url" every time (silently falling back to the system font). Reading
+    // the bundled file at runtime via getFileSystemManager doesn't work
+    // reliably either -- package-bundled assets aren't guaranteed readable
+    // through that API on every base library version. Inlining the font as
+    // a base64 data URI build-time constant (DISPLAY_FONT_BASE64) sidesteps
+    // both problems: no download, no runtime file read.
+    Taro.loadFontFace({
+      family: 'ZCOOL KuaiLe',
+      source: `url("data:font/ttf;base64,${DISPLAY_FONT_BASE64}")`,
+      global: true,
+    }).then(
+      (res) => console.log('Display font loaded', res),
+      (err) => console.warn('Failed to load display font', err),
+    )
   })
 
   // children 是将要会渲染的页面
