@@ -8,10 +8,21 @@
   background: var(--bg-base);
 }
 
+@keyframes card-rise {
+  from { opacity: 0; transform: translateY(24rpx); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fab-item-pop {
+  from { opacity: 0; transform: translateY(16rpx) scale(0.85); }
+  to { opacity: 1; transform: none; }
+}
+
 .banner {
   display: flex;
   align-items: center;
   gap: 28rpx;
+  animation: card-rise 0.4s ease both;
 }
 
 .banner-avatar-outer {
@@ -133,6 +144,8 @@
 .income-card {
   flex: 1;
   min-width: 0;
+  animation: card-rise 0.4s ease both;
+  animation-delay: 0.05s;
   display: flex;
   flex-direction: column;
   gap: 4rpx;
@@ -223,6 +236,8 @@
   border: 1.5px solid var(--border-quiet);
   border-radius: 20rpx;
   overflow: hidden;
+  animation: card-rise 0.4s ease both;
+  animation-delay: 0.1s;
 }
 
 .row-wrap.is-working {
@@ -363,6 +378,7 @@
   display: flex;
   align-items: center;
   gap: 20rpx;
+  animation: fab-item-pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .fab-menu-label {
