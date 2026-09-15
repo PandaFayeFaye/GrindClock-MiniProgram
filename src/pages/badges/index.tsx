@@ -1,13 +1,14 @@
 import { useState, useMemo } from "react";
-import { View, Text } from "@tarojs/components";
+import { View, Text, Image } from "@tarojs/components";
 import { useDidShow } from "@tarojs/taro";
-import { fetchEmployers, fetchTimeEntries } from "../../lib/cloud";
+import { fetchEmployers, fetchTimeEntries, fetchUserProfile } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
 import { entryHours } from "../../lib/pay";
 import { consecutiveWeeksMeetingGoal, currentStreak, dateKey } from "../../lib/stats";
 import { getWeeklyGoal } from "../../lib/settings";
 import { DEFAULT_CURRENCY, currencySymbol } from "../../lib/currency";
 import { TIER_COLORS, TIERS, currentTierIndex } from "../../lib/tiers";
+import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
 import type { Employer, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
@@ -18,15 +19,26 @@ interface Badge {
   color: string;
 }
 
+// Zigzag x-position (% of track width) for each path node, matching the
+// web app's Duolingo-style skill path -- the connecting line itself is SVG
+// there, which native weapp has no equivalent for, so only the alternating
+// left/right node placement is ported.
+const PATH_X = [50, 22, 78, 22, 78, 50];
+
 export default function Badges() {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [employers, setEmployers] = useState<Employer[]>([]);
+  const [animal, setAnimal] = useState<AnimalKey | undefined>(undefined);
+  const [mbti, setMbti] = useState<string | undefined>(undefined);
+  const [selected, setSelected] = useState<Badge | null>(null);
   const weeklyGoal = getWeeklyGoal();
 
   useDidShow(() => {
-    Promise.all([fetchEmployers(), fetchTimeEntries()]).then(([empDocs, entryDocs]) => {
+    Promise.all([fetchEmployers(), fetchTimeEntries(), fetchUserProfile()]).then(([empDocs, entryDocs, profile]) => {
       setEmployers(empDocs.map(toEmployer));
       setEntries(entryDocs.map(toTimeEntry));
+      setAnimal(profile?.animal as AnimalKey | undefined);
+      setMbti(profile?.mbti);
     });
   });
 
@@ -73,29 +85,40 @@ export default function Badges() {
   return (
     <View className="badge-page">
       <View className="hero">
-        <Text className="hero-title">{currentTier.label}</Text>
-        <View className="hero-track">
-          <View className="hero-fill" style={{ width: `${progressPct}%`, background: TIER_COLORS[currentTierIdx] }} />
+        <View className="hero-companion-wrap">
+          <Image className="hero-companion" src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" />
         </View>
-        <Text className="hero-note">
-          {nextTier ? `距离「${nextTier.label}」还差${(nextTier.threshold - totalHours).toFixed(0)}小时` : "已达到最高称号！"}
-        </Text>
+        <View className="hero-body">
+          <Text className="hero-title">{currentTier.label}</Text>
+          <View className="hero-track">
+            <View className="hero-fill" style={{ width: `${progressPct}%`, background: TIER_COLORS[currentTierIdx] }} />
+          </View>
+          <Text className="hero-note">
+            {nextTier ? `距离「${nextTier.label}」还差${(nextTier.threshold - totalHours).toFixed(0)}小时` : "已达到最高称号！"}
+          </Text>
+        </View>
       </View>
 
       <View className="section">
         <Text className="section-label">称号进阶之路</Text>
-        <View className="tier-list">
+        <View className="tier-path">
           {TIERS.map((tier, i) => {
             const b = tierBadges[i];
             const isCurrent = i === currentTierIdx;
             return (
-              <View className={`tier-item${b.unlocked ? " unlocked" : " locked"}${isCurrent ? " current" : ""}`} key={tier.label}>
-                <View className="tier-icon" style={b.unlocked ? { background: TIER_COLORS[i] } : undefined} />
-                <View className="tier-info">
-                  <Text className="tier-name">{tier.label}</Text>
-                  <Text className="tier-cond">{b.unlocked ? "已解锁 · " : "未解锁 · "}{b.cond}</Text>
-                </View>
-                {isCurrent && <Text className="tier-current-tag">当前</Text>}
+              <View
+                key={tier.label}
+                className={`tier-node${b.unlocked ? " unlocked" : " locked"}${isCurrent ? " current" : ""}`}
+                style={{ left: `${PATH_X[i % PATH_X.length]}%` }}
+                onClick={() => setSelected(b)}
+              >
+                {isCurrent && (
+                  <View className="tier-mascot">
+                    <Image className="tier-mascot-img" src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" />
+                  </View>
+                )}
+                <View className="tier-node-circle" style={b.unlocked ? { background: TIER_COLORS[i] } : undefined} />
+                <Text className="tier-node-label">{tier.label}</Text>
               </View>
             );
           })}
@@ -106,7 +129,7 @@ export default function Badges() {
         <Text className="section-label">隐藏成就</Text>
         <View className="badge-grid">
           {funBadges.map((b) => (
-            <View className={`badge${b.unlocked ? " unlocked" : " locked"}`} key={b.name}>
+            <View className={`badge${b.unlocked ? " unlocked" : " locked"}`} key={b.name} onClick={() => setSelected(b)}>
               <View className="badge-ic" style={b.unlocked ? { background: b.color } : undefined} />
               <Text className="badge-name">{b.name}</Text>
               <Text className="badge-cond">{b.unlocked ? "已解锁" : "未解锁"} · {b.cond}</Text>
@@ -114,6 +137,22 @@ export default function Badges() {
           ))}
         </View>
       </View>
+
+      {selected && (
+        <View className="badge-backdrop" onClick={() => setSelected(null)}>
+          <View className="badge-detail-card" onClick={(e) => e.stopPropagation()}>
+            <View className="badge-detail-icon" style={selected.unlocked ? { background: selected.color } : undefined} />
+            <Text className="badge-detail-name">{selected.name}</Text>
+            <Text className={`badge-detail-status${selected.unlocked ? " on" : " off"}`}>
+              {selected.unlocked ? "已解锁" : "未解锁"}
+            </Text>
+            <Text className="badge-detail-cond">解锁条件：{selected.cond}</Text>
+            <View className="badge-detail-close" onClick={() => setSelected(null)}>
+              <Text>知道了</Text>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 }

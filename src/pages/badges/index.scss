@@ -9,13 +9,41 @@
 
 .hero {
   display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+  align-items: center;
+  gap: 24rpx;
   background: var(--bg-surface);
   border: 2px solid var(--border-bold);
   border-radius: var(--radius-bold);
   padding: 32rpx 36rpx;
   box-shadow: var(--shadow-bold-sm);
+}
+
+.hero-companion-wrap {
+  flex-shrink: 0;
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 50%;
+  background: var(--accent-yellow);
+  border: 2.5px solid var(--border-bold);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  padding: 8rpx;
+  box-sizing: border-box;
+}
+
+.hero-companion {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
 .hero-title {
@@ -55,68 +83,65 @@
   color: var(--text-muted);
 }
 
-.tier-list {
+.tier-path {
+  position: relative;
+  height: 1080rpx;
+  padding-top: 20rpx;
+}
+
+.tier-node {
+  position: absolute;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
-}
-
-.tier-item {
-  display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 20rpx 24rpx;
-  background: var(--bg-surface);
-  border: 1.5px solid var(--border-quiet);
-  border-radius: 20rpx;
-  opacity: 0.55;
+  gap: 8rpx;
+  opacity: 0.5;
 }
 
-.tier-item.unlocked {
+.tier-node.unlocked {
   opacity: 1;
 }
 
-.tier-item.current {
+@for $i from 0 through 5 {
+  .tier-node:nth-child(#{$i + 1}) {
+    top: #{$i * 180}rpx;
+  }
+}
+
+.tier-mascot {
+  position: absolute;
+  top: -88rpx;
+  width: 80rpx;
+  height: 80rpx;
+}
+
+.tier-mascot-img {
+  width: 100%;
+  height: 100%;
+}
+
+.tier-node-circle {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 3px solid var(--border-quiet);
+}
+
+.tier-node.unlocked .tier-node-circle {
   border-color: var(--border-bold);
   box-shadow: var(--shadow-bold-sm);
 }
 
-.tier-icon {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: var(--bg-base);
-  border: 2px solid var(--border-quiet);
+.tier-node.current .tier-node-circle {
+  box-shadow: 0 0 0 6rpx rgba(255, 217, 61, 0.4);
 }
 
-.tier-item.unlocked .tier-icon {
-  border-color: var(--border-bold);
-}
-
-.tier-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.tier-name {
-  font-size: 26rpx;
+.tier-node-label {
+  font-size: 21rpx;
   font-weight: 800;
-}
-
-.tier-cond {
-  font-size: 19rpx;
-  color: var(--text-muted);
-}
-
-.tier-current-tag {
-  font-size: 19rpx;
-  font-weight: 800;
-  color: var(--accent-blue);
-  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .badge-grid {
@@ -164,4 +189,80 @@
   font-size: 18rpx;
   color: var(--text-muted);
   line-height: 1.4;
+}
+
+.badge-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 64rpx;
+  box-sizing: border-box;
+}
+
+.badge-detail-card {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 3px solid var(--border-bold);
+  border-radius: var(--radius-bold);
+  padding: 48rpx 40rpx;
+  box-shadow: var(--shadow-bold);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  text-align: center;
+}
+
+.badge-detail-icon {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: var(--bg-base);
+  border: 3px solid var(--border-quiet);
+  margin-bottom: 12rpx;
+}
+
+.badge-detail-name {
+  font-family: var(--font-display);
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.badge-detail-status {
+  font-size: 21rpx;
+  font-weight: 800;
+  padding: 6rpx 20rpx;
+  border-radius: 999px;
+}
+
+.badge-detail-status.on {
+  background: rgba(57, 201, 122, 0.16);
+  color: #2A9D5C;
+}
+
+.badge-detail-status.off {
+  background: var(--bg-base);
+  color: var(--text-muted);
+}
+
+.badge-detail-cond {
+  font-size: 23rpx;
+  color: var(--text-muted);
+  margin-top: 8rpx;
+}
+
+.badge-detail-close {
+  margin-top: 24rpx;
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 20rpx;
+  border: 2px solid var(--border-bold);
+  background: var(--accent-yellow);
+  font-weight: 900;
+  font-size: 26rpx;
 }
