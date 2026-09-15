@@ -283,11 +283,11 @@ export default function Backfill() {
         </View>
       )}
 
-      <View className="ot-toggle-row" onClick={() => setIsOvertime(!isOvertime)}>
+      <View className="ot-toggle-row">
         <Text>整段按加班工资计算</Text>
         <Switch checked={isOvertime} onChange={(e) => setIsOvertime(e.detail.value)} />
       </View>
-      <View className="ot-toggle-row" onClick={() => setIsHoliday(!isHoliday)}>
+      <View className="ot-toggle-row">
         <Text>整段按节假日工资计算</Text>
         <Switch checked={isHoliday} onChange={(e) => setIsHoliday(e.detail.value)} />
       </View>
