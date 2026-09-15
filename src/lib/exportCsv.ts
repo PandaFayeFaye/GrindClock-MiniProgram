@@ -17,14 +17,22 @@ export const EXPORT_COLUMNS: { key: ExportColumn; label: string }[] = [
   { key: "note", label: "备注" },
 ];
 
+function formatDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function formatTime(d: Date): string {
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 function cellValue(col: ExportColumn, e: TimeEntry, emp: Employer | undefined): string {
   const start = new Date(e.startTime);
   const end = e.endTime ? new Date(e.endTime) : null;
   switch (col) {
-    case "date": return start.toLocaleDateString();
+    case "date": return formatDate(start);
     case "employer": return emp?.name ?? "";
-    case "start": return start.toLocaleTimeString();
-    case "end": return end ? end.toLocaleTimeString() : "";
+    case "start": return formatTime(start);
+    case "end": return end ? formatTime(end) : "";
     case "hours": return entryHours(e).toFixed(2);
     case "pay": return emp ? `${currencySymbol(emp.currency)}${entryPay(emp, e).toFixed(2)}` : "";
     case "mood": return e.mood ?? "";
