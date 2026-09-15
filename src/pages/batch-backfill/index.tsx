@@ -253,18 +253,22 @@ export default function BatchBackfill() {
             </View>
           )}
 
-          <Button className="save-btn" loading={saving} disabled={!selectedEmployer || matchingDates.length === 0} onClick={handleCreate}>
-            一键生成
-          </Button>
+          <View className="save-btn-bar">
+            <Button className="save-btn" loading={saving} disabled={!selectedEmployer || matchingDates.length === 0} onClick={handleCreate}>
+              一键生成
+            </Button>
+          </View>
         </>
       )}
 
       {mode === "delete" && (
         <>
           <Text className="batch-preview danger">匹配到 {matchingEntries.length} 条记录</Text>
-          <Button className="save-btn danger" loading={saving} disabled={matchingEntries.length === 0} onClick={handleDelete}>
-            {confirmDelete ? `再点一次，确认删除${matchingEntries.length}条` : "全部删除"}
-          </Button>
+          <View className="save-btn-bar">
+            <Button className="save-btn danger" loading={saving} disabled={matchingEntries.length === 0} onClick={handleDelete}>
+              {confirmDelete ? `再点一次，确认删除${matchingEntries.length}条` : "全部删除"}
+            </Button>
+          </View>
         </>
       )}
     </View>

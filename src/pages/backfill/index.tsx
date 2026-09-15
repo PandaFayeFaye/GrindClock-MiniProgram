@@ -169,9 +169,11 @@ export default function Backfill() {
         </View>
       </View>
 
-      <Button className="save-btn" loading={saving} onClick={handleSave}>
-        保存
-      </Button>
+      <View className="save-btn-bar">
+        <Button className="save-btn" loading={saving} onClick={handleSave}>
+          保存
+        </Button>
+      </View>
     </View>
   );
 }

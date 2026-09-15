@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, Input, Picker, Button } from "@tarojs/components";
+import { View, Text, Input, Picker, Button, Image } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { fetchEmployers, addManualEntry, addManualEntries } from "../../lib/cloud";
 import { toEmployer } from "../../lib/adapt";
@@ -307,11 +307,13 @@ export default function AICapture() {
           {batchRows.length === 0 && <Text className="empty-hint">已全部删除，返回重新识别</Text>}
         </View>
 
-        <Button className="save-btn" loading={saving} onClick={handleSaveBatch}>
-          保存全部 {batchRows.length} 条
-        </Button>
-        <View className="back-link" onClick={() => setReviewMode("none")}>
-          <Text>返回重新识别</Text>
+        <View className="save-btn-bar">
+          <Button className="save-btn" loading={saving} onClick={handleSaveBatch}>
+            保存全部 {batchRows.length} 条
+          </Button>
+          <View className="back-link" onClick={() => setReviewMode("none")}>
+            <Text>返回重新识别</Text>
+          </View>
         </View>
       </View>
     );
@@ -403,11 +405,13 @@ export default function AICapture() {
           </View>
         </View>
 
-        <Button className="save-btn" loading={saving} onClick={handleSave}>
-          保存
-        </Button>
-        <View className="back-link" onClick={() => setReviewMode("none")}>
-          <Text>返回重新识别</Text>
+        <View className="save-btn-bar">
+          <Button className="save-btn" loading={saving} onClick={handleSave}>
+            保存
+          </Button>
+          <View className="back-link" onClick={() => setReviewMode("none")}>
+            <Text>返回重新识别</Text>
+          </View>
         </View>
       </View>
     );
@@ -420,7 +424,9 @@ export default function AICapture() {
 
       <View className="capture-actions">
         <View className={`capture-card${mode === "recognizing" ? " disabled" : ""}`} onClick={mode === "idle" ? handleChoosePhoto : undefined}>
-          <View className="capture-icon-circle" />
+          <View className="capture-icon-circle">
+            <Image className="capture-icon-img" src="/icons/capture-camera.png" mode="aspectFit" />
+          </View>
           <Text className="capture-card-title">拍照识别</Text>
           <Text className="capture-card-sub">排班表 / 打卡截图</Text>
         </View>
@@ -429,7 +435,9 @@ export default function AICapture() {
           className={`capture-card${mode === "recognizing" ? " disabled" : ""}${mode === "recording" ? " recording" : ""}`}
           onClick={mode === "recording" ? handleStopRecording : mode === "idle" ? handleStartRecording : undefined}
         >
-          <View className="capture-icon-circle" />
+          <View className="capture-icon-circle">
+            <Image className="capture-icon-img" src="/icons/capture-mic.png" mode="aspectFit" />
+          </View>
           <Text className="capture-card-title">{mode === "recording" ? "点击结束录音" : "语音记工"}</Text>
           <Text className="capture-card-sub">{mode === "recording" ? "正在录音…" : "说一句今天上班的情况"}</Text>
         </View>

@@ -3,8 +3,22 @@
   flex-direction: column;
   gap: 48rpx;
   padding: 48rpx;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
   min-height: 100vh;
   background: var(--bg-base);
+  box-sizing: border-box;
+}
+
+.save-btn-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20rpx 48rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: var(--bg-base);
+  border-top: 1.5px solid var(--border-quiet);
+  box-sizing: border-box;
+  z-index: 10;
 }
 
 .field {
@@ -37,7 +51,9 @@
 .hours-input {
   width: 100%;
   box-sizing: border-box;
-  padding: 28rpx 32rpx;
+  height: 96rpx;
+  line-height: 96rpx;
+  padding: 0 32rpx;
   border: 2.5px solid var(--border-bold);
   border-radius: 24rpx;
   font-size: 32rpx;
@@ -65,6 +81,7 @@
 .mood-tag.selected {
   background: var(--accent-blue);
   color: #fff;
+  box-shadow: var(--shadow-bold-sm);
 }
 
 .save-btn {
@@ -139,7 +156,9 @@
 .ot-hours-input {
   width: 160rpx;
   box-sizing: border-box;
-  padding: 16rpx 20rpx;
+  height: 68rpx;
+  line-height: 68rpx;
+  padding: 0 20rpx;
   border: 2px solid var(--border-bold);
   border-radius: 16rpx;
   font-size: 26rpx;
