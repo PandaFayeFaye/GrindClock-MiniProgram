@@ -276,7 +276,7 @@ export default function Index() {
             </View>
           </View>
           <View className="banner-text">
-            <Text className="banner-title">{nickname ? `${nickname}，牛马辛苦了` : "牛马辛苦了，今天也要加油搬砖"}</Text>
+            <Text className="banner-title">{nickname ? `${nickname}，今天也要加油搬砖` : "今天也要加油搬砖"}</Text>
             <View className="home-tier-chip" onClick={() => Taro.navigateTo({ url: "/pages/badges/index" })}>
               <Text className="home-tier-name" style={{ color: TIER_COLORS[currentTierIdx] }}>{currentTier.label}</Text>
               <View className="home-tier-track">
