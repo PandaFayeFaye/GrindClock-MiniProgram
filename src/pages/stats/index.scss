@@ -440,7 +440,9 @@
 .goal-input {
   width: 100%;
   box-sizing: border-box;
-  padding: 18rpx 22rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0 22rpx;
   border: 2px solid var(--border-bold);
   border-radius: 18rpx;
   font-size: 26rpx;

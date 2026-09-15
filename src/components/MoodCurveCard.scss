@@ -176,7 +176,9 @@
 .mood-edit-note {
   width: 100%;
   box-sizing: border-box;
-  padding: 18rpx 24rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  padding: 0 24rpx;
   border: 1.5px solid var(--border-quiet);
   border-radius: 20rpx;
   font-size: 25rpx;

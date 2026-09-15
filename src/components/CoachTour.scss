@@ -34,6 +34,22 @@
   animation: coach-tooltip-in 0.25s ease both;
 }
 
+.coach-tour-card.positioned {
+  position: fixed;
+  left: 48rpx;
+  right: 48rpx;
+  width: auto;
+}
+
+.coach-spotlight {
+  position: fixed;
+  border-radius: 20rpx;
+  border: 3px solid var(--accent-yellow);
+  box-shadow: 0 0 0 4000px rgba(26, 26, 26, 0.55);
+  pointer-events: none;
+  animation: coach-spotlight-in 0.25s ease both;
+}
+
 .coach-tour-progress {
   font-size: 20rpx;
   font-weight: 900;

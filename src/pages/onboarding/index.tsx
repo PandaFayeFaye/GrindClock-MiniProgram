@@ -72,7 +72,7 @@ export default function Onboarding() {
                 onClick={() => setAnimal(a.key)}
               >
                 <View className="onboarding-animal-thumb-ring">
-                  <View className="onboarding-animal-thumb" style={{ backgroundImage: `url(${characterImageSrc(a.key)})` }} />
+                  <Image className="onboarding-animal-thumb" src={characterImageSrc(a.key)} mode="aspectFill" />
                 </View>
                 <Text>{a.label}</Text>
               </View>

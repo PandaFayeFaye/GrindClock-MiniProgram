@@ -259,10 +259,7 @@ export default function Index() {
           <View className="banner-avatar">
             <View className="banner-avatar-outer">
               <View className="banner-avatar-inner" style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}>
-                <View
-                  className="banner-avatar-img"
-                  style={{ backgroundImage: `url(${characterImageSrc(animal ?? "cow", mbti)})` }}
-                />
+                <Image className="banner-avatar-img" src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFill" />
               </View>
               {mbti && <Text className="avatar-mbti-tag">{mbti}</Text>}
             </View>
@@ -287,7 +284,7 @@ export default function Index() {
       )}
 
       <View className="income-cards-row">
-        <View className="income-card">
+        <View className="income-card income-card-today">
           <View className="income-range-tabs">
             <View className={`income-range-tab${leftRange === "today" ? " active" : ""}`} onClick={() => setLeftRange("today")}>
               <Text>今日</Text>

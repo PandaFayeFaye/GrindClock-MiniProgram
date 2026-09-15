@@ -44,7 +44,7 @@ export default function AvatarPicker() {
             onClick={() => setAnimal(a.key)}
           >
             <View className="avatar-animal-thumb-ring">
-              <View className="avatar-animal-thumb" style={{ backgroundImage: `url(${characterImageSrc(a.key)})` }} />
+              <Image className="avatar-animal-thumb" src={characterImageSrc(a.key)} mode="aspectFill" />
             </View>
             <Text>{a.label}</Text>
           </View>

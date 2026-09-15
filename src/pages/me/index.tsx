@@ -101,10 +101,7 @@ export default function Me() {
           onClick={() => Taro.navigateTo({ url: `/pages/avatar-picker/index?animal=${animal ?? "cow"}${mbti ? `&mbti=${mbti}` : ""}` })}
         >
           <View className="avatar-btn" style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}>
-            <View
-              className="avatar-btn-img"
-              style={{ backgroundImage: `url(${characterImageSrc(animal ?? "cow", mbti)})` }}
-            />
+            <Image className="avatar-btn-img" src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFill" />
           </View>
           {mbti && <Text className="avatar-mbti-tag">{mbti}</Text>}
         </View>
