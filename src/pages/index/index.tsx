@@ -359,6 +359,8 @@ export default function Index() {
                   </View>
                   <Button
                     className={`punch-btn${active ? " working" : ""}`}
+                    hoverClass="pressed"
+                    hoverStayTime={0}
                     onClick={() => handlePunch(emp)}
                   >
                     {active ? "下班打卡" : "上班打卡"}

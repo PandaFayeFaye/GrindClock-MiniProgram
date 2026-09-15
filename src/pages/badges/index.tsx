@@ -167,6 +167,8 @@ export default function Badges() {
                 key={tier.label}
                 className={`tier-node${b.unlocked ? " unlocked" : " locked"}${isCurrent ? " current" : ""}`}
                 style={{ left: `${PATH_X[i % PATH_X.length]}%`, top: `${PATH_TOP_PADDING_RPX + i * NODE_SPACING_RPX}rpx` }}
+                hoverClass="pressed"
+                hoverStayTime={0}
                 onClick={() => setSelected(b)}
               >
                 {isCurrent && (
@@ -188,7 +190,7 @@ export default function Badges() {
         <Text className="section-label">隐藏成就</Text>
         <View className="badge-grid">
           {funBadges.map((b) => (
-            <View className={`badge${b.unlocked ? " unlocked" : " locked"}`} key={b.name} onClick={() => setSelected(b)}>
+            <View className={`badge${b.unlocked ? " unlocked" : " locked"}`} key={b.name} hoverClass="pressed" hoverStayTime={0} onClick={() => setSelected(b)}>
               <View className="badge-ic" style={b.unlocked ? { background: b.color } : undefined}>
                 <Image className="badge-ic-img" src={b.unlocked ? b.icon : "/icons/lock.png"} mode="aspectFit" />
               </View>

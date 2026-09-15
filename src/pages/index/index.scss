@@ -293,10 +293,17 @@
   background: var(--accent-blue);
   color: #fff;
   box-shadow: 6rpx 6rpx 0 var(--border-bold);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
 .punch-btn.working {
   background: var(--accent-coral);
+  box-shadow: none;
+  transform: translate(6rpx, 6rpx);
+}
+
+.punch-btn.pressed {
+  transform: translate(6rpx, 6rpx);
   box-shadow: none;
 }
 
@@ -437,6 +444,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-bold);
+  transition: transform 0.2s ease;
 }
 
 .fab.open {

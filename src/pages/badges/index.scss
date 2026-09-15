@@ -120,6 +120,10 @@
   opacity: 1;
 }
 
+.tier-node.pressed {
+  transform: translateX(-50%) scale(0.92);
+}
+
 .tier-mascot {
   position: absolute;
   top: -88rpx;
@@ -191,6 +195,10 @@
 .badge.unlocked {
   opacity: 1;
   border-color: var(--border-bold);
+}
+
+.badge.pressed {
+  transform: scale(0.94);
 }
 
 .badge-ic {
