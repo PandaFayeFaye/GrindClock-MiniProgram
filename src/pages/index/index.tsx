@@ -246,8 +246,11 @@ export default function Index() {
   return (
     <View className="home-page">
       <View className="banner">
-        <View className="banner-avatar" style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}>
-          <Image src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" className="banner-avatar-img" />
+        <View className="banner-avatar">
+          <View className="banner-avatar-inner" style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}>
+            <Image src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" className="banner-avatar-img" />
+            {mbti && <Text className="avatar-mbti-tag">{mbti}</Text>}
+          </View>
         </View>
         <View className="banner-text">
           <Text className="banner-title">{nickname ? `${nickname}，牛马辛苦了` : "牛马辛苦了，今天也要加油搬砖"}</Text>
@@ -358,6 +361,7 @@ export default function Index() {
                 </View>
                 {doneToday && (
                   <View className="done-today-footer">
+                    <Image className="done-today-check" src="/icons/check.png" mode="aspectFit" />
                     <Text>
                       今日已工作 {empHours.toFixed(1)}h · 已赚 {currencySymbol(emp.currency)}{empPay.toFixed(1)}
                       {empOvertime > 0.05 ? `（含加班${empOvertime.toFixed(1)}h）` : ""}
@@ -386,19 +390,19 @@ export default function Index() {
             <>
               <View className="fab-menu-item" onClick={() => { setMenuOpen(false); Taro.navigateTo({ url: "/pages/ai-capture/index" }); }}>
                 <Text className="fab-menu-label">AI 记工</Text>
-                <View className="fab-mini" style={{ background: "#B084F5" }}><Text className="fab-mini-text">AI</Text></View>
+                <View className="fab-mini" style={{ background: "#B084F5" }}><Image className="fab-mini-icon" src="/icons/star.png" mode="aspectFit" /></View>
               </View>
               <View className="fab-menu-item" onClick={() => { setMenuOpen(false); Taro.navigateTo({ url: "/pages/backfill/index" }); }}>
                 <Text className="fab-menu-label">补录搬砖时长</Text>
-                <View className="fab-mini" style={{ background: "#FFD93D" }}><Text className="fab-mini-text">补</Text></View>
+                <View className="fab-mini" style={{ background: "#FFD93D" }}><Image className="fab-mini-icon" src="/icons/pencil.png" mode="aspectFit" /></View>
               </View>
               <View className="fab-menu-item" onClick={() => { setMenuOpen(false); Taro.navigateTo({ url: "/pages/batch-backfill/index" }); }}>
                 <Text className="fab-menu-label">批量补录</Text>
-                <View className="fab-mini" style={{ background: "#39C97A" }}><Text className="fab-mini-text">批</Text></View>
+                <View className="fab-mini" style={{ background: "#39C97A" }}><Image className="fab-mini-icon" src="/icons/grid.png" mode="aspectFit" /></View>
               </View>
               <View className="fab-menu-item" onClick={() => { setMenuOpen(false); Taro.navigateTo({ url: "/pages/employer-form/index" }); }}>
                 <Text className="fab-menu-label">添加打工副本</Text>
-                <View className="fab-mini" style={{ background: "#5AC8FA" }}><Text className="fab-mini-text">+</Text></View>
+                <View className="fab-mini" style={{ background: "#5AC8FA" }}><Image className="fab-mini-icon" src="/icons/plus.png" mode="aspectFit" /></View>
               </View>
             </>
           )}

@@ -33,22 +33,30 @@ page {
   --semantic-error: #E14B4B;
 
   // 5. radius + shadow
-  --radius-quiet: 14px;
-  --radius-bold: 16px;
-  --radius-poster: 24px;
+  // NOTE: these are written as literal rpx (already doubled from the web
+  // app's px values), not px left for postcss-pxtransform to convert --
+  // pxtransform only renames the unit suffix on values inside a custom
+  // property declaration, it does NOT apply the x2 design-width scale like
+  // it does for ordinary properties (width/padding/etc). Writing "14px"
+  // here compiled to a literal "14rpx" (half the intended visual size),
+  // which is why every border-radius/shadow/spacing token that used these
+  // variables rendered far flatter/smaller than the web app's game-y look.
+  --radius-quiet: 28rpx;
+  --radius-bold: 32rpx;
+  --radius-poster: 48rpx;
   --radius-pill: 999px;
-  --shadow-bold: 5px 5px 0 var(--border-bold);
-  --shadow-bold-sm: 3px 3px 0 var(--border-bold);
+  --shadow-bold: 10rpx 10rpx 0 var(--border-bold);
+  --shadow-bold-sm: 6rpx 6rpx 0 var(--border-bold);
 
   // 4. spacing (4px grid)
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
+  --space-1: 8rpx;
+  --space-2: 16rpx;
+  --space-3: 24rpx;
+  --space-4: 32rpx;
+  --space-5: 40rpx;
+  --space-6: 48rpx;
+  --space-8: 64rpx;
+  --space-10: 80rpx;
 
   // 3. fonts -- ZCOOL KuaiLe loaded globally via Taro.loadFontFace() in
   // src/app.ts (a subsetted local TTF, not this Google Fonts @import, since

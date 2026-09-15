@@ -102,30 +102,38 @@ export default function Me() {
           onClick={() => Taro.navigateTo({ url: `/pages/avatar-picker/index?animal=${animal ?? "cow"}${mbti ? `&mbti=${mbti}` : ""}` })}
         >
           <Image className="avatar-btn-img" src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" />
+          {mbti && <Text className="avatar-mbti-tag">{mbti}</Text>}
         </View>
-        {editingNickname ? (
-          <Input
-            className="nickname-input"
-            focus
-            maxlength={20}
-            value={nicknameDraft}
-            onInput={(e) => setNicknameDraft(e.detail.value)}
-            onBlur={saveNickname}
-            onConfirm={saveNickname}
-          />
-        ) : (
-          <Text
-            className={`nickname${nickname ? "" : " placeholder"}`}
-            onClick={() => { setNicknameDraft(nickname); setEditingNickname(true); }}
-          >
-            {nickname || "点击设置昵称"}
-          </Text>
-        )}
-        <View className="tier-row" onClick={() => Taro.navigateTo({ url: "/pages/badges/index" })}>
-          <Text className="tier-chip" style={{ background: TIER_COLORS[tierIdx] }}>{tier.label}</Text>
-          {streak > 0 && <Text className="streak-chip">连续 {streak} 天</Text>}
-          <Text className="tier-arrow">成就墙 ›</Text>
+        <View className="profile-info">
+          {editingNickname ? (
+            <Input
+              className="nickname-input"
+              focus
+              maxlength={20}
+              value={nicknameDraft}
+              onInput={(e) => setNicknameDraft(e.detail.value)}
+              onBlur={saveNickname}
+              onConfirm={saveNickname}
+            />
+          ) : (
+            <Text
+              className={`nickname${nickname ? "" : " placeholder"}`}
+              onClick={() => { setNicknameDraft(nickname); setEditingNickname(true); }}
+            >
+              {nickname || "点击设置昵称"}
+            </Text>
+          )}
+          <View className="profile-meta">
+            <Text className="tier-chip">{tier.label}</Text>
+            {streak > 0 && <Text className="streak-chip-mini">连续 {streak} 天</Text>}
+          </View>
         </View>
+        <View className="badge-wall-link" onClick={() => Taro.navigateTo({ url: "/pages/badges/index" })}>
+          <Text>成就墙 ›</Text>
+        </View>
+      </View>
+
+      <View className="tier-progress-card">
         <View className="tier-track">
           <View className="tier-fill" style={{ width: `${tierProgressPct}%`, background: TIER_COLORS[tierIdx] }} />
         </View>

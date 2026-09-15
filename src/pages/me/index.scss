@@ -15,8 +15,8 @@
 
 .profile-hero {
   display: flex;
-  flex-direction: column;
-  gap: 16rpx;
+  align-items: center;
+  gap: 28rpx;
   background: var(--accent-yellow);
   border: 3px solid var(--border-bold);
   border-radius: var(--radius-bold);
@@ -24,20 +24,15 @@
   box-shadow: var(--shadow-bold);
 }
 
-.nickname {
-  font-family: var(--font-display);
-  font-size: 34rpx;
-  font-weight: 900;
-}
-
 .avatar-btn {
-  align-self: flex-start;
+  position: relative;
+  flex-shrink: 0;
   width: 104rpx;
   height: 104rpx;
   border-radius: 50%;
   border: 2px solid #1A1A1A;
   background: #F5F0E4;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -47,53 +42,93 @@
 .avatar-btn-img {
   width: 100%;
   height: 100%;
+  border-radius: 50%;
+}
+
+.avatar-mbti-tag {
+  position: absolute;
+  bottom: -4rpx;
+  right: -8rpx;
+  background: #1A1A1A;
+  color: #fff;
+  font-size: 16rpx;
+  font-weight: 900;
+  padding: 2rpx 8rpx;
+  border-radius: 12rpx;
+  border: 1.3px solid #fff;
+  line-height: 1.4;
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.nickname {
+  font-family: var(--font-display);
+  font-size: 32rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 .nickname.placeholder {
-  opacity: 0.5;
-  font-weight: 700;
+  opacity: 0.55;
+  font-weight: 800;
+  font-size: 25rpx;
+  text-decoration: underline;
 }
 
 .nickname-input {
-  font-size: 34rpx;
-  font-weight: 900;
+  font-size: 32rpx;
+  font-family: var(--font-display);
   border-bottom: 2px solid var(--border-bold);
   padding-bottom: 4rpx;
+  max-width: 360rpx;
 }
 
-.tier-row {
+.profile-meta {
   display: flex;
   align-items: center;
   gap: 16rpx;
-}
-
-.tier-arrow {
-  margin-left: auto;
-  font-size: 21rpx;
-  font-weight: 700;
-  color: rgba(26, 26, 26, 0.6);
+  margin-top: 12rpx;
+  flex-wrap: wrap;
 }
 
 .tier-chip {
-  padding: 8rpx 20rpx;
-  border-radius: 999px;
-  border: 2px solid var(--border-bold);
-  font-size: 22rpx;
+  font-size: 21rpx;
   font-weight: 900;
-  color: var(--border-bold);
+  background: var(--border-bold);
+  color: var(--accent-yellow);
+  padding: 6rpx 18rpx;
+  border-radius: 999px;
 }
 
-.streak-chip {
+.streak-chip-mini {
   font-size: 21rpx;
   font-weight: 800;
   color: rgba(26, 26, 26, 0.7);
 }
 
+.badge-wall-link {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  font-weight: 900;
+  color: var(--border-bold);
+}
+
+.tier-progress-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
 .tier-track {
   height: 14rpx;
   border-radius: 8rpx;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1.3px solid rgba(26, 26, 26, 0.2);
+  background: var(--bg-surface);
+  border: 1.3px solid var(--border-quiet);
   overflow: hidden;
 }
 
@@ -104,7 +139,7 @@
 
 .tier-next-hint {
   font-size: 20rpx;
-  color: rgba(26, 26, 26, 0.65);
+  color: var(--text-muted);
   font-weight: 700;
 }
 
