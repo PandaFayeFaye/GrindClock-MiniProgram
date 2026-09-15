@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { View, Text, Image } from "@tarojs/components";
-import { useDidShow } from "@tarojs/taro";
+import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries, fetchUserProfile } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
 import { entryHours } from "../../lib/pay";
@@ -21,10 +21,42 @@ interface Badge {
 }
 
 // Zigzag x-position (% of track width) for each path node, matching the
-// web app's Duolingo-style skill path -- the connecting line itself is SVG
-// there, which native weapp has no equivalent for, so only the alternating
-// left/right node placement is ported.
+// web app's Duolingo-style skill path.
 const PATH_X = [50, 22, 78, 22, 78, 50];
+
+// Vertical layout constants, must match .tier-path/.tier-node in index.scss.
+const NODE_SPACING_RPX = 180;
+const PATH_TOP_PADDING_RPX = 20;
+const CIRCLE_RADIUS_RPX = 48;
+
+interface Segment {
+  x: number;
+  y: number;
+  length: number;
+  angle: number;
+}
+
+function buildSegments(containerWidthPx: number, rpxToPx: number): Segment[] {
+  if (!containerWidthPx) return [];
+  const points = TIERS.map((_, i) => ({
+    x: (PATH_X[i % PATH_X.length] / 100) * containerWidthPx,
+    y: (PATH_TOP_PADDING_RPX + i * NODE_SPACING_RPX + CIRCLE_RADIUS_RPX) * rpxToPx,
+  }));
+  const segments: Segment[] = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    segments.push({
+      x: a.x,
+      y: a.y,
+      length: Math.sqrt(dx * dx + dy * dy),
+      angle: (Math.atan2(dy, dx) * 180) / Math.PI,
+    });
+  }
+  return segments;
+}
 
 export default function Badges() {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
@@ -32,7 +64,15 @@ export default function Badges() {
   const [animal, setAnimal] = useState<AnimalKey | undefined>(undefined);
   const [mbti, setMbti] = useState<string | undefined>(undefined);
   const [selected, setSelected] = useState<Badge | null>(null);
+  const [pathWidthPx, setPathWidthPx] = useState(0);
   const weeklyGoal = getWeeklyGoal();
+
+  useEffect(() => {
+    const query = Taro.createSelectorQuery();
+    query.select(".tier-path").boundingClientRect((rect) => {
+      if (rect && "width" in rect && rect.width) setPathWidthPx(rect.width);
+    }).exec();
+  }, []);
 
   useDidShow(() => {
     Promise.all([fetchEmployers(), fetchTimeEntries(), fetchUserProfile()]).then(([empDocs, entryDocs, profile]) => {
@@ -50,6 +90,8 @@ export default function Badges() {
   const currentTierIdx = currentTierIndex(totalHours);
   const currentTier = TIERS[currentTierIdx];
   const nextTier = TIERS[currentTierIdx + 1];
+  const rpxToPx = Taro.getSystemInfoSync().windowWidth / 750;
+  const segments = useMemo(() => buildSegments(pathWidthPx, rpxToPx), [pathWidthPx, rpxToPx]);
   const progressPct = nextTier
     ? Math.min(100, Math.round(((totalHours - currentTier.threshold) / (nextTier.threshold - currentTier.threshold)) * 100))
     : 100;
@@ -104,6 +146,19 @@ export default function Badges() {
       <View className="section">
         <Text className="section-label">称号进阶之路</Text>
         <View className="tier-path">
+          {segments.map((seg, i) => (
+            <View
+              key={i}
+              className={`tier-path-segment${i < currentTierIdx ? " done" : ""}`}
+              style={{
+                left: `${seg.x}px`,
+                top: `${seg.y}px`,
+                width: `${seg.length}px`,
+                transform: `rotate(${seg.angle}deg)`,
+                background: i < currentTierIdx ? TIER_COLORS[currentTierIdx] : undefined,
+              }}
+            />
+          ))}
           {TIERS.map((tier, i) => {
             const b = tierBadges[i];
             const isCurrent = i === currentTierIdx;
