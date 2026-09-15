@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { View, Text, Button, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries, fetchUserProfile, clockIn, clockOut, addManualEntry } from "../../lib/cloud";
@@ -171,6 +171,18 @@ export default function Index() {
   const [confirming, setConfirming] = useState<{ employer: Employer; entry: TimeEntry } | null>(null);
   const [retroEmployer, setRetroEmployer] = useState<Employer | null>(null);
   const [scheduleConfirmEmployer, setScheduleConfirmEmployer] = useState<Employer | null>(null);
+
+  // The custom tab bar is a separate native layer that paints above regular
+  // page content regardless of WXSS z-index, so a bottom-sheet modal's own
+  // buttons can end up hidden underneath it. Hiding the tab bar while any of
+  // these full-screen modals is open is the standard workaround.
+  useEffect(() => {
+    if (confirming || retroEmployer || scheduleConfirmEmployer || showTour) {
+      Taro.hideTabBar({ animation: false });
+    } else {
+      Taro.showTabBar({ animation: false });
+    }
+  }, [confirming, retroEmployer, scheduleConfirmEmployer, showTour]);
 
   async function handlePunch(employer: Employer) {
     const active = activeByEmployer.get(employer.id);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, Canvas } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { EXPORT_COLUMNS, exportEntriesCsv, exportEntriesImage, type ExportColumn } from "../lib/exportCsv";
@@ -22,6 +22,13 @@ export function ExportPanel({
   const [selected, setSelected] = useState<Set<ExportColumn>>(new Set(EXPORT_COLUMNS.map((c) => c.key)));
   const [exporting, setExporting] = useState<"csv" | "image" | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 300, height: 300 });
+
+  // The custom tab bar paints above regular page content regardless of WXSS
+  // z-index, which would otherwise hide this bottom sheet's own buttons.
+  useEffect(() => {
+    Taro.hideTabBar({ animation: false });
+    return () => { Taro.showTabBar({ animation: false }); };
+  }, []);
 
   function toggle(col: ExportColumn) {
     setSelected((prev) => {
