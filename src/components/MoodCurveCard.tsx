@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View, Text, Input, Button, Image } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { updateTimeEntry } from "../lib/cloud";
@@ -41,6 +41,37 @@ export function MoodCurveCard({
     }
     return days;
   }, [moodDetailMap]);
+
+  const [curveSize, setCurveSize] = useState({ w: 0, h: 0 });
+
+  useEffect(() => {
+    Taro.createSelectorQuery()
+      .select(".mood-curve")
+      .boundingClientRect((rect) => {
+        if (rect && "width" in rect && rect.width) setCurveSize({ w: rect.width, h: rect.height });
+      })
+      .exec();
+  }, []);
+
+  const moodLineSegments = useMemo(() => {
+    const points = last7Days
+      .map((d, i) => ({ x: (i / 6) * 100, y: d.mood ? MOOD_Y[d.mood] : null }))
+      .filter((p): p is { x: number; y: number } => p.y !== null);
+    if (!curveSize.w || points.length < 2) return [];
+    const segs: { x: number; y: number; length: number; angle: number }[] = [];
+    for (let i = 0; i < points.length - 1; i++) {
+      const a = points[i];
+      const b = points[i + 1];
+      const ax = (a.x / 100) * curveSize.w;
+      const ay = (a.y / 100) * curveSize.h;
+      const bx = (b.x / 100) * curveSize.w;
+      const by = (b.y / 100) * curveSize.h;
+      const dx = bx - ax;
+      const dy = by - ay;
+      segs.push({ x: ax, y: ay, length: Math.sqrt(dx * dx + dy * dy), angle: (Math.atan2(dy, dx) * 180) / Math.PI });
+    }
+    return segs;
+  }, [last7Days, curveSize]);
 
   const [editingMoodDay, setEditingMoodDay] = useState<string | null>(null);
   const [draftMood, setDraftMood] = useState<Mood | undefined>(undefined);
@@ -97,6 +128,18 @@ export function MoodCurveCard({
     <View className="mood-curve-card">
       <Text className="title">本周心情曲线（仅自己可见）</Text>
       <View className="mood-curve">
+        {moodLineSegments.map((seg, i) => (
+          <View
+            key={i}
+            className="mood-line-segment"
+            style={{
+              left: `${seg.x}px`,
+              top: `${seg.y}px`,
+              width: `${seg.length}px`,
+              transform: `rotate(${seg.angle}deg)`,
+            }}
+          />
+        ))}
         {last7Days.map((d, i) => {
           const x = (i / 6) * 100;
           const y = d.mood ? MOOD_Y[d.mood] : 52;

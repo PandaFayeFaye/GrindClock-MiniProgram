@@ -365,15 +365,25 @@
   display: none;
 }
 
-.goal-ring-row {
+.ring-wrap {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  gap: 28rpx;
   margin-bottom: 16rpx;
 }
 
+.ring-center {
+  flex-shrink: 0;
+}
+
+.ring-note-col {
+  flex: 1;
+  min-width: 0;
+}
+
 .goal-ring {
-  width: 220rpx;
-  height: 220rpx;
+  width: 160rpx;
+  height: 160rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -382,8 +392,8 @@
 }
 
 .goal-ring-inner {
-  width: 168rpx;
-  height: 168rpx;
+  width: 122rpx;
+  height: 122rpx;
   border-radius: 50%;
   background: var(--bg-surface);
   border: 1.5px solid var(--border-quiet);

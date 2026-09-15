@@ -325,32 +325,36 @@ export default function Stats() {
       {viz === "rank" && (
         <View className="chart-card">
           <Text className="chart-title">本周目标</Text>
-          <View className="goal-ring-row">
-            <View
-              className="goal-ring"
-              style={{
-                background: `conic-gradient(var(--accent-yellow) ${goalPct * 3.6}deg, var(--bg-base) ${goalPct * 3.6}deg)`,
-              }}
-            >
-              <View className="goal-ring-inner">
-                <Text className="goal-pct">{goalPct}%</Text>
+          <View className="ring-wrap">
+            <View className="ring-center">
+              <View
+                className="goal-ring"
+                style={{
+                  background: `conic-gradient(var(--accent-purple) ${goalPct * 3.6}deg, var(--bg-base) ${goalPct * 3.6}deg)`,
+                }}
+              >
+                <View className="goal-ring-inner">
+                  <Text className="goal-pct">{goalPct}%</Text>
+                </View>
               </View>
             </View>
+            <View className="ring-note-col">
+              {editingGoal ? (
+                <Input
+                  className="goal-input"
+                  type="number"
+                  value={String(weeklyGoal)}
+                  focus
+                  onBlur={(e) => { const v = Number(e.detail.value) || 0; setWeeklyGoalState(v); setWeeklyGoal(v); setEditingGoal(false); }}
+                />
+              ) : (
+                <Text className="goal-note" onClick={() => setEditingGoal(true)}>
+                  目标 {currencySymbol(DEFAULT_CURRENCY)}{weeklyGoal}，已赚 {formatGroupedPay(weekPayByCurrency)}，点击修改目标
+                </Text>
+              )}
+              <Text className="ring-hours-note">本周已工作 {weekHours.toFixed(1)} 小时</Text>
+            </View>
           </View>
-          {editingGoal ? (
-            <Input
-              className="goal-input"
-              type="number"
-              value={String(weeklyGoal)}
-              focus
-              onBlur={(e) => { const v = Number(e.detail.value) || 0; setWeeklyGoalState(v); setWeeklyGoal(v); setEditingGoal(false); }}
-            />
-          ) : (
-            <Text className="goal-note" onClick={() => setEditingGoal(true)}>
-              目标 {currencySymbol(DEFAULT_CURRENCY)}{weeklyGoal}，已赚 {formatGroupedPay(weekPayByCurrency)}，点击修改目标
-            </Text>
-          )}
-          <Text className="ring-hours-note">本周已工作 {weekHours.toFixed(1)} 小时</Text>
 
           <Text className="chart-title chart-title-spaced">本周排行榜</Text>
           {board.length === 0 && <Text className="empty-hint">本周还没有记录</Text>}

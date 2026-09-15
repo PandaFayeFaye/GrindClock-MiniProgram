@@ -347,13 +347,13 @@ export default function EmployerForm() {
       {payType === "base+overtime" && (
         <View className="field">
           <Text className="field-label">底薪（月）</Text>
-          <Input className="text-input" type="digit" placeholder={`${currencySym}`} value={baseSalary} onInput={(e) => setBaseSalary(e.detail.value)} />
+          <Input className="text-input" type="digit" placeholder={`${currencySym} 例如 3000`} value={baseSalary} onInput={(e) => setBaseSalary(e.detail.value)} />
         </View>
       )}
 
       <View className="field">
         <Text className="field-label">{RATE_LABEL[payType]}</Text>
-        <Input className="text-input" type="digit" placeholder={currencySym} value={rate} onInput={(e) => setRate(e.detail.value)} />
+        <Input className="text-input" type="digit" placeholder={`${currencySym} 例如 25`} value={rate} onInput={(e) => setRate(e.detail.value)} />
       </View>
 
       <View className="field">
@@ -381,7 +381,7 @@ export default function EmployerForm() {
           ) : (
             <View className="ot-rate-body">
               <Text className="ot-rate-body-label">固定加班时薪</Text>
-              <Input className="text-input compact" type="digit" placeholder={currencySym} value={overtimeHourlyRate} onInput={(e) => setOvertimeHourlyRate(e.detail.value)} />
+              <Input className="text-input compact" type="digit" placeholder={`${currencySym} 例如 30`} value={overtimeHourlyRate} onInput={(e) => setOvertimeHourlyRate(e.detail.value)} />
             </View>
           )}
         </View>
@@ -474,10 +474,6 @@ export default function EmployerForm() {
         <Textarea className="note-input" placeholder="工种、联系方式之类都可以写这里" value={note} onInput={(e) => setNote(e.detail.value)} />
       </View>
 
-      <Button className="save-btn" loading={saving} onClick={handleSaveClick}>
-        保存
-      </Button>
-
       {isEdit && employerId && (
         <View className="danger-zone">
           <Text className="field-label">副本管理</Text>
@@ -498,6 +494,12 @@ export default function EmployerForm() {
           )}
         </View>
       )}
+
+      <View className="save-btn-bar">
+        <Button className="save-btn" loading={saving} onClick={handleSaveClick}>
+          保存
+        </Button>
+      </View>
     </View>
   );
 }
