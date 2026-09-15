@@ -212,6 +212,39 @@
   margin-top: 32rpx;
 }
 
+.chart-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.chart-nav-row .chart-title {
+  flex: 1;
+  text-align: center;
+  margin-bottom: 0;
+}
+
+.chart-nav-btn {
+  flex-shrink: 0;
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  background: var(--bg-base);
+  border: 1.5px solid var(--border-quiet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.chart-nav-btn.disabled {
+  opacity: 0.35;
+}
+
 .bars {
   display: flex;
   align-items: stretch;

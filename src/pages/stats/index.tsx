@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { View, Text, Input, Image } from "@tarojs/components";
+import { View, Text, Input, Image, type ITouchEvent } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
@@ -44,7 +44,11 @@ export default function Stats() {
   const [filterEmployerIds, setFilterEmployerIds] = useState<Set<string>>(new Set());
   const [weeklyGoal, setWeeklyGoalState] = useState(() => getWeeklyGoal());
   const [editingGoal, setEditingGoal] = useState(false);
+  const [goalDraft, setGoalDraft] = useState("");
   const [selectedCalDay, setSelectedCalDay] = useState<number | null>(() => new Date().getDate());
+  const [weekOffset, setWeekOffset] = useState(0); // 0 = current 7 days, 1 = the 7 days before that, ...
+  const [monthOffset, setMonthOffset] = useState(0); // 0 = this month, 1 = last month, ...
+  const [swipeStartX, setSwipeStartX] = useState<number | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -127,21 +131,35 @@ export default function Stats() {
     const days: { key: string; label: string }[] = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
-      d.setDate(d.getDate() - i);
+      d.setDate(d.getDate() - i - weekOffset * 7);
       days.push({ key: dateKey(d.getTime()), label: WEEKDAY_LABELS[d.getDay()] });
     }
     return days;
-  }, []);
+  }, [weekOffset]);
+  const weekRangeLabel = useMemo(() => {
+    const first = new Date(last7Days[0].key);
+    const last = new Date(last7Days[last7Days.length - 1].key);
+    return `${first.getMonth() + 1}月${first.getDate()}日 - ${last.getMonth() + 1}月${last.getDate()}日`;
+  }, [last7Days]);
   const dailyPay = useMemo(() => payByDay(personalConfirmed, employerById), [personalConfirmed, employerById]);
   const dailyHours = useMemo(() => hoursByDay(personalConfirmed), [personalConfirmed]);
   const maxDailyPay = Math.max(1, ...last7Days.map((d) => dailyPay.get(d.key) ?? 0));
 
-  const now = new Date();
-  const monthLabel = `${now.getFullYear()}年${now.getMonth() + 1}月`;
-  const calendarLeadingBlanks = useMemo(() => new Date(now.getFullYear(), now.getMonth(), 1).getDay(), []);
+  const viewedMonth = useMemo(() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - monthOffset);
+    return d;
+  }, [monthOffset]);
+  const monthLabel = `${viewedMonth.getFullYear()}年${viewedMonth.getMonth() + 1}月`;
+  const isCurrentMonth = monthOffset === 0;
+  const calendarLeadingBlanks = useMemo(
+    () => new Date(viewedMonth.getFullYear(), viewedMonth.getMonth(), 1).getDay(),
+    [viewedMonth],
+  );
   const heatCells = useMemo(() => {
-    const year = now.getFullYear();
-    const month = now.getMonth();
+    const year = viewedMonth.getFullYear();
+    const month = viewedMonth.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const values = Array.from({ length: daysInMonth }, (_, i) => {
       const key = dateKey(new Date(year, month, i + 1).getTime());
@@ -154,20 +172,20 @@ export default function Stats() {
       pay: v.pay,
       hours: v.hours,
     }));
-  }, [dailyPay, dailyHours]);
+  }, [dailyPay, dailyHours, viewedMonth]);
   const selectedCalDayInfo = useMemo(() => heatCells.find((c) => c.day === selectedCalDay) ?? null, [heatCells, selectedCalDay]);
 
   const streak = useMemo(() => currentStreak(personalConfirmed), [personalConfirmed]);
   const streakCells = useMemo(() => {
-    const year = now.getFullYear();
-    const month = now.getMonth();
+    const year = viewedMonth.getFullYear();
+    const month = viewedMonth.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysWithEntry = new Set(personalConfirmed.map((e) => dateKey(e.startTime)));
     return Array.from({ length: daysInMonth }, (_, i) => {
       const key = dateKey(new Date(year, month, i + 1).getTime());
       return { day: i + 1, punched: daysWithEntry.has(key) };
     });
-  }, [personalConfirmed]);
+  }, [personalConfirmed, viewedMonth]);
 
   const weekStart = startOfWeek();
   const board = useMemo(() => leaderboard(personalConfirmed, employers, weekStart), [personalConfirmed, employers, weekStart]);
@@ -264,8 +282,22 @@ export default function Stats() {
 
       {viz === "trend" && (
         <View className="chart-card">
-          <Text className="chart-title">最近7天</Text>
-          <View className="bars">
+          <View className="chart-nav-row">
+            <View className="chart-nav-btn" onClick={() => setWeekOffset((o) => o + 1)}><Text>‹</Text></View>
+            <Text className="chart-title">{weekOffset === 0 ? "最近7天" : weekRangeLabel}</Text>
+            <View className={`chart-nav-btn${weekOffset === 0 ? " disabled" : ""}`} onClick={() => weekOffset > 0 && setWeekOffset((o) => o - 1)}><Text>›</Text></View>
+          </View>
+          <View
+            className="bars"
+            onTouchStart={(e: ITouchEvent) => setSwipeStartX(e.touches[0].clientX)}
+            onTouchEnd={(e: ITouchEvent) => {
+              if (swipeStartX === null) return;
+              const dx = e.changedTouches[0].clientX - swipeStartX;
+              if (dx < -40) setWeekOffset((o) => o + 1);
+              else if (dx > 40 && weekOffset > 0) setWeekOffset((o) => o - 1);
+              setSwipeStartX(null);
+            }}
+          >
             {last7Days.map((d) => {
               const pay = dailyPay.get(d.key) ?? 0;
               const hours = dailyHours.get(d.key) ?? 0;
@@ -290,8 +322,22 @@ export default function Stats() {
             <Image className="streak-chip-icon" src="/icons/flame-coral.png" mode="aspectFit" />
             <Text>连续打卡 {streak} 天</Text>
           </View>
-          <Text className="chart-title">{monthLabel} 收入日历</Text>
-          <View className="weekday-header">
+          <View className="chart-nav-row">
+            <View className="chart-nav-btn" onClick={() => { setMonthOffset((o) => o + 1); setSelectedCalDay(null); }}><Text>‹</Text></View>
+            <Text className="chart-title">{monthLabel} 收入日历</Text>
+            <View className={`chart-nav-btn${isCurrentMonth ? " disabled" : ""}`} onClick={() => { if (!isCurrentMonth) { setMonthOffset((o) => o - 1); setSelectedCalDay(null); } }}><Text>›</Text></View>
+          </View>
+          <View
+            className="weekday-header"
+            onTouchStart={(e: ITouchEvent) => setSwipeStartX(e.touches[0].clientX)}
+            onTouchEnd={(e: ITouchEvent) => {
+              if (swipeStartX === null) return;
+              const dx = e.changedTouches[0].clientX - swipeStartX;
+              if (dx < -40) { setMonthOffset((o) => o + 1); setSelectedCalDay(null); }
+              else if (dx > 40 && !isCurrentMonth) { setMonthOffset((o) => o - 1); setSelectedCalDay(null); }
+              setSwipeStartX(null);
+            }}
+          >
             {WEEKDAY_LABELS.map((k) => <Text key={k} className="weekday-header-label">{k}</Text>)}
           </View>
           <View className="heatmap">
@@ -315,7 +361,7 @@ export default function Stats() {
           </View>
           {selectedCalDayInfo && (
             <Text className="cal-day-detail">
-              {now.getMonth() + 1}月{selectedCalDay}日：工作 {selectedCalDayInfo.hours.toFixed(1)}h，赚了 {currencySymbol(DEFAULT_CURRENCY)}{selectedCalDayInfo.pay.toFixed(0)}
+              {viewedMonth.getMonth() + 1}月{selectedCalDay}日：工作 {selectedCalDayInfo.hours.toFixed(1)}h，赚了 {currencySymbol(DEFAULT_CURRENCY)}{selectedCalDayInfo.pay.toFixed(0)}
             </Text>
           )}
 
@@ -357,12 +403,13 @@ export default function Stats() {
                 <Input
                   className="goal-input"
                   type="number"
-                  value={String(weeklyGoal)}
+                  value={goalDraft}
                   focus
+                  onInput={(e) => setGoalDraft(e.detail.value)}
                   onBlur={(e) => { const v = Number(e.detail.value) || 0; setWeeklyGoalState(v); setWeeklyGoal(v); setEditingGoal(false); }}
                 />
               ) : (
-                <Text className="goal-note" onClick={() => setEditingGoal(true)}>
+                <Text className="goal-note" onClick={() => { setGoalDraft(String(weeklyGoal)); setEditingGoal(true); }}>
                   目标 {currencySymbol(DEFAULT_CURRENCY)}{weeklyGoal}，已赚 {formatGroupedPay(weekPayByCurrency)}，点击修改目标
                 </Text>
               )}

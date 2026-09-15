@@ -5,6 +5,7 @@ import { fetchEmployers, addManualEntry, fetchTimeEntryById, updateTimeEntry, de
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
 import { todaysSchedule, scheduleDurationHours } from "../../lib/schedule";
 import { currencySymbol } from "../../lib/currency";
+import { MOOD_ICON } from "../../lib/moods";
 import type { Adjustment, Employer, Mood } from "../../lib/types";
 import "./index.scss";
 
@@ -66,6 +67,10 @@ export default function Backfill() {
 
   useEffect(() => {
     if (!editId) return;
+    // Set immediately, before the entry data even starts loading -- otherwise
+    // the page briefly shows the default "补录搬砖时长" title from
+    // index.config.ts until the async load below finishes.
+    Taro.setNavigationBarTitle({ title: "编辑搬砖记录" });
     (async () => {
       const doc = await fetchTimeEntryById(editId);
       if (!doc) {
@@ -99,7 +104,6 @@ export default function Backfill() {
       setAdjustments(entry.adjustment ?? []);
       setPrefilledDefaults(true); // editing an existing entry -- never overwrite with the employer's current defaults
       setLoadedEdit(true);
-      Taro.setNavigationBarTitle({ title: "编辑记录" });
     })();
     // Only ever re-run if editId itself changes -- this is a one-time load into local form state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -351,6 +355,7 @@ export default function Backfill() {
               className={`mood-tag${mood === m.key ? " selected" : ""}`}
               onClick={() => setMood(mood === m.key ? undefined : m.key)}
             >
+              <Image className="mood-tag-icon" src={MOOD_ICON[m.key]} mode="aspectFit" />
               <Text>{m.label}</Text>
             </View>
           ))}

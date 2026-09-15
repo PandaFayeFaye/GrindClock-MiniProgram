@@ -5,6 +5,7 @@ import { fetchEmployers, addManualEntry, addManualEntries } from "../../lib/clou
 import { toEmployer } from "../../lib/adapt";
 import { parseSpeechToDraft } from "../../lib/parseSpeechToDraft";
 import { parseScheduleTable, WEEKDAY_LABELS, type ScheduleRow } from "../../lib/parseScheduleTable";
+import { MOOD_ICON } from "../../lib/moods";
 import type { Employer, Mood, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
@@ -403,6 +404,7 @@ export default function AICapture() {
                 className={`mood-tag${mood === m.key ? " selected" : ""}`}
                 onClick={() => setMood(mood === m.key ? undefined : m.key)}
               >
+                <Image className="mood-tag-icon" src={MOOD_ICON[m.key]} mode="aspectFit" />
                 <Text>{m.label}</Text>
               </View>
             ))}

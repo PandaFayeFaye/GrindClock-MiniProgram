@@ -200,14 +200,21 @@
 
 .mood-tag {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 72rpx;
+  gap: 6rpx;
+  padding: 12rpx 0;
   border-radius: 20rpx;
   border: 2px solid var(--border-bold);
   background: var(--bg-surface);
-  font-size: 22rpx;
+  font-size: 20rpx;
   font-weight: 800;
+}
+
+.mood-tag-icon {
+  width: 36rpx;
+  height: 36rpx;
 }
 
 .mood-tag.selected {
