@@ -66,6 +66,11 @@ export async function fetchTimeEntries(): Promise<CloudTimeEntry[]> {
   return res.data as CloudTimeEntry[];
 }
 
+export async function fetchTimeEntryById(entryId: string): Promise<CloudTimeEntry | null> {
+  const res = await timeEntriesCollection().doc(entryId).get({});
+  return (res.data as unknown as CloudTimeEntry) ?? null;
+}
+
 export function addEmployer(data: Omit<Employer, "id">) {
   return employersCollection().add({ data });
 }

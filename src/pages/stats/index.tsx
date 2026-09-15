@@ -418,7 +418,13 @@ export default function Stats() {
               if (!emp) return null;
               const otPay = entryOvertimePay(emp, e);
               return (
-                <View className="entry" key={e.id}>
+                <View
+                  className="entry"
+                  key={e.id}
+                  hoverClass="pressed"
+                  hoverStayTime={0}
+                  onClick={() => Taro.navigateTo({ url: `/pages/backfill/index?editId=${e.id}` })}
+                >
                   <View className="dot" style={{ background: emp.color }} />
                   <View className="info">
                     <Text className="n">{emp.name}</Text>

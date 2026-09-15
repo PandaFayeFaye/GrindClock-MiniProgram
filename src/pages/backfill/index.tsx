@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { View, Text, Input, Textarea, Picker, Button, Image, Switch } from "@tarojs/components";
 import Taro, { useRouter } from "@tarojs/taro";
-import { fetchEmployers, addManualEntry } from "../../lib/cloud";
-import { toEmployer } from "../../lib/adapt";
+import { fetchEmployers, addManualEntry, fetchTimeEntryById, updateTimeEntry, deleteTimeEntry } from "../../lib/cloud";
+import { toEmployer, toTimeEntry } from "../../lib/adapt";
 import { todaysSchedule, scheduleDurationHours } from "../../lib/schedule";
 import { currencySymbol } from "../../lib/currency";
 import type { Adjustment, Employer, Mood } from "../../lib/types";
@@ -29,6 +29,7 @@ function toDateInputValue(d: Date) {
 export default function Backfill() {
   const router = useRouter();
   const workerId = router.params.workerId;
+  const editId = router.params.editId;
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [employerIdx, setEmployerIdx] = useState(0);
   const [date, setDate] = useState(toDateInputValue(new Date()));
@@ -46,19 +47,69 @@ export default function Backfill() {
   const [overtimeHoursStr, setOvertimeHoursStr] = useState("");
   const [overtimeTouched, setOvertimeTouched] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [loadedEdit, setLoadedEdit] = useState(!editId);
+  const [prefilledDefaults, setPrefilledDefaults] = useState(false);
 
   useEffect(() => {
     fetchEmployers().then((docs) => {
-      setEmployers(docs.map(toEmployer).filter((e) => !e.archived));
+      // An archived gig can't be picked for a NEW entry, but an entry already
+      // logged against one (being edited) must still show it as selected.
+      const active = docs.map(toEmployer).filter((e) => !e.archived);
+      setEmployers(active);
     });
   }, []);
+
+  useEffect(() => {
+    if (!editId) return;
+    (async () => {
+      const doc = await fetchTimeEntryById(editId);
+      if (!doc) {
+        setLoadedEdit(true);
+        return;
+      }
+      const entry = toTimeEntry(doc);
+      const allEmployers = await fetchEmployers();
+      const emp = allEmployers.map(toEmployer).find((e) => e.id === entry.employerId);
+      const active = allEmployers.map(toEmployer).filter((e) => !e.archived);
+      const fullList = emp && !active.some((e) => e.id === emp.id) ? [...active, emp] : active;
+      setEmployers(fullList);
+      const idx = fullList.findIndex((e) => e.id === entry.employerId);
+      if (idx >= 0) setEmployerIdx(idx);
+
+      const start = new Date(entry.startTime);
+      const end = new Date(entry.endTime ?? entry.startTime);
+      setDate(toDateInputValue(start));
+      setMode("range");
+      setStartTimeStr(`${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`);
+      setEndTimeStr(`${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`);
+      setIsOvertime(!!entry.isOvertime);
+      setIsHoliday(!!entry.isHoliday);
+      if (entry.overtimeHours) {
+        setOvertimeTouched(true);
+        setOvertimeHoursStr(String(entry.overtimeHours));
+      }
+      setOrderCount(entry.orderCount ? String(entry.orderCount) : "");
+      setMood(entry.mood);
+      setNote(entry.note ?? "");
+      setAdjustments(entry.adjustment ?? []);
+      setPrefilledDefaults(true); // editing an existing entry -- never overwrite with the employer's current defaults
+      setLoadedEdit(true);
+      Taro.setNavigationBarTitle({ title: "编辑记录" });
+    })();
+    // Only ever re-run if editId itself changes -- this is a one-time load into local form state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId]);
 
   const employer = employers[employerIdx];
   const isPerOrder = employer?.payType === "per-order";
 
   useEffect(() => {
-    if (employer) setAdjustments(employer.defaultAdjustments ?? []);
-  }, [employer?.id]);
+    if (prefilledDefaults || !employer) return;
+    setAdjustments(employer.defaultAdjustments ?? []);
+    setPrefilledDefaults(true);
+  }, [prefilledDefaults, employer]);
 
   function computeRange(): { start: number; end: number } | null {
     const dayStart = new Date(`${date}T00:00:00`).getTime();
@@ -100,27 +151,61 @@ export default function Backfill() {
     }
     setSaving(true);
     try {
-      await addManualEntry({
+      const base = {
         employerId: employer.id,
         startTime: range.start,
         endTime: range.end,
-        status: "confirmed",
-        source: "manual",
+        status: "confirmed" as const,
+        source: "manual" as const,
         isOvertime,
         isHoliday,
         ...(workerId ? { workerId } : {}),
-        ...(mood ? { mood } : {}),
-        ...(overtimeHoursValue ? { overtimeHours: overtimeHoursValue } : {}),
-        ...(isPerOrder && orderCount ? { orderCount: Number(orderCount) } : {}),
-        ...(note.trim() ? { note: note.trim() } : {}),
-        ...(adjustments.length > 0 ? { adjustment: adjustments } : {}),
-      });
+      };
+      if (editId) {
+        const removeCmd = Taro.cloud.database().command.remove();
+        await updateTimeEntry(editId, {
+          ...base,
+          mood: mood ?? (removeCmd as unknown as Mood),
+          note: note.trim() ? note.trim() : (removeCmd as unknown as string),
+          adjustment: adjustments.length > 0 ? adjustments : (removeCmd as unknown as Adjustment[]),
+          overtimeHours: overtimeHoursValue ?? (removeCmd as unknown as number),
+          orderCount: isPerOrder && orderCount ? Number(orderCount) : (removeCmd as unknown as number),
+        });
+      } else {
+        await addManualEntry({
+          ...base,
+          ...(mood ? { mood } : {}),
+          ...(overtimeHoursValue ? { overtimeHours: overtimeHoursValue } : {}),
+          ...(isPerOrder && orderCount ? { orderCount: Number(orderCount) } : {}),
+          ...(note.trim() ? { note: note.trim() } : {}),
+          ...(adjustments.length > 0 ? { adjustment: adjustments } : {}),
+        });
+      }
       Taro.navigateBack();
     } catch (err) {
-      console.error("Failed to backfill entry", err);
+      console.error("Failed to save backfill entry", err);
       Taro.showToast({ title: "保存失败，重试一下", icon: "none" });
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!editId) return;
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      Taro.showToast({ title: "再点一次，确认删除这条记录", icon: "none" });
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteTimeEntry(editId);
+      Taro.navigateBack();
+    } catch (err) {
+      console.error("Failed to delete entry", err);
+      Taro.showToast({ title: "删除失败，重试一下", icon: "none" });
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -305,8 +390,16 @@ export default function Backfill() {
         <Textarea className="note-input" placeholder="想记点什么都可以写这里" value={note} onInput={(e) => setNote(e.detail.value)} />
       </View>
 
+      {editId && (
+        <View className="danger-zone">
+          <Button className={`delete-entry-btn${confirmDelete ? " confirming" : ""}`} loading={deleting} onClick={handleDelete}>
+            {confirmDelete ? "再点一次，确认删除这条记录" : "删除这条记录"}
+          </Button>
+        </View>
+      )}
+
       <View className="save-btn-bar">
-        <Button className="save-btn" loading={saving} onClick={handleSave}>
+        <Button className="save-btn" loading={saving} disabled={!loadedEdit} onClick={handleSave}>
           保存
         </Button>
       </View>
