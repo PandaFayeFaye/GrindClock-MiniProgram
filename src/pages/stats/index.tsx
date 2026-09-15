@@ -56,6 +56,15 @@ export default function Stats() {
       const [empDocs, entryDocs] = await Promise.all([fetchEmployers(), fetchTimeEntries()]);
       setEmployers(empDocs.map(toEmployer));
       setAllEntries(entryDocs.map(toTimeEntry));
+      // TEMPORARY debug: confirm whether the 8/20 entry actually comes back
+      // from fetchTimeEntries() at all. Remove once resolved.
+      const target = entryDocs.find((e) => e._id === "650815a96aa9a6170005abf25c620838");
+      console.log("fetchTimeEntries returned", entryDocs.length, "entries; target found:", target);
+      await Taro.showModal({
+        title: "调试：读取结果",
+        content: `共读到 ${entryDocs.length} 条记录\n目标记录${target ? "存在" : "不存在"}${target ? `\nstartTime: ${new Date(target.startTime).toString()}\nworkerId: ${(target as { workerId?: string }).workerId ?? "无"}` : ""}`,
+        showCancel: false,
+      });
     } catch (err) {
       console.error("Failed to load stats", err);
       Taro.showToast({ title: "加载失败，下拉重试", icon: "none" });
