@@ -18,17 +18,28 @@ function App({ children }: PropsWithChildren<any>) {
     // Web app's display font (ZCOOL KuaiLe) for page titles / big stat numbers,
     // subsetted to just the characters this app actually uses (~100KB TTF,
     // see assets/fonts/). WOFF2 is unreliable on older iOS per WeChat's own
-    // docs, hence TTF. Loaded once, globally, at launch -- WXSS @font-face with
-    // a locally-bundled file is flaky across client versions, wx.loadFontFace
-    // is the documented reliable path.
-    Taro.loadFontFace({
-      family: 'ZCOOL KuaiLe',
-      source: 'url("/fonts/ZCOOLKuaiLe-subset.ttf")',
-      global: true,
-    }).then(
-      (res) => console.log('Display font loaded', res),
-      (err) => console.warn('Failed to load display font', err),
-    )
+    // docs, hence TTF. Loaded once, globally, at launch.
+    //
+    // wx.loadFontFace's `source` internally goes through a *download task*
+    // even for a package-relative path like "/fonts/x.ttf" -- since that's
+    // not a fetchable URL, it fails with "createDownloadTask:fail invalid
+    // url" every time (silently falling back to the system font, so this
+    // was invisible until checked in the console). Reading the bundled file
+    // straight off disk and passing it as a base64 data URI sidesteps the
+    // download step entirely and is reliable on real devices.
+    try {
+      const base64 = Taro.getFileSystemManager().readFileSync('/fonts/ZCOOLKuaiLe-subset.ttf', 'base64') as string
+      Taro.loadFontFace({
+        family: 'ZCOOL KuaiLe',
+        source: `url("data:font/ttf;base64,${base64}")`,
+        global: true,
+      }).then(
+        (res) => console.log('Display font loaded', res),
+        (err) => console.warn('Failed to load display font', err),
+      )
+    } catch (err) {
+      console.warn('Failed to read display font file', err)
+    }
   })
 
   // children 是将要会渲染的页面
