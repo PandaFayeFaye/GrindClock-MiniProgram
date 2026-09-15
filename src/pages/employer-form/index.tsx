@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, Input, Textarea, Picker, Button } from "@tarojs/components";
+import { View, Text, Input, Textarea, Picker, Button, Image } from "@tarojs/components";
 import Taro, { useRouter } from "@tarojs/taro";
 import { addEmployer, updateEmployer, archiveEmployer, reactivateEmployer, fetchEmployerById, fetchEmployers } from "../../lib/cloud";
 import { toEmployer } from "../../lib/adapt";
@@ -12,13 +12,13 @@ const PALETTE = ["#FFD93D", "#4361EE", "#FF6B6B", "#39C97A", "#B084F5", "#5AC8FA
 
 const INDUSTRY_PRESETS = ["餐饮", "外卖配送", "网约车", "咖啡店", "零售", "家教辅导", "办公室"];
 
-const MODES: { key: PayType; label: string }[] = [
-  { key: "hourly", label: "时薪" },
-  { key: "daily", label: "日结" },
-  { key: "base+overtime", label: "底薪+加班" },
-  { key: "comprehensive", label: "综合工时" },
-  { key: "monthly", label: "月薪" },
-  { key: "per-order", label: "按单计费" },
+const MODES: { key: PayType; label: string; icon: string }[] = [
+  { key: "hourly", label: "时薪", icon: "/icons/paytype-hourly.png" },
+  { key: "daily", label: "日结", icon: "/icons/paytype-daily.png" },
+  { key: "base+overtime", label: "底薪+加班", icon: "/icons/paytype-base_overtime.png" },
+  { key: "comprehensive", label: "综合工时", icon: "/icons/paytype-comprehensive.png" },
+  { key: "monthly", label: "月薪", icon: "/icons/paytype-monthly.png" },
+  { key: "per-order", label: "按单计费", icon: "/icons/paytype-per_order.png" },
 ];
 
 const RATE_LABEL: Record<PayType, string> = {
@@ -244,7 +244,7 @@ export default function EmployerForm() {
     <View className="employer-form">
       <View className="field">
         <Text className="field-label">BOSS大大 / 副本名称</Text>
-        <Input className="text-input" placeholder="比如：奶茶店老板" value={name} onInput={(e) => { setName(e.detail.value); setDuplicateConfirm(false); }} />
+        <Input className="text-input name-input" placeholder="比如：奶茶店老板" value={name} onInput={(e) => { setName(e.detail.value); setDuplicateConfirm(false); }} />
         {dup && <Text className="dup-warning">已有同名副本「{dup.name}」，再点一次保存即确认要重复添加</Text>}
       </View>
 
@@ -325,6 +325,7 @@ export default function EmployerForm() {
         <View className="mode-cards">
           {MODES.map((m) => (
             <View key={m.key} className={`mode-card${payType === m.key ? " selected" : ""}`} onClick={() => setPayType(m.key)}>
+              <Image className="mode-card-icon" src={m.icon} mode="aspectFit" />
               <Text className="lb">{m.label}</Text>
             </View>
           ))}

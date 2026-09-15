@@ -36,6 +36,10 @@
   background: var(--bg-surface);
 }
 
+.name-input {
+  font-family: var(--font-display);
+}
+
 .text-input.compact {
   padding: 18rpx 22rpx;
   font-size: 24rpx;
@@ -202,6 +206,12 @@
 .mode-card.selected {
   background: var(--accent-yellow);
   box-shadow: var(--shadow-bold-sm);
+}
+
+.mode-card-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 12rpx;
 }
 
 .mode-card .lb {
