@@ -212,7 +212,7 @@ export default function Recap() {
             <Text className="eyebrow">本月活跃度</Text>
             <View className="heat-grid">
               {heatCells.map((level, i) => (
-                <View className="heat-cell" style={{ background: heatHex[level] }} key={i} />
+                <View className="heat-cell" style={{ background: heatHex[level], animationDelay: `${i * 12}ms` }} key={i} />
               ))}
             </View>
             <Text className="slide-caption">颜色越深，当天赚得越多</Text>
@@ -221,6 +221,15 @@ export default function Recap() {
 
         {slide === 5 && (
           <View className="slide slide-finale">
+            <View className="confetti-wrap">
+              {Array.from({ length: 14 }, (_, i) => (
+                <View
+                  key={i}
+                  className={`confetti c${i % 6}`}
+                  style={{ left: `${(i * 37) % 100}%`, animationDelay: `${(i * 130) % 900}ms` }}
+                />
+              ))}
+            </View>
             {animal && <Image className="recap-companion finale" src={characterImageSrc(animal, mbti)} mode="aspectFit" />}
             <Text className="eyebrow">当前称号</Text>
             <Text className="tier-reveal">{tier.label}</Text>

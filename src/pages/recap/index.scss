@@ -87,6 +87,11 @@
   right: 0;
 }
 
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(32rpx) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
 .slide {
   flex: 1;
   padding: 48rpx 40rpx 56rpx;
@@ -96,6 +101,7 @@
   justify-content: center;
   text-align: center;
   gap: 20rpx;
+  animation: slide-in 0.3s ease both;
 }
 
 .eyebrow {
@@ -119,11 +125,17 @@
   margin-top: 32rpx;
 }
 
+@keyframes companion-peek {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-16rpx) rotate(2deg); }
+}
+
 .recap-companion {
   width: 256rpx;
   height: 256rpx;
   filter: drop-shadow(0 12rpx 10rpx rgba(0, 0, 0, 0.35));
   margin-bottom: 8rpx;
+  animation: companion-peek 2.4s ease-in-out infinite;
 }
 
 .recap-companion.finale {
@@ -205,10 +217,48 @@
   width: 100%;
 }
 
+@keyframes heat-pop-in {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 .heat-cell {
   aspect-ratio: 1;
   border-radius: 8rpx;
+  animation: heat-pop-in 0.3s ease both;
 }
+
+.slide-finale {
+  position: relative;
+}
+
+.confetti-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-20rpx) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(680rpx) rotate(360deg); opacity: 0; }
+}
+
+.confetti {
+  position: absolute;
+  top: 0;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 4rpx;
+  animation: confetti-fall 2.6s linear infinite;
+}
+
+.confetti.c0 { background: var(--accent-yellow); }
+.confetti.c1 { background: var(--accent-coral); }
+.confetti.c2 { background: var(--accent-blue); }
+.confetti.c3 { background: var(--accent-green); }
+.confetti.c4 { background: var(--accent-purple); }
+.confetti.c5 { background: #fff; }
 
 .tier-reveal {
   font-family: var(--font-display);
