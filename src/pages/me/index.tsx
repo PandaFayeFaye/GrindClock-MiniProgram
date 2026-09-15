@@ -145,11 +145,13 @@ export default function Me() {
       <View className="section">
         <Text className="section-label">数据洞察</Text>
         <View className="nav-row" onClick={() => Taro.navigateTo({ url: "/pages/net-pay/index" })}>
-          <Text>净收益对比</Text>
+          <Image className="nav-icon" src="/icons/netpay.png" mode="aspectFit" />
+          <Text className="nav-text">净收益对比</Text>
           <Text className="nav-arrow">›</Text>
         </View>
         <View className="nav-row" onClick={() => Taro.navigateTo({ url: "/pages/recap/index" })}>
-          <Text>本月战绩总结</Text>
+          <Image className="nav-icon" src="/icons/recap.png" mode="aspectFit" />
+          <Text className="nav-text">本月战绩总结</Text>
           <Text className="nav-arrow">›</Text>
         </View>
       </View>
@@ -157,7 +159,8 @@ export default function Me() {
       <View className="section">
         <Text className="section-label">团队</Text>
         <View className="nav-row" onClick={() => Taro.navigateTo({ url: "/pages/team/index" })}>
-          <Text>团队代记搬砖时长（组长模式）</Text>
+          <Image className="nav-icon" src="/icons/team.png" mode="aspectFit" />
+          <Text className="nav-text">团队代记搬砖时长（组长模式）</Text>
           <Text className="nav-arrow">›</Text>
         </View>
       </View>
@@ -182,6 +185,7 @@ export default function Me() {
       <View className="section">
         <Text className="section-label">打卡设置</Text>
         <View className="toggle-row">
+          <Image className="toggle-icon" src="/icons/pin.png" mode="aspectFit" />
           <View className="toggle-label">
             <Text className="t">打卡时记录位置</Text>
             <Text className="s">打卡时附带当前定位，方便核对是否在岗</Text>
@@ -189,6 +193,7 @@ export default function Me() {
           <Switch checked={locationPunch} onChange={(e) => toggleSetting(SETTINGS_KEYS.locationPunch, setLocationPunchState, e.detail.value)} />
         </View>
         <View className="toggle-row">
+          <Image className="toggle-icon" src="/icons/bell.png" mode="aspectFit" />
           <View className="toggle-label">
             <Text className="t">每日小结推送</Text>
             <Text className="s">每天下班后收到一条当日战绩小结</Text>
@@ -200,6 +205,7 @@ export default function Me() {
       <View className="section">
         <Text className="section-label">AI 功能</Text>
         <View className="toggle-row">
+          <Image className="toggle-icon" src="/icons/camera.png" mode="aspectFit" />
           <View className="toggle-label">
             <Text className="t">拍照记工</Text>
             <Text className="s">在"AI 记工"里显示拍照识别入口</Text>
@@ -207,6 +213,7 @@ export default function Me() {
           <Switch checked={aiPhoto} onChange={(e) => toggleSetting(SETTINGS_KEYS.aiPhoto, setAiPhotoState, e.detail.value)} />
         </View>
         <View className="toggle-row">
+          <Image className="toggle-icon" src="/icons/mic.png" mode="aspectFit" />
           <View className="toggle-label">
             <Text className="t">语音记工</Text>
             <Text className="s">在"AI 记工"里显示语音识别入口</Text>
@@ -218,7 +225,8 @@ export default function Me() {
       <View className="section">
         <Text className="section-label">数据</Text>
         <View className="nav-row" onClick={() => setExportOpen(true)}>
-          <Text>导出全部数据</Text>
+          <Image className="nav-icon" src="/icons/download.png" mode="aspectFit" />
+          <Text className="nav-text">导出全部数据</Text>
           <Text className="nav-arrow">›</Text>
         </View>
       </View>
@@ -226,6 +234,7 @@ export default function Me() {
       <View className="section">
         <Text className="section-label">趣味</Text>
         <View className="toggle-row">
+          <Image className="toggle-icon" src="/icons/sparkle.png" mode="aspectFit" />
           <View className="toggle-label">
             <Text className="t">简洁模式</Text>
             <Text className="s">首页隐藏搬砖搭子，界面更简洁</Text>

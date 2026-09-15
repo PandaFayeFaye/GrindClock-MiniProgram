@@ -209,13 +209,24 @@
 .nav-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 20rpx;
   padding: 24rpx 28rpx;
   background: var(--bg-surface);
   border: 1.5px solid var(--border-quiet);
   border-radius: 20rpx;
   font-size: 26rpx;
   font-weight: 700;
+}
+
+.nav-icon {
+  width: 36rpx;
+  height: 36rpx;
+  flex-shrink: 0;
+}
+
+.nav-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .toggle-row {
@@ -231,6 +242,12 @@
 
 .toggle-row + .toggle-row {
   margin-top: 12rpx;
+}
+
+.toggle-icon {
+  width: 36rpx;
+  height: 36rpx;
+  flex-shrink: 0;
 }
 
 .toggle-label {

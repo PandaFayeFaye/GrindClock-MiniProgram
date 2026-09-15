@@ -97,22 +97,24 @@ export function MoodCurveCard({
     <View className="mood-curve-card">
       <Text className="title">最近7天心情</Text>
       <View className="mood-curve">
-        {last7Days.map((d) => {
+        {last7Days.map((d, i) => {
+          const x = (i / 6) * 100;
           const y = d.mood ? MOOD_Y[d.mood] : 52;
           const loggable = !d.mood && entriesByDayMap.has(d.key);
           return (
-            <View key={d.key} className="mood-point-col">
-              <View className="mood-point-track">
-                <View
-                  className={`mood-point${d.mood ? "" : " empty"}${loggable ? " loggable" : ""}`}
-                  style={{ top: `${y}%`, background: d.mood ? MOOD_COLOR[d.mood] : undefined }}
-                  onClick={() => openMoodEditor(d)}
-                />
-              </View>
-              <Text className="mood-x-label">{d.label}</Text>
+            <View
+              key={d.key}
+              className={`mood-point${d.mood ? "" : " empty"}${loggable ? " loggable" : ""}`}
+              style={{ left: `${x}%`, top: `${y}%` }}
+              onClick={() => openMoodEditor(d)}
+            >
+              {d.mood ? <View className="mood-point-fill" style={{ background: MOOD_COLOR[d.mood] }} /> : <View className="mood-dot" />}
             </View>
           );
         })}
+        <View className="mood-x-labels">
+          {last7Days.map((d) => <Text key={d.key} className="mood-x-label">{d.label}</Text>)}
+        </View>
       </View>
 
       {moodCounts.length > 0 && (
