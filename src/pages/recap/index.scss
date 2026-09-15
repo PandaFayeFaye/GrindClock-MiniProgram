@@ -1,4 +1,5 @@
 .recap-page {
+  position: relative;
   min-height: 100vh;
   background: #1A1A1A;
   color: #fff;
@@ -6,6 +7,38 @@
   flex-direction: column;
   padding: 24rpx 24rpx 0;
   box-sizing: border-box;
+  overflow: hidden;
+}
+
+.sticker {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid #1A1A1A;
+  z-index: 1;
+}
+
+.sticker.c1 {
+  width: 140rpx;
+  height: 140rpx;
+  background: var(--accent-yellow);
+  top: -48rpx;
+  right: -48rpx;
+}
+
+.sticker.c2 {
+  width: 88rpx;
+  height: 88rpx;
+  background: var(--accent-blue);
+  top: 120rpx;
+  left: -40rpx;
+}
+
+.sticker.c3 {
+  width: 68rpx;
+  height: 68rpx;
+  background: var(--accent-coral);
+  bottom: 360rpx;
+  right: 32rpx;
 }
 
 .story-dots {
@@ -84,6 +117,18 @@
   margin-top: 32rpx;
 }
 
+.recap-companion {
+  width: 256rpx;
+  height: 256rpx;
+  filter: drop-shadow(0 12rpx 10rpx rgba(0, 0, 0, 0.35));
+  margin-bottom: 8rpx;
+}
+
+.recap-companion.finale {
+  width: 208rpx;
+  height: 208rpx;
+}
+
 .big-number {
   font-family: var(--font-display);
   font-size: 96rpx;
@@ -133,6 +178,7 @@
 }
 
 .stat-tile .n {
+  font-family: var(--font-display);
   font-size: 32rpx;
   font-weight: 900;
   color: var(--accent-yellow);
@@ -188,11 +234,13 @@
   text-align: center;
   padding: 24rpx 0;
   border-radius: 20rpx;
+  border: 2.5px solid #1A1A1A;
   background: var(--accent-yellow);
   font-size: 26rpx;
   font-weight: 900;
   color: #1A1A1A;
   margin-bottom: 20rpx;
+  box-shadow: 10rpx 10rpx 0 rgba(0, 0, 0, 0.4);
 }
 
 .share-btn.disabled {

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { View, Text, Canvas } from "@tarojs/components";
+import { View, Text, Canvas, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries, fetchUserProfile } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
@@ -7,6 +7,7 @@ import { entryHours, entryOvertimePay, entryPay, lumpSumForPeriod } from "../../
 import { DEFAULT_CURRENCY, formatGroupedPay } from "../../lib/currency";
 import { currentStreak, dateKey, leaderboard, startOfMonth } from "../../lib/stats";
 import { TIERS, currentTierIndex } from "../../lib/tiers";
+import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
 import { renderRecapShareImage, RECAP_CANVAS_SIZE } from "../../lib/renderRecapImage";
 import type { Employer, TimeEntry } from "../../lib/types";
 import "./index.scss";
@@ -19,11 +20,15 @@ export default function Recap() {
   const [allEntries, setAllEntries] = useState<TimeEntry[]>([]);
   const [slide, setSlide] = useState(0);
   const [generatingShare, setGeneratingShare] = useState(false);
+  const [animal, setAnimal] = useState<AnimalKey | undefined>(undefined);
+  const [mbti, setMbti] = useState<string | undefined>(undefined);
 
   useDidShow(() => {
-    Promise.all([fetchEmployers(), fetchTimeEntries(), fetchUserProfile()]).then(([empDocs, entryDocs]) => {
+    Promise.all([fetchEmployers(), fetchTimeEntries(), fetchUserProfile()]).then(([empDocs, entryDocs, profile]) => {
       setEmployers(empDocs.map(toEmployer));
       setAllEntries(entryDocs.map(toTimeEntry));
+      setAnimal(profile?.animal as AnimalKey | undefined);
+      setMbti(profile?.mbti);
     });
   });
 
@@ -143,6 +148,10 @@ export default function Recap() {
 
   return (
     <View className="recap-page">
+      <View className="sticker c1" />
+      <View className="sticker c2" />
+      <View className="sticker c3" />
+
       <View className="story-dots">
         {Array.from({ length: SLIDE_COUNT }, (_, i) => (
           <View key={i} className={`story-dot${i === slide ? " active" : i < slide ? " done" : ""}`} />
@@ -155,6 +164,7 @@ export default function Recap() {
 
         {slide === 0 && (
           <View className="slide slide-cover">
+            {animal && <Image className="recap-companion" src={characterImageSrc(animal, mbti)} mode="aspectFit" />}
             <Text className="eyebrow">{monthLabel} 战绩总结</Text>
             <Text className="cover-headline">这个月你搬了多少砖？</Text>
             <Text className="tap-hint">点击屏幕左右两侧翻页 →</Text>
@@ -211,6 +221,7 @@ export default function Recap() {
 
         {slide === 5 && (
           <View className="slide slide-finale">
+            {animal && <Image className="recap-companion finale" src={characterImageSrc(animal, mbti)} mode="aspectFit" />}
             <Text className="eyebrow">当前称号</Text>
             <Text className="tier-reveal">{tier.label}</Text>
             <View className="actions">
