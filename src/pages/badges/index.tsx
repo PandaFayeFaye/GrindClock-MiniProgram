@@ -17,6 +17,7 @@ interface Badge {
   cond: string;
   unlocked: boolean;
   color: string;
+  icon: string;
 }
 
 // Zigzag x-position (% of track width) for each path node, matching the
@@ -58,6 +59,7 @@ export default function Badges() {
     cond: tier.threshold === 0 ? "0小时" : `满${tier.threshold}小时`,
     unlocked: totalHours >= tier.threshold,
     color: TIER_COLORS[i],
+    icon: `/icons/tier${i}.png`,
   }));
 
   const hasComboDay = useMemo(() => {
@@ -76,10 +78,10 @@ export default function Badges() {
   const goalStreak = useMemo(() => consecutiveWeeksMeetingGoal(personalConfirmed, employerById, weeklyGoal), [personalConfirmed, employerById, weeklyGoal]);
 
   const funBadges: Badge[] = [
-    { name: "双开达人", cond: "同一天内为2个及以上副本打卡", unlocked: hasComboDay, color: "#FFD93D" },
-    { name: "不灭火苗", cond: "连续打卡满30天", unlocked: streak >= 30, color: "#FF6B6B" },
-    { name: "深夜战士", cond: "完成10次22点后打卡", unlocked: nightShiftCount >= 10, color: "#4361EE" },
-    { name: "省钱达人", cond: `连续${goalStreak >= 3 ? goalStreak : 3}周达成${currencySymbol(DEFAULT_CURRENCY)}${weeklyGoal}目标`, unlocked: goalStreak >= 3, color: "#39C97A" },
+    { name: "双开达人", cond: "同一天内为2个及以上副本打卡", unlocked: hasComboDay, color: "#FFD93D", icon: "/icons/lightning.png" },
+    { name: "不灭火苗", cond: "连续打卡满30天", unlocked: streak >= 30, color: "#FF6B6B", icon: "/icons/flame.png" },
+    { name: "深夜战士", cond: "完成10次22点后打卡", unlocked: nightShiftCount >= 10, color: "#4361EE", icon: "/icons/moon.png" },
+    { name: "省钱达人", cond: `连续${goalStreak >= 3 ? goalStreak : 3}周达成${currencySymbol(DEFAULT_CURRENCY)}${weeklyGoal}目标`, unlocked: goalStreak >= 3, color: "#39C97A", icon: "/icons/moneybag.png" },
   ];
 
   return (
@@ -117,7 +119,9 @@ export default function Badges() {
                     <Image className="tier-mascot-img" src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" />
                   </View>
                 )}
-                <View className="tier-node-circle" style={b.unlocked ? { background: TIER_COLORS[i] } : undefined} />
+                <View className="tier-node-circle" style={b.unlocked ? { background: TIER_COLORS[i] } : undefined}>
+                  <Image className="tier-node-icon" src={b.unlocked ? b.icon : "/icons/lock.png"} mode="aspectFit" />
+                </View>
                 <Text className="tier-node-label">{tier.label}</Text>
               </View>
             );
@@ -130,7 +134,9 @@ export default function Badges() {
         <View className="badge-grid">
           {funBadges.map((b) => (
             <View className={`badge${b.unlocked ? " unlocked" : " locked"}`} key={b.name} onClick={() => setSelected(b)}>
-              <View className="badge-ic" style={b.unlocked ? { background: b.color } : undefined} />
+              <View className="badge-ic" style={b.unlocked ? { background: b.color } : undefined}>
+                <Image className="badge-ic-img" src={b.unlocked ? b.icon : "/icons/lock.png"} mode="aspectFit" />
+              </View>
               <Text className="badge-name">{b.name}</Text>
               <Text className="badge-cond">{b.unlocked ? "已解锁" : "未解锁"} · {b.cond}</Text>
             </View>
@@ -141,7 +147,9 @@ export default function Badges() {
       {selected && (
         <View className="badge-backdrop" onClick={() => setSelected(null)}>
           <View className="badge-detail-card" onClick={(e) => e.stopPropagation()}>
-            <View className="badge-detail-icon" style={selected.unlocked ? { background: selected.color } : undefined} />
+            <View className="badge-detail-icon" style={selected.unlocked ? { background: selected.color } : undefined}>
+              <Image className="badge-detail-icon-img" src={selected.unlocked ? selected.icon : "/icons/lock.png"} mode="aspectFit" />
+            </View>
             <Text className="badge-detail-name">{selected.name}</Text>
             <Text className={`badge-detail-status${selected.unlocked ? " on" : " off"}`}>
               {selected.unlocked ? "已解锁" : "未解锁"}

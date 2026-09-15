@@ -62,6 +62,7 @@ export default function Stats() {
 
   useDidShow(() => {
     reload();
+    Taro.eventCenter.trigger("tabBarChange", 1);
   });
 
   const entries = useMemo(() => allEntries.filter((e) => !e.workerId), [allEntries]);

@@ -11,7 +11,7 @@ import { todaysSchedule, scheduleDurationHours, combineDateAndTime } from "../..
 import { SETTINGS_KEYS, getLocalToggle } from "../../lib/settings";
 import { hasOnboarded, markOnboarded, hasSeenCoachTour } from "../../lib/onboarding";
 import { TIERS, TIER_COLORS, currentTierIndex } from "../../lib/tiers";
-import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
+import { characterImageSrc, mbtiGroupColor, type AnimalKey } from "../../lib/avatar";
 import { CompanionWidget } from "../../components/CompanionWidget";
 import { PunchConfirmModal, type PunchConfirmData } from "../../components/PunchConfirmModal";
 import { RetroClockInModal } from "../../components/RetroClockInModal";
@@ -77,6 +77,7 @@ export default function Index() {
   useDidShow(() => {
     reload();
     setSimpleMode(getLocalToggle(SETTINGS_KEYS.simpleMode, false));
+    Taro.eventCenter.trigger("tabBarChange", 0);
   });
 
   // Team-logged entries (workerId set) belong to a delegated worker, not the
@@ -245,7 +246,7 @@ export default function Index() {
   return (
     <View className="home-page">
       <View className="banner">
-        <View className="banner-avatar">
+        <View className="banner-avatar" style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}>
           <Image src={characterImageSrc(animal ?? "cow", mbti)} mode="aspectFit" className="banner-avatar-img" />
         </View>
         <View className="banner-text">

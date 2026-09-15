@@ -23,13 +23,12 @@
   width: 144rpx;
   height: 144rpx;
   border-radius: 50%;
-  background: var(--accent-yellow);
-  border: 2.5px solid var(--border-bold);
+  background: #F5F0E4;
+  border: 2px solid var(--border-bold);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   overflow: hidden;
-  padding: 8rpx;
   box-sizing: border-box;
 }
 
@@ -127,6 +126,14 @@
   border-radius: 50%;
   background: var(--bg-surface);
   border: 3px solid var(--border-quiet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tier-node-icon {
+  width: 44rpx;
+  height: 44rpx;
 }
 
 .tier-node.unlocked .tier-node-circle {
@@ -174,6 +181,14 @@
   border-radius: 50%;
   background: var(--bg-base);
   border: 2px solid var(--border-quiet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-ic-img {
+  width: 34rpx;
+  height: 34rpx;
 }
 
 .badge.unlocked .badge-ic {
@@ -224,6 +239,14 @@
   background: var(--bg-base);
   border: 3px solid var(--border-quiet);
   margin-bottom: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-detail-icon-img {
+  width: 56rpx;
+  height: 56rpx;
 }
 
 .badge-detail-name {

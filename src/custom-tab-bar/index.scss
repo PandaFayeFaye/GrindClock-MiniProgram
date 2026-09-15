@@ -1,0 +1,162 @@
+.tabbar-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 36rpx 40rpx;
+  box-sizing: border-box;
+  z-index: 100;
+}
+
+.tabbar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #1A1A1A;
+  border: 2.5px solid #1A1A1A;
+  border-radius: 48rpx;
+  padding: 16rpx 20rpx;
+  box-shadow: 8rpx 8rpx 0 rgba(0, 0, 0, 0.25);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+  flex: 1;
+}
+
+.tab-label {
+  font-size: 19rpx;
+  font-weight: 900;
+  color: #8A8A8A;
+}
+
+.tab.active .tab-label {
+  color: #fff;
+}
+
+.tab-icon-badge {
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+}
+
+.tab.active .tab-icon-badge {
+  border-color: #1A1A1A;
+  box-shadow: 0 4rpx 0 rgba(0, 0, 0, 0.3) inset;
+}
+
+.tab-icon {
+  width: 40rpx;
+  height: 40rpx;
+  position: relative;
+}
+
+/* Home: roof (triangle via rotated square) + base */
+.tab-icon-0 {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.tab-icon-0::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 26rpx;
+  height: 26rpx;
+  background: #8A8A8A;
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 4rpx;
+}
+
+.tab-icon-0::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 28rpx;
+  height: 18rpx;
+  background: #8A8A8A;
+  transform: translateX(-50%);
+  border-radius: 0 0 4rpx 4rpx;
+}
+
+.tab-icon-0.active::before,
+.tab-icon-0.active::after {
+  background: #fff;
+}
+
+/* Stats: three ascending bars + a dot */
+.tab-icon-1 {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4rpx;
+}
+
+.tab-icon-1::before,
+.tab-icon-1::after {
+  content: "";
+  display: block;
+  width: 8rpx;
+  background: #8A8A8A;
+  border-radius: 3rpx;
+}
+
+.tab-icon-1::before {
+  height: 20rpx;
+}
+
+.tab-icon-1::after {
+  height: 34rpx;
+}
+
+.tab-icon-1 .bar-mid {
+  width: 8rpx;
+  height: 28rpx;
+  background: #8A8A8A;
+  border-radius: 3rpx;
+}
+
+.tab-icon-1.active::before,
+.tab-icon-1.active::after,
+.tab-icon-1.active .bar-mid {
+  background: #fff;
+}
+
+/* Me: head + shoulders */
+.tab-icon-2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tab-icon-2::before {
+  content: "";
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  background: #8A8A8A;
+  margin-bottom: 2rpx;
+}
+
+.tab-icon-2::after {
+  content: "";
+  width: 34rpx;
+  height: 18rpx;
+  border-radius: 18rpx 18rpx 0 0;
+  background: #8A8A8A;
+}
+
+.tab-icon-2.active::before,
+.tab-icon-2.active::after {
+  background: #fff;
+}

@@ -53,6 +53,7 @@ export default function Me() {
 
   useDidShow(() => {
     reload();
+    Taro.eventCenter.trigger("tabBarChange", 2);
   });
 
   const personalConfirmed = entries.filter((e) => !e.workerId && e.status === "confirmed" && e.endTime != null);

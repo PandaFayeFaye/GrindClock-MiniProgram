@@ -25,7 +25,8 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
     copy: {
       patterns: [
         { from: 'assets/characters', to: 'dist/characters' },
-        { from: 'assets/fonts', to: 'dist/fonts' }
+        { from: 'assets/fonts', to: 'dist/fonts' },
+        { from: 'assets/icons', to: 'dist/icons' }
       ],
       options: {
       }
