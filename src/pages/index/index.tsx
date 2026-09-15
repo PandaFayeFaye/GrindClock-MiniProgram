@@ -17,8 +17,17 @@ import { PunchConfirmModal, type PunchConfirmData } from "../../components/Punch
 import { RetroClockInModal } from "../../components/RetroClockInModal";
 import { ScheduleConfirmModal } from "../../components/ScheduleConfirmModal";
 import { CoachTour, HOME_COACH_STEPS } from "../../components/CoachTour";
-import type { Employer, TimeEntry } from "../../lib/types";
+import type { Employer, PayType, TimeEntry } from "../../lib/types";
 import "./index.scss";
+
+const PAY_TYPE_LABEL: Record<PayType, string> = {
+  hourly: "时薪",
+  comprehensive: "时薪",
+  "base+overtime": "底薪+加班",
+  daily: "日结",
+  monthly: "月薪",
+  "per-order": "按单计费",
+};
 
 function startOfToday() {
   const d = new Date();
@@ -245,31 +254,33 @@ export default function Index() {
 
   return (
     <View className="home-page">
-      <View className="banner">
-        <View className="banner-avatar">
-          <View className="banner-avatar-outer">
-            <View className="banner-avatar-inner" style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}>
-              <View
-                className="banner-avatar-img"
-                style={{ backgroundImage: `url(${characterImageSrc(animal ?? "cow", mbti)})` }}
-              />
+      {!simpleMode && (
+        <View className="banner">
+          <View className="banner-avatar">
+            <View className="banner-avatar-outer">
+              <View className="banner-avatar-inner" style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}>
+                <View
+                  className="banner-avatar-img"
+                  style={{ backgroundImage: `url(${characterImageSrc(animal ?? "cow", mbti)})` }}
+                />
+              </View>
+              {mbti && <Text className="avatar-mbti-tag">{mbti}</Text>}
             </View>
-            {mbti && <Text className="avatar-mbti-tag">{mbti}</Text>}
+          </View>
+          <View className="banner-text">
+            <Text className="banner-title">{nickname ? `${nickname}，牛马辛苦了` : "牛马辛苦了，今天也要加油搬砖"}</Text>
+            <View className="home-tier-chip" onClick={() => Taro.navigateTo({ url: "/pages/badges/index" })}>
+              <Text className="home-tier-name" style={{ color: TIER_COLORS[currentTierIdx] }}>{currentTier.label}</Text>
+              <View className="home-tier-track">
+                <View className="home-tier-fill" style={{ width: `${tierProgressPct}%`, background: TIER_COLORS[currentTierIdx] }} />
+              </View>
+              {nextTier && <Text className="home-tier-next">{nextTier.label}</Text>}
+            </View>
           </View>
         </View>
-        <View className="banner-text">
-          <Text className="banner-title">{nickname ? `${nickname}，牛马辛苦了` : "牛马辛苦了，今天也要加油搬砖"}</Text>
-          <View className="home-tier-chip" onClick={() => Taro.navigateTo({ url: "/pages/badges/index" })}>
-            <Text className="home-tier-name" style={{ color: TIER_COLORS[currentTierIdx] }}>{currentTier.label}</Text>
-            <View className="home-tier-track">
-              <View className="home-tier-fill" style={{ width: `${tierProgressPct}%`, background: TIER_COLORS[currentTierIdx] }} />
-            </View>
-            {nextTier && <Text className="home-tier-next">{nextTier.label}</Text>}
-          </View>
-        </View>
-      </View>
+      )}
 
-      {workingCount >= 2 && (
+      {!simpleMode && workingCount >= 2 && (
         <View className="combo-badge">
           <Text className="combo-badge-text">同时打{workingCount}份工中，牛马附体！</Text>
         </View>
@@ -355,7 +366,14 @@ export default function Index() {
                     className="row-name"
                     onClick={() => Taro.navigateTo({ url: `/pages/employer-form/index?id=${emp.id}` })}
                   >
-                    <Text className="row-title">{emp.name}</Text>
+                    <View className="row-title-line">
+                      <Text className="row-title">{emp.name}</Text>
+                      <Text className="row-rate">
+                        {emp.payType === "hourly" || emp.payType === "comprehensive"
+                          ? `${currencySymbol(emp.currency)}${emp.hourlyRate ?? 0}/h`
+                          : PAY_TYPE_LABEL[emp.payType]}
+                      </Text>
+                    </View>
                   </View>
                   <Button
                     className={`punch-btn${active ? " working" : ""}`}

@@ -71,7 +71,9 @@ export default function Onboarding() {
                 className={`onboarding-animal-btn${animal === a.key ? " selected" : ""}`}
                 onClick={() => setAnimal(a.key)}
               >
-                <Image className="onboarding-animal-thumb" src={characterImageSrc(a.key)} mode="aspectFit" />
+                <View className="onboarding-animal-thumb-ring">
+                  <View className="onboarding-animal-thumb" style={{ backgroundImage: `url(${characterImageSrc(a.key)})` }} />
+                </View>
                 <Text>{a.label}</Text>
               </View>
             ))}

@@ -50,6 +50,9 @@ export default function Team() {
 
   return (
     <View className="team-page">
+      <View className="team-header">
+        <Text className="mode-pill">组长模式</Text>
+      </View>
       {workers.length > 0 ? (
         <>
           <Text className="isolation-note">这里记录的搬砖时长归属于被代记录人，和你自己的个人打工记录完全分开统计，不会混进你的首页数据</Text>

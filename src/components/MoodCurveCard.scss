@@ -18,6 +18,15 @@
   margin: 8rpx 8rpx 52rpx;
 }
 
+.mood-gridline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(26, 26, 26, 0.06);
+  z-index: 0;
+}
+
 .mood-line-segment {
   position: absolute;
   height: 3px;
@@ -45,6 +54,10 @@
 .mood-point.empty {
   background: none;
   box-shadow: none;
+}
+
+.mood-point.pressed {
+  transform: scale(0.9);
 }
 
 .mood-point-fill {
@@ -112,10 +125,9 @@
   color: var(--text-muted);
 }
 
-.mood-dist-dot {
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: 50%;
+.mood-dist-icon {
+  width: 26rpx;
+  height: 26rpx;
 }
 
 .mood-editor {
@@ -137,8 +149,10 @@
 
 .mood-edit-tag {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6rpx;
   padding: 16rpx 4rpx;
   border-radius: 20rpx;
   border: 1.8px solid var(--border-quiet);
@@ -146,6 +160,11 @@
   font-size: 19rpx;
   font-weight: 800;
   color: var(--text-muted);
+}
+
+.mood-edit-tag-icon {
+  width: 32rpx;
+  height: 32rpx;
 }
 
 .mood-edit-tag.selected {

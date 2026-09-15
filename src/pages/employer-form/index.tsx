@@ -315,7 +315,9 @@ export default function EmployerForm() {
         <Text className="field-label">颜色</Text>
         <View className="swatches">
           {PALETTE.map((hex, i) => (
-            <View key={hex} className={`swatch${colorIdx === i ? " selected" : ""}`} style={{ background: hex }} onClick={() => setColorIdx(i)} />
+            <View key={hex} className={`swatch${colorIdx === i ? " selected" : ""}`} style={{ background: hex }} onClick={() => setColorIdx(i)}>
+              {colorIdx === i && <Text className="swatch-check">✓</Text>}
+            </View>
           ))}
         </View>
       </View>

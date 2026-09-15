@@ -93,7 +93,7 @@
   background: var(--bg-surface);
   overflow: hidden;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   padding: 10rpx;
   box-sizing: border-box;
@@ -131,7 +131,20 @@
   color: var(--text-primary);
 }
 
-.onboarding-animal-thumb {
+.onboarding-animal-thumb-ring {
   width: 56rpx;
   height: 56rpx;
+  border-radius: 50%;
+  border: 2px solid #1A1A1A;
+  background: #F5F0E4;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.onboarding-animal-thumb {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: 50% 18%;
+  background-repeat: no-repeat;
 }

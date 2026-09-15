@@ -166,7 +166,11 @@ export default function Badges() {
               <View
                 key={tier.label}
                 className={`tier-node${b.unlocked ? " unlocked" : " locked"}${isCurrent ? " current" : ""}`}
-                style={{ left: `${PATH_X[i % PATH_X.length]}%`, top: `${PATH_TOP_PADDING_RPX + i * NODE_SPACING_RPX}rpx` }}
+                style={{
+                  left: `${PATH_X[i % PATH_X.length]}%`,
+                  top: `${PATH_TOP_PADDING_RPX + i * NODE_SPACING_RPX}rpx`,
+                  animationDelay: `${i * 90}ms`,
+                }}
                 hoverClass="pressed"
                 hoverStayTime={0}
                 onClick={() => setSelected(b)}
@@ -189,8 +193,15 @@ export default function Badges() {
       <View className="section">
         <Text className="section-label">隐藏成就</Text>
         <View className="badge-grid">
-          {funBadges.map((b) => (
-            <View className={`badge${b.unlocked ? " unlocked" : " locked"}`} key={b.name} hoverClass="pressed" hoverStayTime={0} onClick={() => setSelected(b)}>
+          {funBadges.map((b, i) => (
+            <View
+              className={`badge${b.unlocked ? " unlocked" : " locked"}`}
+              key={b.name}
+              style={{ animationDelay: `${i * 80}ms` }}
+              hoverClass="pressed"
+              hoverStayTime={0}
+              onClick={() => setSelected(b)}
+            >
               <View className="badge-ic" style={b.unlocked ? { background: b.color } : undefined}>
                 <Image className="badge-ic-img" src={b.unlocked ? b.icon : "/icons/lock.png"} mode="aspectFit" />
               </View>

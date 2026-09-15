@@ -8,6 +8,20 @@
   background: var(--bg-base);
 }
 
+.team-header {
+  display: flex;
+}
+
+.mode-pill {
+  font-size: 20rpx;
+  font-weight: 800;
+  color: var(--accent-purple);
+  background: rgba(176, 132, 245, 0.14);
+  border: 1.5px solid var(--accent-purple);
+  border-radius: 999px;
+  padding: 6rpx 20rpx;
+}
+
 .isolation-note {
   font-size: 20rpx;
   color: var(--text-muted);

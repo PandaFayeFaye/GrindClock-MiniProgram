@@ -241,7 +241,7 @@ export default function Me() {
           <Image className="toggle-icon" src="/icons/sparkle.png" mode="aspectFit" />
           <View className="toggle-label">
             <Text className="t">简洁模式</Text>
-            <Text className="s">首页隐藏搬砖搭子，界面更简洁</Text>
+            <Text className="s">关闭吉祥物/称号横幅，首页只留打卡列表</Text>
           </View>
           <Switch checked={simpleMode} onChange={(e) => toggleSetting(SETTINGS_KEYS.simpleMode, setSimpleModeState, e.detail.value)} />
         </View>

@@ -277,9 +277,26 @@
   min-width: 0;
 }
 
+.row-title-line {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 .row-title {
   font-size: 28rpx;
   font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-rate {
+  font-size: 21rpx;
+  font-weight: 600;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .punch-btn {

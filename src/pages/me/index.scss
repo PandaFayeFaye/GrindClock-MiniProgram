@@ -120,6 +120,10 @@
   font-size: 22rpx;
   font-weight: 900;
   color: var(--border-bold);
+  border: 1.8px solid var(--border-bold);
+  border-radius: 999px;
+  padding: 8rpx 18rpx;
+  background: var(--bg-surface);
 }
 
 .tier-progress-card {

@@ -84,6 +84,7 @@
 .chip.selected {
   background: var(--border-bold);
   color: var(--accent-yellow);
+  box-shadow: var(--shadow-bold-sm);
 }
 
 .chip-ot.selected {
@@ -201,10 +202,20 @@
   height: 72rpx;
   border-radius: 18rpx;
   border: 2.5px solid var(--border-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .swatch.selected {
   box-shadow: var(--shadow-bold-sm);
+}
+
+.swatch-check {
+  color: #1A1A1A;
+  font-size: 32rpx;
+  font-weight: 900;
+  text-shadow: 0 0 4rpx rgba(255, 255, 255, 0.8);
 }
 
 .mode-cards {

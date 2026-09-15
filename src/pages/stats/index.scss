@@ -137,13 +137,24 @@
   color: #fff;
 }
 
+.overtime-summary-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.overtime-summary-title-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
 .overtime-summary-title {
   font-size: 22rpx;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   display: block;
-  margin-bottom: 16rpx;
 }
 
 .overtime-summary-row {
@@ -254,6 +265,7 @@
 .streak-chip {
   display: inline-flex;
   align-items: center;
+  gap: 8rpx;
   background: var(--accent-yellow);
   border: 2px solid var(--border-bold);
   border-radius: 999px;
@@ -261,6 +273,11 @@
   font-size: 22rpx;
   font-weight: 900;
   margin-bottom: 20rpx;
+}
+
+.streak-chip-icon {
+  width: 22rpx;
+  height: 22rpx;
 }
 
 .weekday-header {
@@ -361,8 +378,9 @@
   border-color: var(--border-bold);
 }
 
-.streak-cell.lit .cell-day {
-  display: none;
+.cell-flame {
+  width: 60%;
+  height: 60%;
 }
 
 .ring-wrap {
@@ -613,6 +631,18 @@
 .pay {
   font-size: 25rpx;
   font-weight: 800;
+}
+
+.pay-ot-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  margin-top: 2rpx;
+}
+
+.pay-ot-sub-icon {
+  width: 16rpx;
+  height: 16rpx;
 }
 
 .pay-ot-sub {

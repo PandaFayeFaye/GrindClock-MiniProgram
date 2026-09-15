@@ -128,6 +128,9 @@ export function MoodCurveCard({
     <View className="mood-curve-card">
       <Text className="title">本周心情曲线（仅自己可见）</Text>
       <View className="mood-curve">
+        {[10, 28, 52, 78].map((y) => (
+          <View key={y} className="mood-gridline" style={{ top: `${y}%` }} />
+        ))}
         {moodLineSegments.map((seg, i) => (
           <View
             key={i}
@@ -149,6 +152,8 @@ export function MoodCurveCard({
               key={d.key}
               className={`mood-point${d.mood ? "" : " empty"}${loggable ? " loggable" : ""}`}
               style={{ left: `${x}%`, top: `${y}%` }}
+              hoverClass="pressed"
+              hoverStayTime={0}
               onClick={() => openMoodEditor(d)}
             >
               {d.mood ? (
@@ -170,7 +175,7 @@ export function MoodCurveCard({
         <View className="mood-dist-row">
           {moodCounts.map(({ key, label, n }) => (
             <View className="mood-dist-chip" key={key}>
-              <View className="mood-dist-dot" style={{ background: MOOD_COLOR[key] }} />
+              <Image className="mood-dist-icon" src={MOOD_ICON[key]} mode="aspectFit" />
               <Text>{label} ×{n}</Text>
             </View>
           ))}
@@ -186,6 +191,7 @@ export function MoodCurveCard({
                 className={`mood-edit-tag${draftMood === m.key ? " selected" : ""}`}
                 onClick={() => setDraftMood(draftMood === m.key ? undefined : m.key)}
               >
+                <Image className="mood-edit-tag-icon" src={MOOD_ICON[m.key]} mode="aspectFit" />
                 <Text>{m.label}</Text>
               </View>
             ))}

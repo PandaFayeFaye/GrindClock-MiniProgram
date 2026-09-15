@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { View, Text, Input } from "@tarojs/components";
+import { View, Text, Input, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
@@ -233,7 +233,10 @@ export default function Stats() {
 
       {totalOvertimeHours > 0.05 && (
         <View className="overtime-summary-card">
+          <View className="overtime-summary-title-row">
+          <Image className="overtime-summary-title-icon" src="/icons/flame-coral.png" mode="aspectFit" />
           <Text className="overtime-summary-title">加班统计</Text>
+        </View>
           <View className="overtime-summary-row">
             <View className="stat">
               <Text className="num">{totalOvertimeHours.toFixed(1)}h</Text>
@@ -277,7 +280,10 @@ export default function Stats() {
 
       {viz === "calendar" && (
         <View className="chart-card">
-          <View className="streak-chip"><Text>连续打卡 {streak} 天</Text></View>
+          <View className="streak-chip">
+            <Image className="streak-chip-icon" src="/icons/flame-coral.png" mode="aspectFit" />
+            <Text>连续打卡 {streak} 天</Text>
+          </View>
           <Text className="chart-title">{monthLabel} 收入日历</Text>
           <View className="weekday-header">
             {WEEKDAY_LABELS.map((k) => <Text key={k} className="weekday-header-label">{k}</Text>)}
@@ -315,7 +321,9 @@ export default function Stats() {
             {Array.from({ length: calendarLeadingBlanks }).map((_, i) => <View className="streak-cell blank" key={`sb${i}`} />)}
             {streakCells.map(({ day, punched }) => (
               <View key={day} className={`streak-cell${punched ? " lit" : ""}`}>
-                {!punched && <Text className="cell-day">{day}</Text>}
+                {punched
+                  ? <Image className="cell-flame" src="/icons/flame-white.png" mode="aspectFit" />
+                  : <Text className="cell-day">{day}</Text>}
               </View>
             ))}
           </View>
@@ -421,7 +429,12 @@ export default function Stats() {
                   </View>
                   <View className="pay-col">
                     <Text className="pay">{currencySymbol(emp.currency)}{entryPay(emp, e).toFixed(1)}</Text>
-                    {otPay > 0 && <Text className="pay-ot-sub">其中加班{currencySymbol(emp.currency)}{otPay.toFixed(1)}</Text>}
+                    {otPay > 0 && (
+                      <View className="pay-ot-sub-row">
+                        <Image className="pay-ot-sub-icon" src="/icons/flame-coral.png" mode="aspectFit" />
+                        <Text className="pay-ot-sub">其中加班{currencySymbol(emp.currency)}{otPay.toFixed(1)}</Text>
+                      </View>
+                    )}
                   </View>
                 </View>
               );

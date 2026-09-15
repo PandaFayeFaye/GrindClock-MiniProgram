@@ -141,7 +141,7 @@
   height: 96rpx;
   border-radius: 50%;
   background: var(--bg-surface);
-  border: 3px solid var(--border-quiet);
+  border: 3px dashed var(--border-quiet);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,12 +153,18 @@
 }
 
 .tier-node.unlocked .tier-node-circle {
+  border-style: solid;
   border-color: var(--border-bold);
   box-shadow: var(--shadow-bold-sm);
 }
 
+@keyframes tier-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7), var(--shadow-bold-sm); }
+  50% { box-shadow: 0 0 0 16rpx rgba(255, 255, 255, 0), var(--shadow-bold-sm); }
+}
+
 .tier-node.current .tier-node-circle {
-  box-shadow: 0 0 0 6rpx rgba(255, 217, 61, 0.4);
+  animation: tier-pulse 1.6s ease-in-out infinite;
 }
 
 .tier-node-label {
@@ -184,6 +190,8 @@
   align-items: center;
   gap: 8rpx;
   padding: 28rpx 16rpx;
+  min-height: 176rpx;
+  box-sizing: border-box;
   background: var(--bg-surface);
   border: 1.5px solid var(--border-quiet);
   border-radius: 20rpx;
@@ -195,6 +203,7 @@
 .badge.unlocked {
   opacity: 1;
   border-color: var(--border-bold);
+  background: linear-gradient(160deg, #FFFDF5, var(--bg-surface) 60%);
 }
 
 .badge.pressed {
