@@ -9,6 +9,51 @@
   box-sizing: border-box;
 }
 
+@keyframes splash-pop {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.employer-saved-splash {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  text-align: center;
+  padding: 48rpx;
+  box-sizing: border-box;
+  background: var(--bg-base);
+  animation: splash-pop 0.4s ease;
+}
+
+.splash-badge {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  background: var(--accent-yellow);
+  border: 3px solid var(--border-bold);
+  box-shadow: var(--shadow-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64rpx;
+  font-weight: 900;
+  color: var(--border-bold);
+}
+
+.splash-title {
+  font-family: var(--font-display);
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.splash-sub {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
 .save-btn-bar {
   position: fixed;
   left: 0;

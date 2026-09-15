@@ -77,6 +77,7 @@ export default function EmployerForm() {
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [busy, setBusy] = useState(false);
   const [archived, setArchived] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => {
     fetchEmployers().then((docs) => setExistingEmployers(docs.map(toEmployer)));
@@ -166,10 +167,12 @@ export default function EmployerForm() {
     try {
       if (isEdit && employerId) {
         await updateEmployer(employerId, data);
+        Taro.navigateBack();
       } else {
         await addEmployer(data);
+        setJustSaved(true);
+        setTimeout(() => Taro.navigateBack(), 1400);
       }
-      Taro.navigateBack();
     } catch (err) {
       console.error("Failed to save employer", err);
       Taro.showToast({ title: "保存失败，重试一下", icon: "none" });
@@ -236,6 +239,16 @@ export default function EmployerForm() {
     return (
       <View className="employer-form">
         <Text className="loading">加载中...</Text>
+      </View>
+    );
+  }
+
+  if (justSaved) {
+    return (
+      <View className="employer-saved-splash">
+        <View className="splash-badge"><Text>✓</Text></View>
+        <Text className="splash-title">新副本「{name.trim()}」已解锁！</Text>
+        <Text className="splash-sub">现在可以去打第一次卡了</Text>
       </View>
     );
   }
