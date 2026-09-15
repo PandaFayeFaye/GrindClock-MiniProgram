@@ -166,7 +166,7 @@ export default function Badges() {
               <View
                 key={tier.label}
                 className={`tier-node${b.unlocked ? " unlocked" : " locked"}${isCurrent ? " current" : ""}`}
-                style={{ left: `${PATH_X[i % PATH_X.length]}%` }}
+                style={{ left: `${PATH_X[i % PATH_X.length]}%`, top: `${PATH_TOP_PADDING_RPX + i * NODE_SPACING_RPX}rpx` }}
                 onClick={() => setSelected(b)}
               >
                 {isCurrent && (
