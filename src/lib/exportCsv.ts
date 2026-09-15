@@ -1,8 +1,30 @@
 import Taro from "@tarojs/taro";
 import type { Employer, TimeEntry } from "./types";
 import { entryHours, entryPay } from "./pay";
-import { currencySymbol } from "./currency";
+import { currencySymbol, formatGroupedPay, DEFAULT_CURRENCY } from "./currency";
 import { canvasToImage } from "./canvasHelpers";
+
+function summarize(entries: TimeEntry[], employerById: Map<string, Employer>) {
+  const days = new Set<string>();
+  let hours = 0;
+  const payByCurrency = new Map<string, number>();
+  for (const e of entries) {
+    const d = new Date(e.startTime);
+    days.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+    hours += entryHours(e);
+    const emp = employerById.get(e.employerId);
+    if (emp) {
+      const cur = emp.currency ?? DEFAULT_CURRENCY;
+      payByCurrency.set(cur, (payByCurrency.get(cur) ?? 0) + entryPay(emp, e));
+    }
+  }
+  return { dayCount: days.size, hours, payByCurrency };
+}
+
+function summaryLine(entries: TimeEntry[], employerById: Map<string, Employer>): string {
+  const { dayCount, hours, payByCurrency } = summarize(entries, employerById);
+  return `累计 ${dayCount} 天 · ${hours.toFixed(1)} 小时 · ${formatGroupedPay(payByCurrency, 1)}`;
+}
 
 export type ExportColumn = "date" | "employer" | "start" | "end" | "hours" | "pay" | "mood" | "note";
 
@@ -64,7 +86,9 @@ export async function exportEntriesCsv(
     .sort((a, b) => a.startTime - b.startTime)
     .map((e) => columns.map((col) => cellValue(col, e, employerById.get(e.employerId))));
 
-  const csv = [columnLabels, ...rows].map((r) => r.map(csvEscape).join(",")).join("\r\n");
+  const summaryRow = columns.map((_, i) => (i === 0 ? summaryLine(entries, employerById) : ""));
+
+  const csv = [columnLabels, ...rows, summaryRow].map((r) => r.map(csvEscape).join(",")).join("\r\n");
   // BOM so Excel on Windows/macOS renders Chinese characters correctly.
   const content = "﻿" + csv;
 
@@ -106,11 +130,16 @@ export async function exportEntriesImage(
     return Math.max(60, Math.ceil(Math.max(headerW, cellW)) + padX * 2);
   });
 
+  const summaryText = summaryLine(entries, employerById);
+  measureCtx.font = "700 14px sans-serif";
+  const summaryWidth = Math.ceil(measureCtx.measureText(summaryText).width) + padX * 2;
+
   const rowH = 40;
   const headerH = 46;
+  const summaryH = 44;
   const footerH = 40;
-  const width = colWidths.reduce((s, w) => s + w, 0);
-  const height = headerH + rows.length * rowH + footerH;
+  const width = Math.max(colWidths.reduce((s, w) => s + w, 0), summaryWidth);
+  const height = headerH + rows.length * rowH + summaryH + footerH;
 
   setCanvasSize({ width, height });
   await new Promise((resolve) => setTimeout(resolve, 100));
@@ -148,6 +177,13 @@ export async function exportEntriesImage(
     ctx.lineTo(width, ry + rowH);
     ctx.stroke();
   });
+
+  const summaryY = headerH + rows.length * rowH;
+  ctx.fillStyle = "#FFD93D";
+  ctx.fillRect(0, summaryY, width, summaryH);
+  ctx.fillStyle = "#1A1A1A";
+  ctx.font = "700 14px sans-serif";
+  ctx.fillText(summaryText, padX, summaryY + summaryH / 2);
 
   ctx.fillStyle = "rgba(26,26,26,0.4)";
   ctx.font = "500 13px sans-serif";
