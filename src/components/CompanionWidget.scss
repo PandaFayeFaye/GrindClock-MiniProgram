@@ -239,6 +239,11 @@
   border-top: 1.3px dashed var(--border-quiet);
 }
 
+@keyframes companion-bubble-pop {
+  from { opacity: 0; transform: translateY(12rpx) scale(0.8); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .companion-mood-bubble {
   position: absolute;
   top: 24rpx;
@@ -252,5 +257,32 @@
   font-weight: 800;
   white-space: nowrap;
   box-shadow: var(--shadow-bold-sm);
+  animation: companion-bubble-pop 0.25s ease both;
   z-index: 1;
+}
+
+.companion-mood-bubble::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -18rpx;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 14rpx solid transparent;
+  border-bottom: 14rpx solid transparent;
+  border-right: 18rpx solid var(--border-bold);
+}
+
+.companion-mood-bubble::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -13rpx;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 12rpx solid transparent;
+  border-bottom: 12rpx solid transparent;
+  border-right: 14rpx solid var(--bg-surface);
 }
