@@ -15,6 +15,7 @@
   border-radius: 50%;
   border: 3px solid #1A1A1A;
   z-index: 1;
+  pointer-events: none;
 }
 
 .sticker.c1 {
@@ -64,6 +65,7 @@
 
 .recap-tap-zone {
   position: relative;
+  z-index: 2;
   flex: 1;
   display: flex;
   min-height: 900rpx;
