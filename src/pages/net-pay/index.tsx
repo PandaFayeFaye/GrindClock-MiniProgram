@@ -17,12 +17,20 @@ interface Row {
 export default function NetPay() {
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const reload = () => {
-    Promise.all([fetchEmployers(), fetchTimeEntries()]).then(([empDocs, entryDocs]) => {
+  const reload = async () => {
+    setLoading(true);
+    try {
+      const [empDocs, entryDocs] = await Promise.all([fetchEmployers(), fetchTimeEntries()]);
       setEmployers(empDocs.map(toEmployer));
       setEntries(entryDocs.map(toTimeEntry));
-    });
+    } catch (err) {
+      console.error("Failed to load net pay data", err);
+      Taro.showToast({ title: "加载失败，下拉重试", icon: "none" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useDidShow(() => reload());
@@ -52,6 +60,14 @@ export default function NetPay() {
   }, [activeEmployers, entries]);
 
   const hasAnyEntries = entries.some((e) => !e.workerId && e.status === "confirmed" && e.endTime != null);
+
+  if (loading) {
+    return (
+      <View className="netpay-page">
+        <Text className="empty-hint">加载中...</Text>
+      </View>
+    );
+  }
 
   if (activeEmployers.length < 2) {
     return (

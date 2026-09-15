@@ -34,7 +34,11 @@ export function ExportPanel({
   const activeColumns = EXPORT_COLUMNS.filter((c) => selected.has(c.key));
 
   async function handleExportCsv() {
-    if (activeColumns.length === 0) return;
+    if (exporting || activeColumns.length === 0) return;
+    if (entries.length === 0) {
+      Taro.showToast({ title: "没有可导出的记录", icon: "none" });
+      return;
+    }
     setExporting("csv");
     try {
       await exportEntriesCsv(entries, employerById, `${filenameBase}.csv`, activeColumns.map((c) => c.key), activeColumns.map((c) => c.label));
@@ -48,7 +52,7 @@ export function ExportPanel({
   }
 
   async function handleExportImage() {
-    if (activeColumns.length === 0) return;
+    if (exporting || activeColumns.length === 0) return;
     if (entries.length > MAX_IMAGE_ROWS) {
       Taro.showToast({ title: "记录太多，图片导出建议改用CSV", icon: "none" });
       return;

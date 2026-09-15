@@ -75,12 +75,17 @@ export default function Badges() {
   }, []);
 
   useDidShow(() => {
-    Promise.all([fetchEmployers(), fetchTimeEntries(), fetchUserProfile()]).then(([empDocs, entryDocs, profile]) => {
-      setEmployers(empDocs.map(toEmployer));
-      setEntries(entryDocs.map(toTimeEntry));
-      setAnimal(profile?.animal as AnimalKey | undefined);
-      setMbti(profile?.mbti);
-    });
+    Promise.all([fetchEmployers(), fetchTimeEntries(), fetchUserProfile()])
+      .then(([empDocs, entryDocs, profile]) => {
+        setEmployers(empDocs.map(toEmployer));
+        setEntries(entryDocs.map(toTimeEntry));
+        setAnimal(profile?.animal as AnimalKey | undefined);
+        setMbti(profile?.mbti);
+      })
+      .catch((err) => {
+        console.error("Failed to load badge wall data", err);
+        Taro.showToast({ title: "加载失败，下拉重试", icon: "none" });
+      });
   });
 
   const employerById = useMemo(() => new Map(employers.map((e) => [e.id, e])), [employers]);

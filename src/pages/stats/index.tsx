@@ -366,6 +366,9 @@ export default function Stats() {
 
           <Text className="chart-title chart-title-spaced">本周排行榜</Text>
           {board.length === 0 && <Text className="empty-hint">本周还没有记录</Text>}
+          {new Set(board.map((row) => row.employer.currency)).size > 1 && (
+            <Text className="lb-currency-note">不同币种之间没有做汇率换算，排名仅供参考</Text>
+          )}
           <View className="leaderboard">
             {board.map((row, i) => (
               <View className="lb-row" key={row.employer.id}>

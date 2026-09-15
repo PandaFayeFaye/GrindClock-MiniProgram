@@ -16,11 +16,16 @@ export default function Team() {
   const [employers, setEmployers] = useState<Employer[]>([]);
 
   useDidShow(() => {
-    Promise.all([fetchWorkers(), fetchTimeEntries(), fetchEmployers()]).then(([workerDocs, entryDocs, empDocs]) => {
-      setWorkers(workerDocs);
-      setEntries(entryDocs.map(toTimeEntry));
-      setEmployers(empDocs.map(toEmployer));
-    });
+    Promise.all([fetchWorkers(), fetchTimeEntries(), fetchEmployers()])
+      .then(([workerDocs, entryDocs, empDocs]) => {
+        setWorkers(workerDocs);
+        setEntries(entryDocs.map(toTimeEntry));
+        setEmployers(empDocs.map(toEmployer));
+      })
+      .catch((err) => {
+        console.error("Failed to load team data", err);
+        Taro.showToast({ title: "加载失败，下拉重试", icon: "none" });
+      });
   });
 
   const employerById = useMemo(() => new Map(employers.map((e) => [e.id, e])), [employers]);
