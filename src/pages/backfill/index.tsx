@@ -53,13 +53,16 @@ export default function Backfill() {
   const [prefilledDefaults, setPrefilledDefaults] = useState(false);
 
   useEffect(() => {
+    // When editing, the effect below owns loading employers (it needs to
+    // include a possibly-archived one) -- running both risks this one's
+    // resolution racing past that one's and clobbering it with a shorter,
+    // active-only list that the already-set employerIdx no longer matches.
+    if (editId) return;
     fetchEmployers().then((docs) => {
-      // An archived gig can't be picked for a NEW entry, but an entry already
-      // logged against one (being edited) must still show it as selected.
       const active = docs.map(toEmployer).filter((e) => !e.archived);
       setEmployers(active);
     });
-  }, []);
+  }, [editId]);
 
   useEffect(() => {
     if (!editId) return;
