@@ -47,9 +47,16 @@
   border: 2px solid transparent;
 }
 
+@keyframes tab-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
 .tab.active .tab-icon-badge {
   border-color: #1A1A1A;
   box-shadow: 0 4rpx 0 rgba(0, 0, 0, 0.3) inset;
+  animation: tab-pop 0.3s ease;
 }
 
 .tab-icon {

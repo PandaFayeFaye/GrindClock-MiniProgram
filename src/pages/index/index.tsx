@@ -246,14 +246,16 @@ export default function Index() {
   return (
     <View className="home-page">
       <View className="banner">
-        <View className="banner-avatar-outer">
-          <View className="banner-avatar-inner" style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}>
-            <View
-              className="banner-avatar-img"
-              style={{ backgroundImage: `url(${characterImageSrc(animal ?? "cow", mbti)})` }}
-            />
+        <View className="banner-avatar">
+          <View className="banner-avatar-outer">
+            <View className="banner-avatar-inner" style={{ borderColor: mbti ? mbtiGroupColor(mbti) : "#1A1A1A" }}>
+              <View
+                className="banner-avatar-img"
+                style={{ backgroundImage: `url(${characterImageSrc(animal ?? "cow", mbti)})` }}
+              />
+            </View>
+            {mbti && <Text className="avatar-mbti-tag">{mbti}</Text>}
           </View>
-          {mbti && <Text className="avatar-mbti-tag">{mbti}</Text>}
         </View>
         <View className="banner-text">
           <Text className="banner-title">{nickname ? `${nickname}，牛马辛苦了` : "牛马辛苦了，今天也要加油搬砖"}</Text>

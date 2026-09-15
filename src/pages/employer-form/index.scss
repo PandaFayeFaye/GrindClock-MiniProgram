@@ -42,7 +42,9 @@
 .text-input {
   width: 100%;
   box-sizing: border-box;
-  padding: 24rpx 28rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0 28rpx;
   border: 2.5px solid var(--border-bold);
   border-radius: 20rpx;
   font-size: 28rpx;
@@ -51,7 +53,9 @@
 
 
 .text-input.compact {
-  padding: 18rpx 22rpx;
+  height: 68rpx;
+  line-height: 68rpx;
+  padding: 0 22rpx;
   font-size: 24rpx;
   border-width: 2px;
 }

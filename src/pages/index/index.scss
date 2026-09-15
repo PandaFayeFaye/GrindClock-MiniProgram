@@ -25,6 +25,17 @@
   animation: card-rise 0.4s ease both;
 }
 
+.banner-avatar {
+  flex-shrink: 0;
+  display: flex;
+  background: var(--accent-yellow);
+  border: 2.5px solid var(--border-bold);
+  border-radius: 999px;
+  padding: 6rpx;
+  box-shadow: var(--shadow-bold-sm);
+  box-sizing: border-box;
+}
+
 .banner-avatar-outer {
   position: relative;
   flex-shrink: 0;
