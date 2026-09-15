@@ -27,15 +27,16 @@ export function workersCollection() {
   return db().collection("workers");
 }
 
-// CloudBase's client SDK caps a single .get() at 100 records (defaulting to
-// just 20 if .limit() is never called) -- silently truncating anything past
-// that, sorted or not. Paginate with .skip()/.limit(100) until a page comes
-// back short, so callers actually get every record instead of just however
-// many happened to fall in the first page.
+// CloudBase's *client-side* database SDK hard-caps a single .get() at 20
+// records -- passing a bigger .limit() doesn't help, the platform silently
+// clamps it back down to 20 (the 100 cap only applies to the server-side
+// SDK used inside cloud functions). Paginate with .skip()/.limit(20) until a
+// page comes back short of 20, so callers actually get every record instead
+// of just however many happened to fall in the first 20.
 async function fetchAllPages<T>(query: {
   skip: (n: number) => { limit: (n: number) => { get: () => Promise<{ data: unknown }> } };
 }): Promise<T[]> {
-  const PAGE_SIZE = 100;
+  const PAGE_SIZE = 20;
   const all: T[] = [];
   for (let page = 0; ; page++) {
     const res = await query.skip(page * PAGE_SIZE).limit(PAGE_SIZE).get();

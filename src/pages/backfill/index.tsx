@@ -174,7 +174,7 @@ export default function Backfill() {
       };
       if (editId) {
         const removeCmd = Taro.cloud.database().command.remove();
-        const res = await updateTimeEntry(editId, {
+        await updateTimeEntry(editId, {
           ...base,
           mood: mood ?? (removeCmd as unknown as Mood),
           note: note.trim() ? note.trim() : (removeCmd as unknown as string),
@@ -182,9 +182,8 @@ export default function Backfill() {
           overtimeHours: overtimeHoursValue ?? (removeCmd as unknown as number),
           orderCount: isPerOrder && orderCount ? Number(orderCount) : (removeCmd as unknown as number),
         });
-        console.log("updateTimeEntry result", res);
       } else {
-        const res = await addManualEntry({
+        await addManualEntry({
           ...base,
           ...(mood ? { mood } : {}),
           ...(overtimeHoursValue ? { overtimeHours: overtimeHoursValue } : {}),
@@ -192,26 +191,11 @@ export default function Backfill() {
           ...(note.trim() ? { note: note.trim() } : {}),
           ...(adjustments.length > 0 ? { adjustment: adjustments } : {}),
         });
-        console.log("addManualEntry result", res);
-        // TEMPORARY debug confirmation -- shows the real write result (new
-        // doc id + the exact range that was computed) so we can tell
-        // whether the write actually happened and with what data, instead
-        // of guessing. Remove once the backfill "8/20 not saving" report is
-        // resolved.
-        await Taro.showModal({
-          title: "调试：保存结果",
-          content: `_id: ${(res as { _id?: string })._id ?? "无"}\nstart: ${new Date(range.start).toString()}\nend: ${new Date(range.end).toString()}\nemployerId: ${employer.id}`,
-          showCancel: false,
-        });
       }
       Taro.navigateBack();
     } catch (err) {
       console.error("Failed to save backfill entry", err);
-      await Taro.showModal({
-        title: "保存失败（调试信息）",
-        content: String((err as { errMsg?: string; message?: string })?.errMsg ?? (err as Error)?.message ?? err),
-        showCancel: false,
-      });
+      Taro.showToast({ title: "保存失败，重试一下", icon: "none" });
     } finally {
       setSaving(false);
     }
