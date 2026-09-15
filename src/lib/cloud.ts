@@ -27,13 +27,31 @@ export function workersCollection() {
   return db().collection("workers");
 }
 
+// CloudBase's client SDK caps a single .get() at 100 records (defaulting to
+// just 20 if .limit() is never called) -- silently truncating anything past
+// that, sorted or not. Paginate with .skip()/.limit(100) until a page comes
+// back short, so callers actually get every record instead of just however
+// many happened to fall in the first page.
+async function fetchAllPages<T>(query: {
+  skip: (n: number) => { limit: (n: number) => { get: () => Promise<{ data: unknown }> } };
+}): Promise<T[]> {
+  const PAGE_SIZE = 100;
+  const all: T[] = [];
+  for (let page = 0; ; page++) {
+    const res = await query.skip(page * PAGE_SIZE).limit(PAGE_SIZE).get();
+    const batch = res.data as T[];
+    all.push(...batch);
+    if (batch.length < PAGE_SIZE) break;
+  }
+  return all;
+}
+
 export interface CloudWorker extends Omit<Worker, "id"> {
   _id: string;
 }
 
 export async function fetchWorkers(): Promise<CloudWorker[]> {
-  const res = await workersCollection().get();
-  return res.data as CloudWorker[];
+  return fetchAllPages<CloudWorker>(workersCollection());
 }
 
 export function addWorker(data: Omit<Worker, "id">) {
@@ -52,8 +70,7 @@ export interface CloudTimeEntry extends Omit<TimeEntry, "id"> {
  * available in every preview context -- pages call this and re-fetch after
  * writes rather than holding a live subscription, at least for Phase 2). */
 export async function fetchEmployers(): Promise<CloudEmployer[]> {
-  const res = await employersCollection().get();
-  return res.data as CloudEmployer[];
+  return fetchAllPages<CloudEmployer>(employersCollection());
 }
 
 export async function fetchEmployerById(employerId: string): Promise<CloudEmployer | null> {
@@ -62,8 +79,7 @@ export async function fetchEmployerById(employerId: string): Promise<CloudEmploy
 }
 
 export async function fetchTimeEntries(): Promise<CloudTimeEntry[]> {
-  const res = await timeEntriesCollection().orderBy("startTime", "desc").get();
-  return res.data as CloudTimeEntry[];
+  return fetchAllPages<CloudTimeEntry>(timeEntriesCollection().orderBy("startTime", "desc"));
 }
 
 export async function fetchTimeEntryById(entryId: string): Promise<CloudTimeEntry | null> {
