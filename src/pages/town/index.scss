@@ -75,7 +75,8 @@
   font-weight: 700;
   line-height: 1.6;
   color: #fff;
-  background: rgba(26, 26, 26, 0.8);
+  background: #8B3A2A;
+  border: 1.5px solid var(--border-bold);
   border-radius: 6rpx;
   padding: 0 10rpx;
   z-index: 3;
@@ -96,9 +97,10 @@
   font-size: 20rpx;
   line-height: 1.6;
   font-weight: 700;
+  color: #4A3221;
   white-space: nowrap;
-  background: #fff;
-  border: 1.5px solid var(--border-bold);
+  background: #F3E8CE;
+  border: 1.5px solid #6B4A2E;
   border-radius: 8rpx;
   padding: 0 10rpx;
 }
@@ -346,8 +348,12 @@
 }
 
 .town-hud-btn-icon {
-  width: 40rpx;
-  height: 40rpx;
+  width: 36rpx;
+  height: 36rpx;
+  padding: 6rpx;
+  box-sizing: content-box;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
 }
 
 .town-action-row {
@@ -372,6 +378,16 @@
 
 .town-secondary-btn {
   background: var(--bg-surface);
+  color: var(--border-bold);
+}
+
+// WeChat's native <button disabled> applies its own washed-out text color
+// by default, which combined with our white background made the "申请晋升"
+// button look like an empty box -- pin an explicit, still-legible color.
+.town-secondary-btn[disabled],
+.town-primary-btn[disabled] {
+  color: var(--text-muted);
+  opacity: 1;
 }
 
 .town-empty {
@@ -389,8 +405,8 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
-  background: var(--bg-base);
-  border: 2px solid var(--border-quiet);
+  background: #fff;
+  border: 2px solid var(--border-bold);
   border-radius: var(--radius-quiet);
   padding: 10rpx 20rpx;
   font-size: 22rpx;

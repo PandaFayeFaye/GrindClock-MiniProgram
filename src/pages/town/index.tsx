@@ -26,6 +26,7 @@ import {
   HUD_ICON_TROPHY,
   HUD_ICON_FLAG,
   HUD_ICON_COIN,
+  TOWN_IDLE_SPOT,
   type TownJob,
   type TownProfile,
 } from "../../lib/town";
@@ -189,8 +190,8 @@ export default function TownPage() {
 
   // Companion sits at its work building while a job is running, otherwise
   // idles in the town square center -- tapping it always opens quick actions.
-  const spriteX = workingJob ? workingJob.x : 65;
-  const spriteY = workingJob ? workingJob.y + 6 : 40;
+  const spriteX = workingJob ? workingJob.x : TOWN_IDLE_SPOT.x;
+  const spriteY = workingJob ? workingJob.y + 6 : TOWN_IDLE_SPOT.y;
 
   return (
     <View className="town-page">
@@ -253,8 +254,8 @@ export default function TownPage() {
           <Text className="town-exp">资历 {profile.companionExp}{nextLevel ? `/${nextLevel.expThreshold}` : "满"}</Text>
           <View className="town-hud-spacer" />
           <View className="town-resource" aria-label={`牛马粮 ${profile.oxFeed}`}>
-            <Image className="town-resource-icon" src={HUD_ICON_COIN} mode="aspectFit" aria-label="牛马粮图标" />
-            <Text>{profile.oxFeed}</Text>
+            <Image className="town-resource-icon" src={HUD_ICON_COIN} mode="aspectFit" />
+            <Text>牛马粮 {profile.oxFeed}</Text>
           </View>
           <View
             className={`town-ration-btn${todayClaimed ? " claimed" : ""}`}
