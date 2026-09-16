@@ -17,6 +17,8 @@ import { PunchConfirmModal, type PunchConfirmData } from "../../components/Punch
 import { RetroClockInModal } from "../../components/RetroClockInModal";
 import { ScheduleConfirmModal } from "../../components/ScheduleConfirmModal";
 import { CoachTour, HOME_COACH_STEPS } from "../../components/CoachTour";
+import { fetchTownProfile, unlockTown } from "../../lib/cloudTown";
+import type { TownProfile } from "../../lib/town";
 import type { Employer, PayType, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
@@ -146,10 +148,23 @@ export default function Index() {
     ? Math.min(100, Math.round(((totalHoursAllTime - currentTier.threshold) / (nextTier.threshold - currentTier.threshold)) * 100))
     : 100;
   const workingCount = activeByEmployer.size;
+  const [townProfile, setTownProfile] = useState<TownProfile | null>(null);
+  useDidShow(() => {
+    fetchTownProfile()
+      .then((res) => setTownProfile(res.profile))
+      .catch(() => {});
+  });
+
   const lastFedAt = useMemo(() => {
     const fedTimes = entries.filter((e) => e.status === "confirmed" && e.endTime != null).map((e) => e.endTime as number);
-    return fedTimes.length > 0 ? Math.max(...fedTimes) : null;
-  }, [entries]);
+    const realLastFed = fedTimes.length > 0 ? Math.max(...fedTimes) : null;
+    // Feeding the companion from inside 摸鱼小镇 (spending 牛马粮) resets the
+    // same hunger clock a real punch-out would -- see MOYU_TOWN_SPEC.md 4.1.
+    if (townProfile?.lastFedAt && (realLastFed == null || townProfile.lastFedAt > realLastFed)) {
+      return townProfile.lastFedAt;
+    }
+    return realLastFed;
+  }, [entries, townProfile]);
   const petStageIdx = currentPetStageIndex(totalHoursAllTime);
   const petStage = PET_STAGES[petStageIdx];
   const nextPetStage = PET_STAGES[petStageIdx + 1];
@@ -167,6 +182,29 @@ export default function Index() {
     : petHungry
       ? `TA已经 ${hungryHours} 小时没吃饭了，打卡喂养TA吧～`
       : "TA刚吃饱，很满足地趴着～";
+
+  function handleSecretTap() {
+    if (townProfile?.unlocked) {
+      Taro.navigateTo({ url: "/pages/town/index" });
+      return;
+    }
+    Taro.showModal({
+      title: "发现隐藏副本",
+      content: "是否开启摸鱼小镇？搭子可以在这里独立打工摸鱼～",
+      confirmText: "开启",
+      cancelText: "再想想",
+      success: (res) => {
+        if (res.confirm) {
+          unlockTown()
+            .then((r) => {
+              setTownProfile(r.profile);
+              Taro.navigateTo({ url: "/pages/town/index" });
+            })
+            .catch(() => Taro.showToast({ title: "开启失败，稍后再试", icon: "none" }));
+        }
+      },
+    });
+  }
 
   const [confirming, setConfirming] = useState<{ employer: Employer; entry: TimeEntry } | null>(null);
   const [retroEmployer, setRetroEmployer] = useState<Employer | null>(null);
@@ -464,7 +502,15 @@ export default function Index() {
           progressCaption={petProgressCaption}
           moodCaption={petMoodCaption}
           userMood={companionMood}
+          onSecretTap={handleSecretTap}
         />
+      )}
+
+      {!simpleMode && townProfile?.unlocked && (
+        <View className="town-entry-fab" onClick={() => Taro.navigateTo({ url: "/pages/town/index" })}>
+          <Text className="town-entry-fab-emoji">🏘️</Text>
+          <Text className="town-entry-fab-label">摸鱼小镇</Text>
+        </View>
       )}
 
       {confirming && (

@@ -475,3 +475,39 @@
   font-weight: 700;
   line-height: 1;
 }
+
+// Entry point for the hidden 摸鱼小镇 feature, unlocked via 10 taps on the
+// companion widget (left: 32rpx, bottom: 260rpx) -- sits just above it so
+// the two never overlap.
+.town-entry-fab {
+  position: fixed;
+  left: 32rpx;
+  bottom: 400rpx;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: #fff;
+  border: 2.5px solid var(--border-bold);
+  border-radius: 40rpx;
+  padding: 12rpx 20rpx 12rpx 14rpx;
+  box-shadow: var(--shadow-bold-sm);
+  animation: town-entry-breathe 2.4s ease-in-out infinite;
+}
+
+.town-entry-fab-emoji {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.town-entry-fab-label {
+  font-size: 22rpx;
+  font-weight: 800;
+  color: var(--border-bold);
+  white-space: nowrap;
+}
+
+@keyframes town-entry-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}

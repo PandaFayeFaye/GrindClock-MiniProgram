@@ -13,7 +13,9 @@ export default defineAppConfig({
     'pages/recap/index',
     'pages/ai-capture/index',
     'pages/onboarding/index',
-    'pages/avatar-picker/index'
+    'pages/avatar-picker/index',
+    'pages/town/index',
+    'pages/town-world/index'
   ],
   window: {
     backgroundTextStyle: 'light',

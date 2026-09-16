@@ -28,6 +28,12 @@ const MOOD_LABEL: Record<Mood, string> = {
   heartbeat: "心动",
 };
 
+// 10 taps within this window triggers the hidden 摸鱼小镇 unlock prompt --
+// see MOYU_TOWN_SPEC.md section 2. Reset if the gap between taps is too long
+// so an idle user slowly tapping over minutes never accidentally triggers it.
+const SECRET_TAP_COUNT = 10;
+const SECRET_TAP_WINDOW_MS = 3000;
+
 export function CompanionWidget({
   animal,
   mbti,
@@ -38,6 +44,7 @@ export function CompanionWidget({
   progressCaption,
   moodCaption,
   userMood,
+  onSecretTap,
 }: {
   animal: AnimalKey;
   mbti?: string;
@@ -48,15 +55,28 @@ export function CompanionWidget({
   progressCaption: string;
   moodCaption: string;
   userMood?: Mood;
+  onSecretTap?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [hintSeen, setHintSeenState] = useState(getCompanionHintSeen);
+  const [, setTapTimes] = useState<number[]>([]);
 
   function handleTap() {
     setOpen((o) => !o);
     if (!hintSeen) {
       setHintSeenState(true);
       setCompanionHintSeen(true);
+    }
+    if (onSecretTap) {
+      const now = Date.now();
+      setTapTimes((prev) => {
+        const recent = [...prev.filter((t) => now - t < SECRET_TAP_WINDOW_MS), now];
+        if (recent.length >= SECRET_TAP_COUNT) {
+          onSecretTap();
+          return [];
+        }
+        return recent;
+      });
     }
   }
 
