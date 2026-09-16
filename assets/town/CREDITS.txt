@@ -1,0 +1,9 @@
+摸鱼小镇场景美术来源
+
+背景 (scene_bg.png) 及各店铺贴图 (milkTeaShop.png / convenienceStore.png / ...)
+均由 "Tiny Town" 像素素材包 (Kenney, https://kenney.nl/assets/tiny-town) 的原始
+16x16 瓦片拼合/裁切而成，未做二次绘制。
+
+许可: Creative Commons CC0 1.0 (Public Domain)
+https://creativecommons.org/publicdomain/zero/1.0/
+-- 可免费用于个人、教育、商业项目，无需署名（非强制署名，Kenney 欢迎但不要求注明来源）。

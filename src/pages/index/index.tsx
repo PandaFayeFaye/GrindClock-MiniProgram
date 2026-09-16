@@ -508,7 +508,7 @@ export default function Index() {
 
       {!simpleMode && townProfile?.unlocked && (
         <View className="town-entry-fab" onClick={() => Taro.navigateTo({ url: "/pages/town/index" })}>
-          <Text className="town-entry-fab-emoji">🏘️</Text>
+          <Image className="town-entry-fab-icon" src="/town/farmer.png" mode="aspectFit" />
           <Text className="town-entry-fab-label">摸鱼小镇</Text>
         </View>
       )}

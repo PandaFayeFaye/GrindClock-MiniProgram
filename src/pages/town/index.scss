@@ -63,6 +63,10 @@
 // positioned "buildings" (one per job, coordinates from TOWN_JOBS x/y in
 // src/lib/town.ts) and the player's companion sprite standing at whichever
 // building it's currently working, or idling in the middle of the square.
+// The illustrated town square: a pixel-art scene image (composited from the
+// CC0 "Tiny Town" tileset, see assets/town/CREDITS.txt) with real building
+// sprites (one PNG per job) absolutely positioned on top per TOWN_JOBS x/y,
+// and the player's own companion portrait standing wherever it's working.
 .town-scene {
   position: relative;
   width: 100%;
@@ -71,177 +75,46 @@
   border-radius: var(--radius-bold);
   box-shadow: var(--shadow-bold);
   overflow: hidden;
-  background:
-    linear-gradient(180deg, #FFE8C2 0%, #BFE3FF 38%, #BFE3FF 48%),
-    repeating-linear-gradient(180deg, #9ED17A 0rpx, #9ED17A 48rpx, #93C96E 48rpx, #93C96E 96rpx);
-  background-position: 0 0, 0 48%;
-  background-size: 100% 100%, 100% 52%;
-  background-repeat: no-repeat;
 }
 
-.town-sky {
+.town-scene-bg {
   position: absolute;
   inset: 0;
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
 }
 
-.town-sun {
-  position: absolute;
-  top: 24rpx;
-  right: 40rpx;
-  font-size: 56rpx;
-}
-
-.town-cloud {
-  position: absolute;
-  font-size: 44rpx;
-  opacity: 0.9;
-  animation: town-drift 40s linear infinite;
-}
-
-.cloud-a { top: 40rpx; left: -10%; animation-delay: 0s; }
-.cloud-b { top: 90rpx; left: -10%; animation-delay: -20s; }
-
-@keyframes town-drift {
-  from { transform: translateX(0); }
-  to { transform: translateX(760rpx); }
-}
-
-.town-hill {
-  position: absolute;
-  width: 320rpx;
-  height: 320rpx;
-  border-radius: 50%;
-  background: #B9E39A;
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-.hill-a { left: -80rpx; top: 30%; }
-.hill-b { right: -100rpx; top: 34%; background: #A6D888; }
-
-.town-scenery {
-  position: absolute;
-  pointer-events: none;
-  filter: drop-shadow(2rpx 4rpx 2rpx rgba(0, 0, 0, 0.15));
-}
-
-.town-villager {
-  position: absolute;
-  font-size: 32rpx;
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-.villager-a {
-  bottom: 8%;
-  animation: town-walk 18s linear infinite;
-}
-
-.villager-b {
-  bottom: 4%;
-  animation: town-walk 24s linear infinite reverse;
-}
-
-@keyframes town-walk {
-  0% { left: 0%; }
-  50% { left: 85%; transform: scaleX(1); }
-  50.01% { transform: scaleX(-1); }
-  100% { left: 0%; transform: scaleX(-1); }
-}
-
-// Each building is a little cottage: a ground shadow, a shared dark-wood
-// roof (border-triangle trick), and a colored wall block carrying the job's
-// emoji -- reads as a village of small shops rather than a row of icons.
 .town-building {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 116rpx;
+  width: 108rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.town-building-ground {
-  position: absolute;
-  bottom: -10rpx;
-  width: 96rpx;
-  height: 24rpx;
-  border-radius: 50%;
-  background: rgba(70, 45, 20, 0.28);
-  z-index: 0;
-}
-
-.town-building-roof {
-  width: 0;
-  height: 0;
-  border-left: 62rpx solid transparent;
-  border-right: 62rpx solid transparent;
-  border-bottom: 44rpx solid #7A4B2E;
-  z-index: 2;
-}
-
-.town-building-wall {
+.town-building-img {
   width: 108rpx;
-  height: 68rpx;
-  margin-top: -4rpx;
-  border: 2.5px solid var(--border-bold);
-  border-top: none;
-  border-radius: 0 0 10rpx 10rpx;
-  box-shadow: var(--shadow-bold-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  position: relative;
+  height: 108rpx;
+  filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.35));
 }
 
-.town-building-wall::before {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  width: 26rpx;
-  height: 34rpx;
-  background: #4A3221;
-  border: 1.5px solid var(--border-bold);
-  border-bottom: none;
-  border-radius: 6rpx 6rpx 0 0;
+.town-building.locked .town-building-img {
+  filter: grayscale(1) brightness(0.8);
+  opacity: 0.65;
 }
 
-.town-building-wall::after {
-  content: "";
-  position: absolute;
-  top: 12rpx;
-  left: 14rpx;
-  width: 16rpx;
-  height: 16rpx;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1.5px solid var(--border-bold);
-  border-radius: 3rpx;
-}
-
-.town-building.locked {
-  filter: grayscale(1);
-  opacity: 0.55;
-}
-
-.town-building.active .town-building-wall {
+.town-building.active .town-building-img {
   animation: town-building-pulse 1.6s ease-in-out infinite;
 }
 
 @keyframes town-building-pulse {
-  0%, 100% { box-shadow: var(--shadow-bold-sm); }
-  50% { box-shadow: 0 0 0 6rpx rgba(255, 255, 255, 0.6), var(--shadow-bold-sm); }
-}
-
-.town-building-emoji {
-  font-size: 36rpx;
-  line-height: 1;
-  z-index: 2;
+  0%, 100% { filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.35)); }
+  50% { filter: drop-shadow(0 0 12rpx rgba(255, 217, 61, 0.9)); }
 }
 
 .town-building-label {
-  margin-top: 6rpx;
+  margin-top: -6rpx;
   font-size: 16rpx;
   font-weight: 700;
   white-space: nowrap;
@@ -253,19 +126,20 @@
 }
 
 .town-building-badge {
-  position: absolute;
-  top: -14rpx;
-  right: -6rpx;
-  font-size: 24rpx;
-  background: #fff;
+  margin-top: 2rpx;
+  font-size: 14rpx;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent-coral);
   border: 1.5px solid var(--border-bold);
-  border-radius: 50%;
-  width: 36rpx;
-  height: 36rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 6rpx;
+  padding: 0 8rpx;
   z-index: 3;
+}
+
+.town-building-badge.ready {
+  background: var(--accent-yellow);
+  color: var(--border-bold);
 }
 
 .town-sprite {
@@ -405,6 +279,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+}
+
+.town-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.town-picker-icon {
+  width: 72rpx;
+  height: 72rpx;
 }
 
 .town-picker-title {

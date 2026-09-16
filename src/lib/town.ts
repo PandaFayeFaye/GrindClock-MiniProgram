@@ -120,6 +120,14 @@ export function canPromote(profile: Pick<TownProfile, "companionExp" | "titleInd
   return Object.entries(materials).every(([item, need]) => (profile.inventory[item as TownItemType] || 0) >= (need as number));
 }
 
+// Pixel-art building sprites (composited from the CC0 "Tiny Town" tileset --
+// see assets/town/CREDITS.txt), one per job, plus the scene background.
+export function buildingImageSrc(jobKey: string): string {
+  return `/town/${jobKey}.png`;
+}
+
+export const TOWN_SCENE_BG = "/town/scene_bg.png";
+
 export function isNightNow(now = new Date()): boolean {
   const h = now.getHours();
   return h >= 22 || h < 6;

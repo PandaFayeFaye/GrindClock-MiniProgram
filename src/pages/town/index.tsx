@@ -11,21 +11,8 @@ import {
 } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
 import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
-import { TOWN_JOBS, TOWN_LEVELS, ITEM_LABEL, FEED_COST, canPromote, isNightNow, type TownJob, type TownProfile } from "../../lib/town";
+import { TOWN_JOBS, TOWN_LEVELS, ITEM_LABEL, FEED_COST, canPromote, isNightNow, buildingImageSrc, TOWN_SCENE_BG, type TownJob, type TownProfile } from "../../lib/town";
 import "./index.scss";
-
-// Purely decorative foliage scattered around the buildings for depth --
-// fixed positions chosen to sit in the gaps between TOWN_JOBS coordinates.
-const SCENERY: { emoji: string; x: number; y: number; size: number }[] = [
-  { emoji: "🌳", x: 3, y: 30, size: 52 },
-  { emoji: "🌲", x: 94, y: 28, size: 48 },
-  { emoji: "🌿", x: 28, y: 10, size: 30 },
-  { emoji: "🍄", x: 65, y: 22, size: 28 },
-  { emoji: "🪨", x: 40, y: 74, size: 32 },
-  { emoji: "🌻", x: 90, y: 66, size: 34 },
-  { emoji: "🌳", x: 6, y: 90, size: 46 },
-  { emoji: "🌿", x: 60, y: 6, size: 26 },
-];
 
 function formatDuration(ms: number): string {
   if (ms <= 0) return "已完成";
@@ -172,7 +159,7 @@ export default function TownPage() {
         <Text className="town-title-badge">{level.title}</Text>
         <Text className="town-exp">摸鱼资历 {profile.companionExp}{nextLevel ? ` / ${nextLevel.expThreshold}` : "（已到顶）"}</Text>
         <View className="town-resource-row">
-          <Text className="town-resource">🌾 牛马粮 {profile.oxFeed}</Text>
+          <Text className="town-resource">牛马粮 {profile.oxFeed}</Text>
           <Button className="town-mini-btn" size="mini" disabled={todayClaimed} onClick={handleCheckin}>
             {todayClaimed ? "今日已签到" : "每日领粮"}
           </Button>
@@ -180,20 +167,7 @@ export default function TownPage() {
       </View>
 
       <View className="town-scene">
-        <View className="town-sky">
-          <Text className="town-sun">☀️</Text>
-          <Text className="town-cloud cloud-a">☁️</Text>
-          <Text className="town-cloud cloud-b">☁️</Text>
-        </View>
-        <View className="town-hill hill-a" />
-        <View className="town-hill hill-b" />
-        {SCENERY.map((s, i) => (
-          <Text className="town-scenery" style={{ left: `${s.x}%`, top: `${s.y}%`, fontSize: `${s.size}rpx` }} key={i}>
-            {s.emoji}
-          </Text>
-        ))}
-        <View className="town-villager villager-a">🚶</View>
-        <View className="town-villager villager-b">🐾</View>
+        <Image className="town-scene-bg" src={TOWN_SCENE_BG} mode="aspectFill" />
 
         {TOWN_JOBS.map((job) => {
           const locked = titleIndex < job.unlockLevel;
@@ -205,14 +179,11 @@ export default function TownPage() {
               style={{ left: `${job.x}%`, top: `${job.y}%` }}
               onClick={() => handleBuildingTap(job)}
             >
-              <View className="town-building-ground" />
-              <View className="town-building-roof" />
-              <View className="town-building-wall" style={{ background: job.color }}>
-                <Text className="town-building-emoji">{locked ? "🔒" : job.emoji}</Text>
-              </View>
-              <Text className="town-building-label">{job.name}</Text>
-              {isWorkingHere && !jobReady && <View className="town-building-badge working">⏳</View>}
-              {isWorkingHere && jobReady && <View className="town-building-badge ready">✅</View>}
+              <Image className="town-building-img" src={buildingImageSrc(job.key)} mode="aspectFit" />
+              <Text className="town-building-label">{locked ? "未解锁" : job.name}</Text>
+              {isWorkingHere && (
+                <Text className={`town-building-badge${jobReady ? " ready" : ""}`}>{jobReady ? "完成" : "打工中"}</Text>
+              )}
             </View>
           );
         })}
@@ -263,7 +234,7 @@ export default function TownPage() {
       )}
 
       <Button className="town-world-link" onClick={() => Taro.navigateTo({ url: "/pages/town-world/index" })}>
-        🌍 去世界逛逛
+        去世界逛逛
       </Button>
 
       {showActions && (
@@ -286,7 +257,10 @@ export default function TownPage() {
       {activeJob && (
         <View className="town-picker-mask" onClick={() => setActiveJob(null)}>
           <View className="town-picker-sheet" onClick={(e) => e.stopPropagation()}>
-            <Text className="town-picker-title">{activeJob.emoji} {activeJob.name}</Text>
+            <View className="town-picker-header">
+              <Image className="town-picker-icon" src={buildingImageSrc(activeJob.key)} mode="aspectFit" />
+              <Text className="town-picker-title">{activeJob.name}</Text>
+            </View>
             <Text className="town-empty">
               班车费 {activeJob.feedCost}粮 · {formatDuration(activeJob.durationMs)} · 产出 {ITEM_LABEL[activeJob.item]}x{activeJob.itemAmount}
             </Text>
