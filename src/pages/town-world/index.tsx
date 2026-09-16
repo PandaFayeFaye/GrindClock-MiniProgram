@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
-import { View, Text, Button } from "@tarojs/components";
+import { View, Text, Button, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, type WorldEntry } from "../../lib/cloudTown";
-import { ITEM_LABEL } from "../../lib/town";
+import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY } from "../../lib/town";
 import "./index.scss";
 
 function relativeTime(ts: number | null): string {
@@ -63,40 +63,46 @@ export default function TownWorldPage() {
 
   return (
     <View className="world-page">
-      <Text className="world-hint">所有开启了摸鱼小镇的搭子都在这里，互相可见互相可逛～</Text>
-      {loading ? (
-        <Text className="world-loading">加载中...</Text>
-      ) : list.length === 0 ? (
-        <Text className="world-loading">还没有别人开启摸鱼小镇，快去拉朋友一起玩吧</Text>
-      ) : (
-        list.map((entry) => {
-          const isHigher = myTitleIndex > entry.titleIndex;
-          const isLower = myTitleIndex < entry.titleIndex;
-          return (
-            <View className="world-card" key={entry.openid}>
-              <View className="world-card-head">
-                <Text className="world-nickname">{entry.nickname}</Text>
-                <Text className="world-title-badge">{entry.companionTitle}</Text>
-              </View>
-              <Text className="world-meta">仓库里有 {entry.inventoryCount} 件特产 · {relativeTime(entry.lastActiveAt)}</Text>
-              {isLower ? (
-                <Text className="world-blocked">老板的地盘，先憋着</Text>
-              ) : (
-                <View className="world-actions">
-                  <Button className="world-btn" size="mini" onClick={() => handleSteal(entry)}>
-                    偷一点
-                  </Button>
-                  {isHigher && (
-                    <Button className="world-btn skim" size="mini" onClick={() => handleSkim(entry)}>
-                      画饼摊派
-                    </Button>
-                  )}
+      <Image className="world-bg" src={TOWN_SCENE_BG} mode="aspectFill" aria-label="小镇世界背景" />
+      <View className="world-content">
+        <Text className="world-hint">所有开启了摸鱼小镇的搭子都在这里，互相可见互相可逛～</Text>
+        {loading ? (
+          <Text className="world-loading">加载中...</Text>
+        ) : list.length === 0 ? (
+          <Text className="world-loading">还没有别人开启摸鱼小镇，快去拉朋友一起玩吧</Text>
+        ) : (
+          list.map((entry) => {
+            const isHigher = myTitleIndex > entry.titleIndex;
+            const isLower = myTitleIndex < entry.titleIndex;
+            return (
+              <View className="world-card" key={entry.openid}>
+                <View className="world-card-head">
+                  <Text className="world-nickname">{entry.nickname}</Text>
+                  <View className="world-title-badge" aria-label={`职级 ${entry.companionTitle}`}>
+                    <Image className="world-title-icon" src={HUD_ICON_TROPHY} mode="aspectFit" />
+                    <Text>{entry.companionTitle}</Text>
+                  </View>
                 </View>
-              )}
-            </View>
-          );
-        })
-      )}
+                <Text className="world-meta">仓库里有 {entry.inventoryCount} 件特产 · {relativeTime(entry.lastActiveAt)}</Text>
+                {isLower ? (
+                  <Text className="world-blocked">老板的地盘，先憋着</Text>
+                ) : (
+                  <View className="world-actions">
+                    <Button className="world-btn" size="mini" onClick={() => handleSteal(entry)}>
+                      偷一点
+                    </Button>
+                    {isHigher && (
+                      <Button className="world-btn skim" size="mini" onClick={() => handleSkim(entry)}>
+                        画饼摊派
+                      </Button>
+                    )}
+                  </View>
+                )}
+              </View>
+            );
+          })
+        )}
+      </View>
     </View>
   );
 }

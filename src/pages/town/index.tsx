@@ -25,6 +25,7 @@ import {
   HUD_ICON_CHEST,
   HUD_ICON_TROPHY,
   HUD_ICON_FLAG,
+  HUD_ICON_COIN,
   type TownJob,
   type TownProfile,
 } from "../../lib/town";
@@ -188,8 +189,8 @@ export default function TownPage() {
 
   // Companion sits at its work building while a job is running, otherwise
   // idles in the town square center -- tapping it always opens quick actions.
-  const spriteX = workingJob ? workingJob.x : 50;
-  const spriteY = workingJob ? workingJob.y + 6 : 55;
+  const spriteX = workingJob ? workingJob.x : 65;
+  const spriteY = workingJob ? workingJob.y + 6 : 40;
 
   return (
     <View className="town-page">
@@ -214,6 +215,7 @@ export default function TownPage() {
             className={`town-building${locked ? " locked" : ""}${isWorkingHere ? " active" : ""}`}
             style={{ left: `${job.x}%`, top: `${job.y}%` }}
             onClick={() => handleBuildingTap(job)}
+            aria-label={`${job.name}${locked ? "，未解锁" : isWorkingHere ? (jobReady ? "，打工已完成可收工" : "，打工中") : ""}`}
           >
             <Image
               className="town-building-img"
@@ -233,10 +235,12 @@ export default function TownPage() {
         className={`town-sprite${tapPulse ? " tap-pulse" : ""}`}
         style={{ left: `${spriteX}%`, top: `${spriteY}%` }}
         onClick={handleSpriteTap}
+        aria-label="搬砖搭子，点击查看状态和喂食"
       >
         <View className={`town-sprite-bubble${jobReady ? " ready" : ""}`}>
           <Text>{workingJob ? (jobReady ? "打完卡啦！" : formatDuration(jobRemainingMs)) : "点我看看～"}</Text>
         </View>
+        <View className="town-sprite-glow" />
         <Image className="town-sprite-img" src={characterImageSrc(animal, mbti)} mode="aspectFit" />
         <View className="town-sprite-shadow" />
         {tapPulse && <View className="town-sprite-ripple" />}
@@ -248,29 +252,36 @@ export default function TownPage() {
           <Text className="town-title-badge">{level.title}</Text>
           <Text className="town-exp">资历 {profile.companionExp}{nextLevel ? `/${nextLevel.expThreshold}` : "满"}</Text>
           <View className="town-hud-spacer" />
-          <Text className="town-resource">牛马粮 {profile.oxFeed}</Text>
-          <View className={`town-ration-btn${todayClaimed ? " claimed" : ""}`} onClick={todayClaimed ? undefined : handleCheckin}>
+          <View className="town-resource" aria-label={`牛马粮 ${profile.oxFeed}`}>
+            <Image className="town-resource-icon" src={HUD_ICON_COIN} mode="aspectFit" aria-label="牛马粮图标" />
+            <Text>{profile.oxFeed}</Text>
+          </View>
+          <View
+            className={`town-ration-btn${todayClaimed ? " claimed" : ""}`}
+            onClick={todayClaimed ? undefined : handleCheckin}
+            aria-label={todayClaimed ? "今日已签到领取牛马粮" : "领取每日牛马粮"}
+          >
             <Text>{todayClaimed ? "已签到" : "领粮"}</Text>
           </View>
         </View>
       </View>
 
       <View className="town-hud-bottom">
-        <View className="town-hud-btn" onClick={() => setDrawer("inventory")}>
+        <View className="town-hud-btn" onClick={() => setDrawer("inventory")} aria-label="打开仓库">
           <Image className="town-hud-btn-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
           <View className="town-hud-btn-content">
             <Image className="town-hud-btn-icon" src={HUD_ICON_CHEST} mode="aspectFit" />
             <Text>仓库</Text>
           </View>
         </View>
-        <View className="town-hud-btn" onClick={() => setDrawer("promote")}>
+        <View className="town-hud-btn" onClick={() => setDrawer("promote")} aria-label="查看晋升条件">
           <Image className="town-hud-btn-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
           <View className="town-hud-btn-content">
             <Image className="town-hud-btn-icon" src={HUD_ICON_TROPHY} mode="aspectFit" />
             <Text>晋升</Text>
           </View>
         </View>
-        <View className="town-hud-btn" onClick={() => Taro.navigateTo({ url: "/pages/town-world/index" })}>
+        <View className="town-hud-btn" onClick={() => Taro.navigateTo({ url: "/pages/town-world/index" })} aria-label="前往世界页面">
           <Image className="town-hud-btn-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
           <View className="town-hud-btn-content">
             <Image className="town-hud-btn-icon" src={HUD_ICON_FLAG} mode="aspectFit" />

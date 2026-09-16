@@ -70,14 +70,16 @@
 
 .town-building-lock {
   position: absolute;
-  top: 0;
-  font-size: 14rpx;
+  top: -4rpx;
+  font-size: 18rpx;
   font-weight: 700;
+  line-height: 1.6;
   color: #fff;
-  background: rgba(26, 26, 26, 0.75);
+  background: rgba(26, 26, 26, 0.8);
   border-radius: 6rpx;
-  padding: 0 8rpx;
+  padding: 0 10rpx;
   z-index: 3;
+  white-space: nowrap;
 }
 
 .town-building.active .town-building-img {
@@ -90,25 +92,27 @@
 }
 
 .town-building-label {
-  margin-top: -8rpx;
-  font-size: 16rpx;
+  margin-top: -6rpx;
+  font-size: 20rpx;
+  line-height: 1.6;
   font-weight: 700;
   white-space: nowrap;
   background: #fff;
   border: 1.5px solid var(--border-bold);
   border-radius: 8rpx;
-  padding: 1rpx 8rpx;
+  padding: 0 10rpx;
 }
 
 .town-building-badge {
-  margin-top: 2rpx;
-  font-size: 14rpx;
+  margin-top: 4rpx;
+  font-size: 18rpx;
+  line-height: 1.6;
   font-weight: 700;
   color: #fff;
   background: var(--accent-coral);
   border: 1.5px solid var(--border-bold);
   border-radius: 6rpx;
-  padding: 0 8rpx;
+  padding: 0 10rpx;
 }
 
 .town-building-badge.ready {
@@ -145,6 +149,17 @@
   0% { transform: translate(-50%, -50%) scale(1); }
   40% { transform: translate(-50%, -50%) scale(1.18) translateY(-18rpx); }
   100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+// A soft light disc behind the companion so it reads clearly against any
+// terrain color underneath it (grass, dirt, its own darker fur tones).
+.town-sprite-glow {
+  position: absolute;
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0) 72%);
+  z-index: -1;
 }
 
 .town-sprite-img {
@@ -241,8 +256,11 @@
 
 .town-exp {
   font-size: 20rpx;
+  font-weight: 700;
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  background: rgba(26, 26, 26, 0.35);
+  border-radius: 8rpx;
+  padding: 4rpx 12rpx;
   white-space: nowrap;
 }
 
@@ -251,11 +269,21 @@
 }
 
 .town-resource {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
   font-size: 24rpx;
   font-weight: 700;
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  background: rgba(26, 26, 26, 0.35);
+  border-radius: 8rpx;
+  padding: 4rpx 12rpx;
   white-space: nowrap;
+}
+
+.town-resource-icon {
+  width: 28rpx;
+  height: 28rpx;
 }
 
 .town-ration-btn {
@@ -268,7 +296,7 @@
 }
 
 .town-ration-btn.claimed {
-  background: rgba(255, 255, 255, 0.5);
+  background: #E8E2D4;
   color: var(--text-muted);
 }
 
@@ -382,12 +410,15 @@
   z-index: 50;
 }
 
+// A parchment-toned panel (warm paper color, thick wood-brown border) so
+// drawers read as part of the town's world -- like a quest scroll -- rather
+// than a generic white app bottom-sheet dropped on top of the scene.
 .town-picker-sheet {
   width: 100%;
   max-height: 75vh;
-  background: var(--bg-surface);
+  background: #F3E8CE;
   border-radius: var(--radius-poster) var(--radius-poster) 0 0;
-  border: 2.5px solid var(--border-bold);
+  border: 4rpx solid #6B4A2E;
   border-bottom: none;
   padding: var(--space-4);
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-4));
@@ -395,6 +426,19 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  box-shadow: 0 -8rpx 24rpx rgba(0, 0, 0, 0.25);
+}
+
+.town-picker-sheet::before {
+  content: "";
+  display: block;
+  width: 72rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: #6B4A2E;
+  opacity: 0.4;
+  align-self: center;
+  margin-bottom: -4rpx;
 }
 
 .town-picker-header {
