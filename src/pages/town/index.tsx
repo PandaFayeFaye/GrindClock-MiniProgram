@@ -45,6 +45,7 @@ export default function TownPage() {
   const [activeJob, setActiveJob] = useState<TownJob | null>(null);
   const [drawer, setDrawer] = useState<Drawer>(null);
   const [now, setNow] = useState(Date.now());
+  const [flicker, setFlicker] = useState(false);
 
   const load = useCallback(() => {
     fetchTownProfile()
@@ -61,6 +62,14 @@ export default function TownPage() {
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // The bbq stall's campfire alternates between two flame frames for a
+  // simple flicker -- WXSS can't do sprite-sheet frame animation, so this
+  // just swaps the <Image> src on a timer.
+  useEffect(() => {
+    const timer = setInterval(() => setFlicker((f) => !f), 450);
     return () => clearInterval(timer);
   }, []);
 
@@ -142,6 +151,10 @@ export default function TownPage() {
   }
 
   function handleBuildingTap(job: TownJob) {
+    if (titleIndex < job.unlockLevel) {
+      Taro.showToast({ title: `需要「${TOWN_LEVELS[job.unlockLevel].title}」及以上才能解锁`, icon: "none" });
+      return;
+    }
     if (profile?.currentJob) {
       if (profile.currentJob.jobKey === job.key) {
         if (jobReady) handleCollect();
@@ -191,8 +204,13 @@ export default function TownPage() {
             style={{ left: `${job.x}%`, top: `${job.y}%` }}
             onClick={() => handleBuildingTap(job)}
           >
-            <Image className="town-building-img" src={buildingImageSrc(job.key)} mode="aspectFit" />
-            <Text className="town-building-label">{locked ? "未解锁" : job.name}</Text>
+            <Image
+              className="town-building-img"
+              src={job.key === "bbqStall" && flicker ? "/town/bbqStall-b.png" : buildingImageSrc(job.key)}
+              mode="aspectFit"
+            />
+            {locked && <Text className="town-building-lock">未解锁</Text>}
+            <Text className="town-building-label">{job.name}</Text>
             {isWorkingHere && (
               <Text className={`town-building-badge${jobReady ? " ready" : ""}`}>{jobReady ? "完成" : "打工中"}</Text>
             )}

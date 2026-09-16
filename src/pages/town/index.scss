@@ -65,8 +65,19 @@
 }
 
 .town-building.locked .town-building-img {
-  filter: grayscale(1) brightness(0.75);
-  opacity: 0.65;
+  opacity: 0.9;
+}
+
+.town-building-lock {
+  position: absolute;
+  top: 0;
+  font-size: 14rpx;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(26, 26, 26, 0.75);
+  border-radius: 6rpx;
+  padding: 0 8rpx;
+  z-index: 3;
 }
 
 .town-building.active .town-building-img {
