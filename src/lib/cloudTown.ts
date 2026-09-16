@@ -7,9 +7,20 @@ import type { TownProfile } from "./town";
 // directly, same principle as the money-math rules for the real punch-clock.
 
 async function call<T>(name: string, data?: Record<string, unknown>): Promise<T> {
-  const res = await Taro.cloud.callFunction({ name, data });
+  let res;
+  try {
+    res = await Taro.cloud.callFunction({ name, data });
+  } catch (err) {
+    // Surfaces network/transport-level failures (function not reachable,
+    // callFunction rejected before the server ever ran it) -- these never
+    // show up in the cloud function's own invocation logs, so this is the
+    // only place to see what actually went wrong.
+    console.error(`[town] callFunction "${name}" transport error:`, err);
+    throw err;
+  }
   const result = res.result as { ok: boolean; error?: string } & T;
   if (!result?.ok) {
+    console.error(`[town] callFunction "${name}" returned error:`, result);
     throw new Error(result?.error || `${name}_failed`);
   }
   return result;

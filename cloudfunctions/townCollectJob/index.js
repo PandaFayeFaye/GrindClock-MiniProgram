@@ -4,6 +4,7 @@
 const cloud = require("wx-server-sdk");
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
 const TOWN_JOBS = [
   { key: "milkTeaShop", expGain: 5, item: "milkTea", itemAmount: 1 },
@@ -41,7 +42,7 @@ exports.main = async () => {
   const companionExp = (profile.companionExp || 0) + job.expGain;
 
   await ref.update({
-    data: { inventory, companionExp, currentJob: null, lastActiveAt: now },
+    data: { inventory, companionExp, currentJob: _.set(null), lastActiveAt: now },
   });
   await db.collection("townJobLog").add({
     data: {

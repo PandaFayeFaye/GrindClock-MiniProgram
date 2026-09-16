@@ -4,6 +4,7 @@
 const cloud = require("wx-server-sdk");
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
 const TOWN_JOBS = [
   { key: "milkTeaShop", feedCost: 5, durationMs: 1 * 3_600_000, unlockLevel: 0 },
@@ -42,7 +43,10 @@ exports.main = async (event) => {
 
   const currentJob = { jobKey: job.key, startedAt: now, endsAt: now + job.durationMs };
   const newOxFeed = profile.oxFeed - job.feedCost;
-  await ref.update({ data: { oxFeed: newOxFeed, currentJob, lastActiveAt: now } });
+  // currentJob was `null` (a non-object), so a plain update() tries to merge
+  // the new keys INTO null and CloudBase rejects that -- _.set() forces a
+  // full-field overwrite instead of a merge.
+  await ref.update({ data: { oxFeed: newOxFeed, currentJob: _.set(currentJob), lastActiveAt: now } });
 
   return { ok: true, profile: { ...profile, oxFeed: newOxFeed, currentJob } };
 };
