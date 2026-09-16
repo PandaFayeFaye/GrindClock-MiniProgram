@@ -116,43 +116,71 @@
   color: var(--border-bold);
 }
 
+// The companion is the one character actually living in this scene -- sized
+// up well past a UI icon, always carrying a speech bubble (not just while
+// working), with a tap ripple so poking it gives visible feedback.
 .town-sprite {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 88rpx;
-  height: 88rpx;
+  width: 136rpx;
+  height: 136rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 5;
+  z-index: 6;
   animation: town-sprite-bob 2.2s ease-in-out infinite;
   transition: left 0.6s ease, top 0.6s ease;
 }
 
+.town-sprite.tap-pulse {
+  animation: town-sprite-bob 2.2s ease-in-out infinite, town-sprite-jump 0.5s ease-out;
+}
+
 @keyframes town-sprite-bob {
   0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-  50% { transform: translate(-50%, -50%) translateY(-8rpx); }
+  50% { transform: translate(-50%, -50%) translateY(-10rpx); }
+}
+
+@keyframes town-sprite-jump {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  40% { transform: translate(-50%, -50%) scale(1.18) translateY(-18rpx); }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
 .town-sprite-img {
-  width: 88rpx;
-  height: 88rpx;
-  filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.25));
+  width: 136rpx;
+  height: 136rpx;
+  filter: drop-shadow(0 8rpx 5rpx rgba(0, 0, 0, 0.3));
 }
 
 .town-sprite-shadow {
   position: absolute;
-  bottom: -6rpx;
-  width: 60rpx;
-  height: 16rpx;
+  bottom: -4rpx;
+  width: 88rpx;
+  height: 22rpx;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.25);
   z-index: -1;
+}
+
+.town-sprite-ripple {
+  position: absolute;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 217, 61, 0.9);
+  animation: town-ripple 0.5s ease-out;
+  pointer-events: none;
+}
+
+@keyframes town-ripple {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(3.2); opacity: 0; }
 }
 
 .town-sprite-bubble {
   position: absolute;
-  top: -52rpx;
+  top: -60rpx;
   background: #fff;
   border: 2px solid var(--border-bold);
   border-radius: var(--radius-pill);
@@ -166,21 +194,38 @@
   background: var(--accent-yellow);
 }
 
-// Floating HUD bars, overlaid directly on the scene.
+// Floating HUD bars: a wood-plank panel (same tile art as the scene) rather
+// than a plain white app-style pill, so the chrome reads as part of the
+// town instead of a UI layer bolted on top of it.
 .town-hud-top {
   position: absolute;
   top: var(--space-3);
   left: var(--space-3);
   right: var(--space-3);
   z-index: 10;
+  height: 88rpx;
+  border-radius: var(--radius-quiet);
+  overflow: hidden;
+  border: 2.5px solid var(--border-bold);
+  box-shadow: var(--shadow-bold-sm);
+}
+
+.town-hud-wood {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.town-hud-top-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  background: rgba(255, 255, 255, 0.88);
-  border: 2.5px solid var(--border-bold);
-  border-radius: var(--radius-pill);
-  padding: 8rpx 12rpx 8rpx 20rpx;
-  box-shadow: var(--shadow-bold-sm);
+  padding: 0 var(--space-3);
+  box-sizing: border-box;
 }
 
 .town-title-badge {
@@ -196,7 +241,8 @@
 
 .town-exp {
   font-size: 20rpx;
-  color: var(--text-muted);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   white-space: nowrap;
 }
 
@@ -207,12 +253,23 @@
 .town-resource {
   font-size: 24rpx;
   font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   white-space: nowrap;
 }
 
-.town-mini-btn {
+.town-ration-btn {
+  background: var(--accent-yellow);
+  border: 2px solid var(--border-bold);
+  border-radius: var(--radius-quiet);
+  padding: 6rpx 18rpx;
   font-size: 20rpx;
-  margin: 0;
+  font-weight: 700;
+}
+
+.town-ration-btn.claimed {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
 }
 
 .town-hud-bottom {
@@ -225,16 +282,44 @@
   gap: var(--space-2);
 }
 
+// CSS background-image on a local path renders fine in the simulator but is
+// unreliable on real devices (see feedback_grindclock_platform_gotchas) --
+// use a real <Image> layer behind the content instead, same as .town-hud-top.
 .town-hud-btn {
+  position: relative;
   flex: 1;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.92);
+  height: 96rpx;
   border: 2.5px solid var(--border-bold);
   border-radius: var(--radius-quiet);
   box-shadow: var(--shadow-bold-sm);
-  padding: 16rpx 0;
-  font-size: 26rpx;
+  overflow: hidden;
+}
+
+.town-hud-btn-wood {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.town-hud-btn-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rpx;
+  font-size: 22rpx;
   font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.town-hud-btn-icon {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .town-action-row {

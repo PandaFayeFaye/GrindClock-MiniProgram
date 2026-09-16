@@ -477,32 +477,31 @@
 }
 
 // Entry point for the hidden 摸鱼小镇 feature, unlocked via 10 taps on the
-// companion widget. Companion sits bottom-left (left: 32rpx, bottom: 260rpx,
-// ~184rpx tall) and the "+" fab sits bottom-right (right: 48rpx, bottom:
-// 220rpx) -- top-right is the only corner clear of both.
+// companion widget. Planted right next to the companion (left: 32rpx,
+// bottom: 260rpx, ~184rpx square) instead of a stray top-right icon that
+// used to sit over the tier progress bar -- a small wooden signpost
+// "growing" out of the ground beside the companion reads as pointing at
+// something hidden nearby, rather than a generic app button.
 .town-entry-fab {
   position: fixed;
-  right: 24rpx;
-  top: 24rpx;
-  z-index: 20;
+  left: 228rpx;
+  bottom: 268rpx;
+  z-index: 15;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8rpx;
-  background: #fff;
-  border: 2.5px solid var(--border-bold);
-  border-radius: 40rpx;
-  padding: 12rpx 20rpx 12rpx 14rpx;
-  box-shadow: var(--shadow-bold-sm);
   animation: town-entry-breathe 2.4s ease-in-out infinite;
 }
 
-.town-entry-fab-icon {
-  width: 44rpx;
-  height: 44rpx;
+.town-entry-fab-sign {
+  width: 72rpx;
+  height: 72rpx;
+  filter: drop-shadow(0 4rpx 3rpx rgba(0, 0, 0, 0.3));
 }
 
 .town-entry-fab-label {
-  font-size: 22rpx;
+  margin-top: -6rpx;
+  font-size: 18rpx;
   font-weight: 800;
   color: var(--border-bold);
   white-space: nowrap;

@@ -21,6 +21,10 @@ import {
   buildingImageSrc,
   TOWN_SCENE_BG,
   TOWN_DECO,
+  HUD_WOOD_STRIP,
+  HUD_ICON_CHEST,
+  HUD_ICON_TROPHY,
+  HUD_ICON_FLAG,
   type TownJob,
   type TownProfile,
 } from "../../lib/town";
@@ -46,6 +50,7 @@ export default function TownPage() {
   const [drawer, setDrawer] = useState<Drawer>(null);
   const [now, setNow] = useState(Date.now());
   const [flicker, setFlicker] = useState(false);
+  const [tapPulse, setTapPulse] = useState(false);
 
   const load = useCallback(() => {
     fetchTownProfile()
@@ -150,6 +155,12 @@ export default function TownPage() {
     }
   }
 
+  function handleSpriteTap() {
+    setTapPulse(true);
+    setTimeout(() => setTapPulse(false), 500);
+    setDrawer("actions");
+  }
+
   function handleBuildingTap(job: TownJob) {
     if (titleIndex < job.unlockLevel) {
       Taro.showToast({ title: `需要「${TOWN_LEVELS[job.unlockLevel].title}」及以上才能解锁`, icon: "none" });
@@ -218,35 +229,53 @@ export default function TownPage() {
         );
       })}
 
-      <View className="town-sprite" style={{ left: `${spriteX}%`, top: `${spriteY}%` }} onClick={() => setDrawer("actions")}>
-        {workingJob && (
-          <View className={`town-sprite-bubble${jobReady ? " ready" : ""}`}>
-            <Text>{jobReady ? "打完卡啦！" : formatDuration(jobRemainingMs)}</Text>
-          </View>
-        )}
+      <View
+        className={`town-sprite${tapPulse ? " tap-pulse" : ""}`}
+        style={{ left: `${spriteX}%`, top: `${spriteY}%` }}
+        onClick={handleSpriteTap}
+      >
+        <View className={`town-sprite-bubble${jobReady ? " ready" : ""}`}>
+          <Text>{workingJob ? (jobReady ? "打完卡啦！" : formatDuration(jobRemainingMs)) : "点我看看～"}</Text>
+        </View>
         <Image className="town-sprite-img" src={characterImageSrc(animal, mbti)} mode="aspectFit" />
         <View className="town-sprite-shadow" />
+        {tapPulse && <View className="town-sprite-ripple" />}
       </View>
 
       <View className="town-hud-top">
-        <Text className="town-title-badge">{level.title}</Text>
-        <Text className="town-exp">资历 {profile.companionExp}{nextLevel ? `/${nextLevel.expThreshold}` : "满"}</Text>
-        <View className="town-hud-spacer" />
-        <Text className="town-resource">牛马粮 {profile.oxFeed}</Text>
-        <Button className="town-mini-btn" size="mini" disabled={todayClaimed} onClick={handleCheckin}>
-          {todayClaimed ? "已签到" : "领粮"}
-        </Button>
+        <Image className="town-hud-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
+        <View className="town-hud-top-content">
+          <Text className="town-title-badge">{level.title}</Text>
+          <Text className="town-exp">资历 {profile.companionExp}{nextLevel ? `/${nextLevel.expThreshold}` : "满"}</Text>
+          <View className="town-hud-spacer" />
+          <Text className="town-resource">牛马粮 {profile.oxFeed}</Text>
+          <View className={`town-ration-btn${todayClaimed ? " claimed" : ""}`} onClick={todayClaimed ? undefined : handleCheckin}>
+            <Text>{todayClaimed ? "已签到" : "领粮"}</Text>
+          </View>
+        </View>
       </View>
 
       <View className="town-hud-bottom">
         <View className="town-hud-btn" onClick={() => setDrawer("inventory")}>
-          <Text>仓库</Text>
+          <Image className="town-hud-btn-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
+          <View className="town-hud-btn-content">
+            <Image className="town-hud-btn-icon" src={HUD_ICON_CHEST} mode="aspectFit" />
+            <Text>仓库</Text>
+          </View>
         </View>
         <View className="town-hud-btn" onClick={() => setDrawer("promote")}>
-          <Text>晋升</Text>
+          <Image className="town-hud-btn-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
+          <View className="town-hud-btn-content">
+            <Image className="town-hud-btn-icon" src={HUD_ICON_TROPHY} mode="aspectFit" />
+            <Text>晋升</Text>
+          </View>
         </View>
         <View className="town-hud-btn" onClick={() => Taro.navigateTo({ url: "/pages/town-world/index" })}>
-          <Text>世界</Text>
+          <Image className="town-hud-btn-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
+          <View className="town-hud-btn-content">
+            <Image className="town-hud-btn-icon" src={HUD_ICON_FLAG} mode="aspectFit" />
+            <Text>世界</Text>
+          </View>
         </View>
       </View>
 

@@ -128,6 +128,15 @@ export function buildingImageSrc(jobKey: string): string {
 
 export const TOWN_SCENE_BG = "/town/scene_bg.png";
 
+// HUD chrome uses the same tile-kit art as the scene (a wood-plank panel
+// background + item icons) instead of plain white app-style pills, so the
+// resource bar and drawer buttons read as part of the town, not a UI
+// layer bolted on top of it.
+export const HUD_WOOD_STRIP = "/town/hud/wood_strip.png";
+export const HUD_ICON_CHEST = "/town/hud/chest.png";
+export const HUD_ICON_TROPHY = "/town/hud/trophy.png";
+export const HUD_ICON_FLAG = "/town/hud/flag.png";
+
 // Standalone foliage sprites (from the same CC0 tileset) scattered around
 // the buildings and animated with a CSS sway -- kept as separate images
 // (rather than baked into the background) specifically so each one can move
