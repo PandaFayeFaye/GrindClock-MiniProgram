@@ -14,6 +14,19 @@ import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
 import { TOWN_JOBS, TOWN_LEVELS, ITEM_LABEL, FEED_COST, canPromote, isNightNow, type TownJob, type TownProfile } from "../../lib/town";
 import "./index.scss";
 
+// Purely decorative foliage scattered around the buildings for depth --
+// fixed positions chosen to sit in the gaps between TOWN_JOBS coordinates.
+const SCENERY: { emoji: string; x: number; y: number; size: number }[] = [
+  { emoji: "🌳", x: 3, y: 30, size: 52 },
+  { emoji: "🌲", x: 94, y: 28, size: 48 },
+  { emoji: "🌿", x: 28, y: 10, size: 30 },
+  { emoji: "🍄", x: 65, y: 22, size: 28 },
+  { emoji: "🪨", x: 40, y: 74, size: 32 },
+  { emoji: "🌻", x: 90, y: 66, size: 34 },
+  { emoji: "🌳", x: 6, y: 90, size: 46 },
+  { emoji: "🌿", x: 60, y: 6, size: 26 },
+];
+
 function formatDuration(ms: number): string {
   if (ms <= 0) return "已完成";
   const totalMin = Math.ceil(ms / 60000);
@@ -172,6 +185,13 @@ export default function TownPage() {
           <Text className="town-cloud cloud-a">☁️</Text>
           <Text className="town-cloud cloud-b">☁️</Text>
         </View>
+        <View className="town-hill hill-a" />
+        <View className="town-hill hill-b" />
+        {SCENERY.map((s, i) => (
+          <Text className="town-scenery" style={{ left: `${s.x}%`, top: `${s.y}%`, fontSize: `${s.size}rpx` }} key={i}>
+            {s.emoji}
+          </Text>
+        ))}
         <View className="town-villager villager-a">🚶</View>
         <View className="town-villager villager-b">🐾</View>
 
@@ -182,10 +202,14 @@ export default function TownPage() {
             <View
               key={job.key}
               className={`town-building${locked ? " locked" : ""}${isWorkingHere ? " active" : ""}`}
-              style={{ left: `${job.x}%`, top: `${job.y}%`, background: job.color }}
+              style={{ left: `${job.x}%`, top: `${job.y}%` }}
               onClick={() => handleBuildingTap(job)}
             >
-              <Text className="town-building-emoji">{locked ? "🔒" : job.emoji}</Text>
+              <View className="town-building-ground" />
+              <View className="town-building-roof" />
+              <View className="town-building-wall" style={{ background: job.color }}>
+                <Text className="town-building-emoji">{locked ? "🔒" : job.emoji}</Text>
+              </View>
               <Text className="town-building-label">{job.name}</Text>
               {isWorkingHere && !jobReady && <View className="town-building-badge working">⏳</View>}
               {isWorkingHere && jobReady && <View className="town-building-badge ready">✅</View>}
@@ -204,6 +228,7 @@ export default function TownPage() {
             </View>
           )}
           <Image className="town-sprite-img" src={characterImageSrc(animal, mbti)} mode="aspectFit" />
+          <View className="town-sprite-shadow" />
         </View>
       </View>
 

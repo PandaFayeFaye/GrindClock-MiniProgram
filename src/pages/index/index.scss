@@ -477,12 +477,13 @@
 }
 
 // Entry point for the hidden 摸鱼小镇 feature, unlocked via 10 taps on the
-// companion widget (left: 32rpx, bottom: 260rpx) -- sits just above it so
-// the two never overlap.
+// companion widget. Companion sits bottom-left (left: 32rpx, bottom: 260rpx,
+// ~184rpx tall) and the "+" fab sits bottom-right (right: 48rpx, bottom:
+// 220rpx) -- top-right is the only corner clear of both.
 .town-entry-fab {
   position: fixed;
-  left: 32rpx;
-  bottom: 400rpx;
+  right: 24rpx;
+  top: 24rpx;
   z-index: 20;
   display: flex;
   align-items: center;
