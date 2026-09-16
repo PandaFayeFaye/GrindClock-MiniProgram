@@ -128,6 +128,23 @@ export function buildingImageSrc(jobKey: string): string {
 
 export const TOWN_SCENE_BG = "/town/scene_bg.png";
 
+// Standalone foliage sprites (from the same CC0 tileset) scattered around
+// the buildings and animated with a CSS sway -- kept as separate images
+// (rather than baked into the background) specifically so each one can move
+// independently instead of the scene being one flat static picture.
+export const TOWN_DECO: { src: string; x: number; y: number; size: number; delay: number }[] = [
+  { src: "tree1", x: 5, y: 15, size: 64 },
+  { src: "tree2", x: 92, y: 12, size: 60 },
+  { src: "tree3", x: 4, y: 55, size: 58 },
+  { src: "tree4", x: 94, y: 50, size: 56 },
+  { src: "tree5", x: 8, y: 88, size: 62 },
+  { src: "tree6", x: 90, y: 90, size: 58 },
+  { src: "tree7", x: 30, y: 5, size: 44 },
+  { src: "tree8", x: 70, y: 4, size: 44 },
+  { src: "mushroom", x: 18, y: 60, size: 30 },
+  { src: "mushroom", x: 85, y: 30, size: 26 },
+].map((d, i) => ({ ...d, src: `/town/deco/${d.src}.png`, delay: (i % 4) * 0.6 }));
+
 export function isNightNow(now = new Date()): boolean {
   const h = now.getHours();
   return h >= 22 || h < 6;

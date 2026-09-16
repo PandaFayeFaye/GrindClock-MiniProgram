@@ -1,11 +1,13 @@
+// Immersive full-screen town scene: the pixel-art background (composited
+// from the CC0 "Tiny Town" tileset, see assets/town/CREDITS.txt) fills the
+// entire page below the native nav bar. Resources/level/inventory/promotion
+// are all overlaid as floating HUD elements on top of the scene instead of
+// stacked list sections, so the scene itself is the whole screen.
 .town-page {
-  min-height: 100vh;
-  padding: var(--space-4);
-  padding-bottom: var(--space-10);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #79b866;
 }
 
 .town-loading {
@@ -14,93 +16,56 @@
   color: var(--text-muted);
 }
 
-.town-status-card,
-.town-companion-block,
-.town-section {
-  background: var(--bg-surface);
-  border: 2.5px solid var(--border-bold);
-  border-radius: var(--radius-bold);
-  box-shadow: var(--shadow-bold-sm);
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.town-title-badge {
-  align-self: flex-start;
-  background: var(--accent-yellow);
-  border: 2px solid var(--border-bold);
-  border-radius: var(--radius-pill);
-  padding: 6rpx 24rpx;
-  font-family: var(--font-display);
-  font-size: 28rpx;
-  font-weight: 700;
-}
-
-.town-exp {
-  font-size: 24rpx;
-  color: var(--text-muted);
-}
-
-.town-resource-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: var(--space-1);
-}
-
-.town-resource {
-  font-size: 28rpx;
-  font-weight: 700;
-}
-
-.town-mini-btn {
-  font-size: 22rpx;
-}
-
-// The illustrated town square: a fixed-height scene with absolutely
-// positioned "buildings" (one per job, coordinates from TOWN_JOBS x/y in
-// src/lib/town.ts) and the player's companion sprite standing at whichever
-// building it's currently working, or idling in the middle of the square.
-// The illustrated town square: a pixel-art scene image (composited from the
-// CC0 "Tiny Town" tileset, see assets/town/CREDITS.txt) with real building
-// sprites (one PNG per job) absolutely positioned on top per TOWN_JOBS x/y,
-// and the player's own companion portrait standing wherever it's working.
-.town-scene {
-  position: relative;
-  width: 100%;
-  height: 760rpx;
-  border: 2.5px solid var(--border-bold);
-  border-radius: var(--radius-bold);
-  box-shadow: var(--shadow-bold);
-  overflow: hidden;
-}
-
 .town-scene-bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  z-index: 0;
+}
+
+// Foliage sprites are separate images (not baked into the background) so
+// each can sway independently -- three staggered variants for a less
+// mechanical, less uniform motion across the scene.
+.town-deco {
+  position: absolute;
+  transform-origin: 50% 90%;
+  z-index: 1;
+  filter: drop-shadow(2rpx 4rpx 2rpx rgba(0, 0, 0, 0.2));
+}
+
+.sway-0 { animation: town-sway-a 3.4s ease-in-out infinite; }
+.sway-1 { animation: town-sway-b 4.1s ease-in-out infinite; }
+.sway-2 { animation: town-sway-a 3.8s ease-in-out infinite reverse; }
+
+@keyframes town-sway-a {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes town-sway-b {
+  0%, 100% { transform: rotate(2deg) scale(1); }
+  50% { transform: rotate(-2deg) scale(1.03); }
 }
 
 .town-building {
   position: absolute;
-  transform: translate(-50%, -50%);
-  width: 108rpx;
+  transform: translate(-50%, -100%);
+  width: 96rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 2;
 }
 
 .town-building-img {
-  width: 108rpx;
-  height: 108rpx;
-  filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.35));
+  width: 96rpx;
+  height: 168rpx;
+  filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.4));
 }
 
 .town-building.locked .town-building-img {
-  filter: grayscale(1) brightness(0.8);
+  filter: grayscale(1) brightness(0.75);
   opacity: 0.65;
 }
 
@@ -109,12 +74,12 @@
 }
 
 @keyframes town-building-pulse {
-  0%, 100% { filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.35)); }
-  50% { filter: drop-shadow(0 0 12rpx rgba(255, 217, 61, 0.9)); }
+  0%, 100% { filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.4)); }
+  50% { filter: drop-shadow(0 0 14rpx rgba(255, 217, 61, 0.95)); }
 }
 
 .town-building-label {
-  margin-top: -6rpx;
+  margin-top: -8rpx;
   font-size: 16rpx;
   font-weight: 700;
   white-space: nowrap;
@@ -122,7 +87,6 @@
   border: 1.5px solid var(--border-bold);
   border-radius: 8rpx;
   padding: 1rpx 8rpx;
-  z-index: 2;
 }
 
 .town-building-badge {
@@ -134,7 +98,6 @@
   border: 1.5px solid var(--border-bold);
   border-radius: 6rpx;
   padding: 0 8rpx;
-  z-index: 3;
 }
 
 .town-building-badge.ready {
@@ -164,7 +127,6 @@
   width: 88rpx;
   height: 88rpx;
   filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.25));
-  z-index: 1;
 }
 
 .town-sprite-shadow {
@@ -174,7 +136,7 @@
   height: 16rpx;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.22);
-  z-index: 0;
+  z-index: -1;
 }
 
 .town-sprite-bubble {
@@ -191,6 +153,77 @@
 
 .town-sprite-bubble.ready {
   background: var(--accent-yellow);
+}
+
+// Floating HUD bars, overlaid directly on the scene.
+.town-hud-top {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  right: var(--space-3);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(255, 255, 255, 0.88);
+  border: 2.5px solid var(--border-bold);
+  border-radius: var(--radius-pill);
+  padding: 8rpx 12rpx 8rpx 20rpx;
+  box-shadow: var(--shadow-bold-sm);
+}
+
+.town-title-badge {
+  background: var(--accent-yellow);
+  border: 2px solid var(--border-bold);
+  border-radius: var(--radius-pill);
+  padding: 4rpx 18rpx;
+  font-family: var(--font-display);
+  font-size: 24rpx;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.town-exp {
+  font-size: 20rpx;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.town-hud-spacer {
+  flex: 1;
+}
+
+.town-resource {
+  font-size: 24rpx;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.town-mini-btn {
+  font-size: 20rpx;
+  margin: 0;
+}
+
+.town-hud-bottom {
+  position: absolute;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-3));
+  z-index: 10;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.town-hud-btn {
+  flex: 1;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2.5px solid var(--border-bold);
+  border-radius: var(--radius-quiet);
+  box-shadow: var(--shadow-bold-sm);
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  font-weight: 700;
 }
 
 .town-action-row {
@@ -215,12 +248,6 @@
 
 .town-secondary-btn {
   background: var(--bg-surface);
-}
-
-.town-section-title {
-  font-family: var(--font-display);
-  font-size: 28rpx;
-  font-weight: 700;
 }
 
 .town-empty {
@@ -250,14 +277,6 @@
   color: var(--accent-coral);
 }
 
-.town-world-link {
-  border-radius: var(--radius-quiet);
-  border: 2.5px solid var(--border-bold);
-  background: var(--accent-skyblue);
-  font-size: 28rpx;
-  font-weight: 700;
-}
-
 .town-picker-mask {
   position: fixed;
   inset: 0;
@@ -275,6 +294,7 @@
   border: 2.5px solid var(--border-bold);
   border-bottom: none;
   padding: var(--space-4);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-4));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -289,8 +309,8 @@
 }
 
 .town-picker-icon {
-  width: 72rpx;
-  height: 72rpx;
+  width: 60rpx;
+  height: 100rpx;
 }
 
 .town-picker-title {
@@ -298,36 +318,6 @@
   font-size: 30rpx;
   font-weight: 700;
   text-align: center;
-}
-
-.town-picker-list {
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.town-job-card {
-  border: 2px solid var(--border-quiet);
-  border-radius: var(--radius-quiet);
-  padding: var(--space-2) var(--space-3);
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-}
-
-.town-job-card.disabled {
-  opacity: 0.5;
-}
-
-.town-job-name {
-  font-size: 26rpx;
-  font-weight: 700;
-}
-
-.town-job-meta {
-  font-size: 20rpx;
-  color: var(--text-muted);
 }
 
 .town-job-lock {

@@ -11,7 +11,19 @@ import {
 } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
 import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
-import { TOWN_JOBS, TOWN_LEVELS, ITEM_LABEL, FEED_COST, canPromote, isNightNow, buildingImageSrc, TOWN_SCENE_BG, type TownJob, type TownProfile } from "../../lib/town";
+import {
+  TOWN_JOBS,
+  TOWN_LEVELS,
+  ITEM_LABEL,
+  FEED_COST,
+  canPromote,
+  isNightNow,
+  buildingImageSrc,
+  TOWN_SCENE_BG,
+  TOWN_DECO,
+  type TownJob,
+  type TownProfile,
+} from "../../lib/town";
 import "./index.scss";
 
 function formatDuration(ms: number): string {
@@ -23,13 +35,15 @@ function formatDuration(ms: number): string {
   return `${m}分钟`;
 }
 
+type Drawer = "inventory" | "promote" | "actions" | null;
+
 export default function TownPage() {
   const [profile, setProfile] = useState<TownProfile | null>(null);
   const [animal, setAnimal] = useState<AnimalKey>("cat");
   const [mbti, setMbti] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [activeJob, setActiveJob] = useState<TownJob | null>(null);
-  const [showActions, setShowActions] = useState(false);
+  const [drawer, setDrawer] = useState<Drawer>(null);
   const [now, setNow] = useState(Date.now());
 
   const load = useCallback(() => {
@@ -80,7 +94,7 @@ export default function TownPage() {
   }
 
   async function handleFeed() {
-    setShowActions(false);
+    setDrawer(null);
     try {
       const res = await feedCompanionInTown();
       setProfile(res.profile);
@@ -151,105 +165,125 @@ export default function TownPage() {
   // Companion sits at its work building while a job is running, otherwise
   // idles in the town square center -- tapping it always opens quick actions.
   const spriteX = workingJob ? workingJob.x : 50;
-  const spriteY = workingJob ? workingJob.y + 10 : 52;
+  const spriteY = workingJob ? workingJob.y + 6 : 55;
 
   return (
     <View className="town-page">
-      <View className="town-status-card">
-        <Text className="town-title-badge">{level.title}</Text>
-        <Text className="town-exp">摸鱼资历 {profile.companionExp}{nextLevel ? ` / ${nextLevel.expThreshold}` : "（已到顶）"}</Text>
-        <View className="town-resource-row">
-          <Text className="town-resource">牛马粮 {profile.oxFeed}</Text>
-          <Button className="town-mini-btn" size="mini" disabled={todayClaimed} onClick={handleCheckin}>
-            {todayClaimed ? "今日已签到" : "每日领粮"}
-          </Button>
-        </View>
-      </View>
+      <Image className="town-scene-bg" src={TOWN_SCENE_BG} mode="aspectFill" />
 
-      <View className="town-scene">
-        <Image className="town-scene-bg" src={TOWN_SCENE_BG} mode="aspectFill" />
+      {TOWN_DECO.map((d, i) => (
+        <Image
+          key={i}
+          className={`town-deco sway-${i % 3}`}
+          style={{ left: `${d.x}%`, top: `${d.y}%`, width: `${d.size}rpx`, height: `${d.size}rpx`, animationDelay: `${d.delay}s` }}
+          src={d.src}
+          mode="aspectFit"
+        />
+      ))}
 
-        {TOWN_JOBS.map((job) => {
-          const locked = titleIndex < job.unlockLevel;
-          const isWorkingHere = profile.currentJob?.jobKey === job.key;
-          return (
-            <View
-              key={job.key}
-              className={`town-building${locked ? " locked" : ""}${isWorkingHere ? " active" : ""}`}
-              style={{ left: `${job.x}%`, top: `${job.y}%` }}
-              onClick={() => handleBuildingTap(job)}
-            >
-              <Image className="town-building-img" src={buildingImageSrc(job.key)} mode="aspectFit" />
-              <Text className="town-building-label">{locked ? "未解锁" : job.name}</Text>
-              {isWorkingHere && (
-                <Text className={`town-building-badge${jobReady ? " ready" : ""}`}>{jobReady ? "完成" : "打工中"}</Text>
-              )}
-            </View>
-          );
-        })}
+      {TOWN_JOBS.map((job) => {
+        const locked = titleIndex < job.unlockLevel;
+        const isWorkingHere = profile.currentJob?.jobKey === job.key;
+        return (
+          <View
+            key={job.key}
+            className={`town-building${locked ? " locked" : ""}${isWorkingHere ? " active" : ""}`}
+            style={{ left: `${job.x}%`, top: `${job.y}%` }}
+            onClick={() => handleBuildingTap(job)}
+          >
+            <Image className="town-building-img" src={buildingImageSrc(job.key)} mode="aspectFit" />
+            <Text className="town-building-label">{locked ? "未解锁" : job.name}</Text>
+            {isWorkingHere && (
+              <Text className={`town-building-badge${jobReady ? " ready" : ""}`}>{jobReady ? "完成" : "打工中"}</Text>
+            )}
+          </View>
+        );
+      })}
 
-        <View
-          className="town-sprite"
-          style={{ left: `${spriteX}%`, top: `${spriteY}%` }}
-          onClick={() => setShowActions(true)}
-        >
-          {workingJob && (
-            <View className={`town-sprite-bubble${jobReady ? " ready" : ""}`}>
-              <Text>{jobReady ? "打完卡啦！" : formatDuration(jobRemainingMs)}</Text>
-            </View>
-          )}
-          <Image className="town-sprite-img" src={characterImageSrc(animal, mbti)} mode="aspectFit" />
-          <View className="town-sprite-shadow" />
-        </View>
-      </View>
-
-      <View className="town-section">
-        <Text className="town-section-title">仓库</Text>
-        {inventoryEntries.length === 0 ? (
-          <Text className="town-empty">还没有任何小镇特产，去打工赚一点吧</Text>
-        ) : (
-          <View className="town-inventory-grid">
-            {inventoryEntries.map(([item, qty]) => (
-              <View className="town-inventory-chip" key={item}>
-                <Text>{ITEM_LABEL[item as keyof typeof ITEM_LABEL] ?? item}</Text>
-                <Text className="town-inventory-qty">x{qty}</Text>
-              </View>
-            ))}
+      <View className="town-sprite" style={{ left: `${spriteX}%`, top: `${spriteY}%` }} onClick={() => setDrawer("actions")}>
+        {workingJob && (
+          <View className={`town-sprite-bubble${jobReady ? " ready" : ""}`}>
+            <Text>{jobReady ? "打完卡啦！" : formatDuration(jobRemainingMs)}</Text>
           </View>
         )}
+        <Image className="town-sprite-img" src={characterImageSrc(animal, mbti)} mode="aspectFit" />
+        <View className="town-sprite-shadow" />
       </View>
 
-      {nextLevel && (
-        <View className="town-section">
-          <Text className="town-section-title">晋升到「{nextLevel.title}」</Text>
-          <Text className="town-empty">
-            {Object.entries(nextLevel.materials ?? {})
-              .map(([item, need]) => `${ITEM_LABEL[item as keyof typeof ITEM_LABEL]} ${inventory[item as keyof typeof inventory] ?? 0}/${need}`)
-              .join("　") || "无需额外材料"}
-          </Text>
-          <Button className="town-secondary-btn" disabled={!canPromote(profile)} onClick={handlePromote}>
-            申请晋升
-          </Button>
+      <View className="town-hud-top">
+        <Text className="town-title-badge">{level.title}</Text>
+        <Text className="town-exp">资历 {profile.companionExp}{nextLevel ? `/${nextLevel.expThreshold}` : "满"}</Text>
+        <View className="town-hud-spacer" />
+        <Text className="town-resource">牛马粮 {profile.oxFeed}</Text>
+        <Button className="town-mini-btn" size="mini" disabled={todayClaimed} onClick={handleCheckin}>
+          {todayClaimed ? "已签到" : "领粮"}
+        </Button>
+      </View>
+
+      <View className="town-hud-bottom">
+        <View className="town-hud-btn" onClick={() => setDrawer("inventory")}>
+          <Text>仓库</Text>
         </View>
-      )}
+        <View className="town-hud-btn" onClick={() => setDrawer("promote")}>
+          <Text>晋升</Text>
+        </View>
+        <View className="town-hud-btn" onClick={() => Taro.navigateTo({ url: "/pages/town-world/index" })}>
+          <Text>世界</Text>
+        </View>
+      </View>
 
-      <Button className="town-world-link" onClick={() => Taro.navigateTo({ url: "/pages/town-world/index" })}>
-        去世界逛逛
-      </Button>
-
-      {showActions && (
-        <View className="town-picker-mask" onClick={() => setShowActions(false)}>
+      {drawer === "actions" && (
+        <View className="town-picker-mask" onClick={() => setDrawer(null)}>
           <View className="town-picker-sheet" onClick={(e) => e.stopPropagation()}>
             <Text className="town-picker-title">搭子在干嘛</Text>
             <Text className="town-empty">{workingJob ? `正在「${workingJob.name}」打工` : "正闲着呢"}</Text>
-            <View className="town-action-row">
-              <Button className="town-secondary-btn" onClick={handleFeed} disabled={profile.oxFeed < FEED_COST}>
-                喂食（{FEED_COST}粮）
-              </Button>
-              <Button className="town-secondary-btn" onClick={() => { setShowActions(false); Taro.navigateTo({ url: "/pages/town-world/index" }); }}>
-                去世界逛逛
-              </Button>
-            </View>
+            <Button className="town-secondary-btn" onClick={handleFeed} disabled={profile.oxFeed < FEED_COST}>
+              喂食（{FEED_COST}粮）
+            </Button>
+          </View>
+        </View>
+      )}
+
+      {drawer === "inventory" && (
+        <View className="town-picker-mask" onClick={() => setDrawer(null)}>
+          <View className="town-picker-sheet" onClick={(e) => e.stopPropagation()}>
+            <Text className="town-picker-title">仓库</Text>
+            {inventoryEntries.length === 0 ? (
+              <Text className="town-empty">还没有任何小镇特产，去打工赚一点吧</Text>
+            ) : (
+              <View className="town-inventory-grid">
+                {inventoryEntries.map(([item, qty]) => (
+                  <View className="town-inventory-chip" key={item}>
+                    <Text>{ITEM_LABEL[item as keyof typeof ITEM_LABEL] ?? item}</Text>
+                    <Text className="town-inventory-qty">x{qty}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+
+      {drawer === "promote" && (
+        <View className="town-picker-mask" onClick={() => setDrawer(null)}>
+          <View className="town-picker-sheet" onClick={(e) => e.stopPropagation()}>
+            {nextLevel ? (
+              <>
+                <Text className="town-picker-title">晋升到「{nextLevel.title}」</Text>
+                <Text className="town-empty">
+                  资历 {profile.companionExp}/{nextLevel.expThreshold}
+                  {Object.keys(nextLevel.materials ?? {}).length > 0 ? "　·　" : ""}
+                  {Object.entries(nextLevel.materials ?? {})
+                    .map(([item, need]) => `${ITEM_LABEL[item as keyof typeof ITEM_LABEL]} ${inventory[item as keyof typeof inventory] ?? 0}/${need}`)
+                    .join("　")}
+                </Text>
+                <Button className="town-secondary-btn" disabled={!canPromote(profile)} onClick={handlePromote}>
+                  申请晋升
+                </Button>
+              </>
+            ) : (
+              <Text className="town-picker-title">已经是最高职级「{level.title}」啦</Text>
+            )}
           </View>
         </View>
       )}
