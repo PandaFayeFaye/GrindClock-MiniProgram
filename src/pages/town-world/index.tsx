@@ -193,9 +193,24 @@ export default function TownWorldPage() {
                     <Image className="world-roamer-activity" src={buildingImageSrc(entry.workingJobKey)} mode="aspectFit" />
                   )}
                   <View className="world-roamer-deco">
-                    {entry.decorations.slice(0, 3).map((key) => {
+                    {entry.decorations.map((key, di) => {
                       const deco = TOWN_DECORATIONS.find((d) => d.key === key);
-                      return deco ? <Image key={key} className="world-roamer-deco-icon" src={deco.icon} mode="aspectFit" /> : null;
+                      if (!deco) return null;
+                      // Spread decorations in a ring around the companion instead
+                      // of stacking them above its head -- circle math keyed off
+                      // index/total so N items are always evenly spaced.
+                      const angle = (di / entry.decorations.length) * Math.PI * 2 - Math.PI / 2;
+                      const cx = 50 + Math.cos(angle) * 46;
+                      const cy = 50 + Math.sin(angle) * 46;
+                      return (
+                        <Image
+                          key={key}
+                          className="world-roamer-deco-icon"
+                          src={deco.icon}
+                          mode="aspectFit"
+                          style={{ left: `${cx}%`, top: `${cy}%` }}
+                        />
+                      );
                     })}
                   </View>
                   <View className="world-roamer-status">

@@ -98,17 +98,28 @@
   white-space: nowrap;
 }
 
+// A ring of owned decorations circling the companion's body -- positioned
+// absolutely relative to this box, which sits centered over .world-roamer-img
+// (see order below), so the icons read as "worn around" the character rather
+// than stacked on top of its head.
 .world-roamer-deco {
-  display: flex;
-  gap: 2rpx;
+  position: absolute;
+  top: 22rpx;
+  left: 8rpx;
+  width: 72rpx;
+  height: 72rpx;
+  pointer-events: none;
 }
 
 .world-roamer-deco-icon {
-  width: 20rpx;
-  height: 20rpx;
+  position: absolute;
+  width: 22rpx;
+  height: 22rpx;
+  transform: translate(-50%, -50%);
   background: #fff;
   border: 1px solid var(--border-bold);
-  border-radius: 4rpx;
+  border-radius: 50%;
+  box-shadow: 0 2rpx 3rpx rgba(0, 0, 0, 0.25);
 }
 
 // At-a-glance status right on the roamer -- otherwise the only way to tell
