@@ -18,6 +18,8 @@ function relativeTime(ts: number | null): string {
 export default function TownWorldPage() {
   const [list, setList] = useState<WorldEntry[]>([]);
   const [myTitleIndex, setMyTitleIndex] = useState(0);
+  const [myRank, setMyRank] = useState<number | null>(null);
+  const [totalRanked, setTotalRanked] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
@@ -25,6 +27,8 @@ export default function TownWorldPage() {
     Promise.all([fetchWorld(), fetchTownProfile()])
       .then(([world, mine]) => {
         setList(world.list);
+        setMyRank(world.myRank);
+        setTotalRanked(world.totalRanked);
         setMyTitleIndex(mine.profile.titleIndex);
       })
       .catch(() => Taro.showToast({ title: "加载失败", icon: "none" }))
@@ -66,6 +70,13 @@ export default function TownWorldPage() {
       <Image className="world-bg" src={TOWN_SCENE_BG} mode="aspectFill" aria-label="小镇世界背景" />
       <View className="world-content">
         <Text className="world-hint">所有开启了摸鱼小镇的搭子都在这里，互相可见互相可逛～</Text>
+        {myRank && (
+          <View className="world-my-rank" aria-label={`你的摸鱼资历排名第${myRank}名，共${totalRanked}人`}>
+            <Text className="world-my-rank-label">你的排名</Text>
+            <Text className="world-my-rank-value">第 {myRank} 名</Text>
+            <Text className="world-my-rank-total">/ 共{totalRanked}人</Text>
+          </View>
+        )}
         {loading ? (
           <Text className="world-loading">加载中...</Text>
         ) : list.length === 0 ? (
@@ -75,14 +86,18 @@ export default function TownWorldPage() {
             const isHigher = myTitleIndex > entry.titleIndex;
             const isLower = myTitleIndex < entry.titleIndex;
             return (
-              <View className="world-card" key={entry.openid}>
+              <View className={`world-card${entry.rank <= 3 ? " top-rank" : ""}`} key={entry.openid}>
                 <View className="world-card-head">
+                  <View className={`world-rank-badge${entry.rank <= 3 ? ` rank-${entry.rank}` : ""}`} aria-label={`排名第${entry.rank}名`}>
+                    <Text>#{entry.rank}</Text>
+                  </View>
                   <Text className="world-nickname">{entry.nickname}</Text>
                   <View className="world-title-badge" aria-label={`职级 ${entry.companionTitle}`}>
                     <Image className="world-title-icon" src={HUD_ICON_TROPHY} mode="aspectFit" />
                     <Text>{entry.companionTitle}</Text>
                   </View>
                 </View>
+                <Text className="world-exp-line">摸鱼资历 {entry.companionExp}</Text>
                 <Text className="world-meta">仓库里有 {entry.inventoryCount} 件特产 · {relativeTime(entry.lastActiveAt)}</Text>
                 {entry.decorations.length > 0 && (
                   <View className="world-deco-row" aria-label={`拥有装饰：${entry.decorations.map((k) => TOWN_DECORATIONS.find((d) => d.key === k)?.name ?? k).join("、")}`}>

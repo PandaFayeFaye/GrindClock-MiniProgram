@@ -33,6 +33,41 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
+.world-my-rank {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  align-self: flex-start;
+  background: #F3E8CE;
+  border: 3px solid #6B4A2E;
+  border-radius: var(--radius-pill);
+  padding: 10rpx 24rpx;
+  box-shadow: var(--shadow-bold-sm);
+}
+
+.world-my-rank-label {
+  font-size: 20rpx;
+  color: var(--text-muted);
+}
+
+.world-my-rank-value {
+  font-family: var(--font-display);
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #B8860B;
+}
+
+.world-my-rank-total {
+  font-size: 20rpx;
+  color: var(--text-muted);
+}
+
+.world-exp-line {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #6B4A2E;
+}
+
 .world-loading {
   margin-top: 120rpx;
   text-align: center;
@@ -52,15 +87,41 @@
   gap: var(--space-1);
 }
 
+.world-card.top-rank {
+  border-color: #B8860B;
+  background: #FBF0D9;
+  box-shadow: 0 0 0 3px rgba(255, 217, 61, 0.5), var(--shadow-bold-sm);
+}
+
 .world-card-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-2);
 }
 
+.world-rank-badge {
+  flex-shrink: 0;
+  min-width: 48rpx;
+  text-align: center;
+  background: #E8E0CC;
+  border: 2px solid var(--border-bold);
+  border-radius: var(--radius-quiet);
+  padding: 4rpx 8rpx;
+  font-size: 20rpx;
+  font-weight: 800;
+}
+
+.world-rank-badge.rank-1 { background: #FFD93D; }
+.world-rank-badge.rank-2 { background: #D9D9D9; }
+.world-rank-badge.rank-3 { background: #E0AD7A; }
+
 .world-nickname {
+  flex: 1;
   font-size: 28rpx;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .world-title-badge {

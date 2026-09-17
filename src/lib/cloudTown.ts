@@ -71,6 +71,7 @@ export function collectJob() {
 
 export type WorldEntry = {
   openid: string;
+  rank: number;
   nickname: string;
   companionTitle: string;
   titleIndex: number;
@@ -81,7 +82,7 @@ export type WorldEntry = {
 };
 
 export function fetchWorld() {
-  return call<{ list: WorldEntry[] }>("townListWorld");
+  return call<{ list: WorldEntry[]; myRank: number | null; totalRanked: number }>("townListWorld");
 }
 
 export function stealFrom(targetOpenid: string) {
