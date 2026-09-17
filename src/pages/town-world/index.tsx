@@ -171,8 +171,12 @@ export default function TownWorldPage() {
               // so working roamers -- who stand still -- are guaranteed to
               // spread out across the box instead of clustering wherever
               // their individual seeds happen to land close together.
-              const workX = 12 + weylFraction(i, 0.13) * 76;
-              const workY = 16 + weylFraction(i, 0.71) * 60;
+              // Kept well clear of the box edges -- the status badge row
+              // (e.g. "打工 可偷x3") is noticeably wider than the sprite
+              // itself and was clipping/overlapping the plaza border when a
+              // working spot landed near the left:88%-ish edge.
+              const workX = 16 + weylFraction(i, 0.13) * 62;
+              const workY = 18 + weylFraction(i, 0.71) * 52;
               const variant = Math.floor(weylFraction(i, seed) * WANDER_VARIANTS);
               const duration = 16 + (i % 5) * 3;
               const delay = seededFraction(entry.openid + "d") * -duration;
