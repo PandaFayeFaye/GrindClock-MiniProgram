@@ -4,7 +4,7 @@ import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, criticizeForNotCheckingIn, type WorldEntry } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
 import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
-import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, ALL_SUBSCRIBE_TEMPLATE_IDS, buildingImageSrc } from "../../lib/town";
+import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, ALL_SUBSCRIBE_TEMPLATE_IDS, FOUNDER_OPENID, buildingImageSrc } from "../../lib/town";
 import "./index.scss";
 
 function relativeTime(ts: number | null): string {
@@ -80,10 +80,34 @@ export default function TownWorldPage() {
       });
   }
 
-  async function handleSteal(entry: WorldEntry) {
+  function handleSteal(entry: WorldEntry) {
+    if (entry.openid === FOUNDER_OPENID) {
+      Taro.showModal({
+        title: "⚠️ 危险行为",
+        content: "你确定要偷小镇创始人的东西么？有可能会得到致命惩罚哦！",
+        confirmText: "我不怕",
+        cancelText: "算了算了",
+        success: (res) => {
+          if (res.confirm) doSteal(entry);
+        },
+      });
+      return;
+    }
+    doSteal(entry);
+  }
+
+  async function doSteal(entry: WorldEntry) {
     try {
       const res = await stealFrom(entry.openid);
-      Taro.showToast({ title: `偷到 ${ITEM_LABEL[res.item as keyof typeof ITEM_LABEL] ?? res.item} x${res.amount}`, icon: "none" });
+      if (res.punished) {
+        Taro.showModal({
+          title: "遭报应了",
+          content: "你一半的资产将上供给创始人熊猫吠吠",
+          showCancel: false,
+        });
+      } else {
+        Taro.showToast({ title: `偷到 ${ITEM_LABEL[res.item as keyof typeof ITEM_LABEL] ?? res.item} x${res.amount}`, icon: "none" });
+      }
       load();
     } catch (err) {
       const msg = (err as Error).message;

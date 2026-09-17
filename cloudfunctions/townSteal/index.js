@@ -9,6 +9,14 @@ const _ = db.command;
 const STEAL_COOLDOWN_MS = 24 * 3_600_000;
 const STEAL_MAX_PER_WINDOW = 3;
 const STEAL_EXP_GAIN = 3;
+
+// Small easter egg for the app's own creator: stealing from this specific
+// openid halves the THIEF's own inventory (rounded down per item) and
+// hands that half straight to the founder, on top of the normal steal. The
+// client shows a warning before calling this at all, but the punishment is
+// enforced here unconditionally so it can't be skipped by bypassing the
+// client-side confirm.
+const FOUNDER_OPENID = "oF5PnxfxG4rGc0QHHDuPaeddZaPY";
 // A global per-actor throttle on top of the per-target cap -- without this,
 // someone could burn through several different victims' 3-per-24h budgets
 // back to back in one sitting.
@@ -79,15 +87,33 @@ exports.main = async (event) => {
   const amount = Math.min(available, 1 + Math.floor(Math.random() * 3));
 
   const newTargetInventory = { ...targetInventory, [item]: available - amount };
-  const selfInventory = { ...(self.inventory || {}) };
+  let selfInventory = { ...(self.inventory || {}) };
   selfInventory[item] = (selfInventory[item] || 0) + amount;
   const companionExp = (self.companionExp || 0) + STEAL_EXP_GAIN;
+
+  // The founder punishment: half of everything the thief owns (after the
+  // steal above is added in) gets clawed back and handed to the founder.
+  let punished = false;
+  if (targetOpenid === FOUNDER_OPENID) {
+    punished = true;
+    const tribute = {};
+    for (const [k, qty] of Object.entries(selfInventory)) {
+      const half = Math.floor((qty || 0) / 2);
+      if (half > 0) {
+        tribute[k] = half;
+        selfInventory[k] = qty - half;
+      }
+    }
+    for (const [k, qty] of Object.entries(tribute)) {
+      newTargetInventory[k] = (newTargetInventory[k] || 0) + qty;
+    }
+  }
 
   await Promise.all([
     targetRef.update({ data: { inventory: newTargetInventory } }),
     selfRef.update({ data: { inventory: selfInventory, companionExp, lastActiveAt: now } }),
     db.collection("townJobLog").add({
-      data: { openid: OPENID, targetOpenid, type: "steal", expGained: STEAL_EXP_GAIN, itemsGained: { [item]: amount }, createdAt: now },
+      data: { openid: OPENID, targetOpenid, type: "steal", expGained: STEAL_EXP_GAIN, itemsGained: { [item]: amount }, createdAt: now, punished },
     }),
   ]);
 
@@ -98,5 +124,5 @@ exports.main = async (event) => {
   // turning into a steal failure.
   await notifyVictim(db, targetOpenid, OPENID, item).catch(() => {});
 
-  return { ok: true, profile: { ...self, inventory: selfInventory, companionExp }, item, amount };
+  return { ok: true, profile: { ...self, inventory: selfInventory, companionExp }, item, amount, punished };
 };

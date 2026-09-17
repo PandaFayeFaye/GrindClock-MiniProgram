@@ -133,6 +133,11 @@ export const TOWN_DECORATIONS: TownDecoration[] = [
 // swapped for a different template.
 export const SUBSCRIBE_TEMPLATE_ID: string = "eqyBvDNghz6B1MqTm1MluJ_ttKt9c811eQ3yZRIRGFw";
 
+// Mirrors cloudfunctions/townSteal's FOUNDER_OPENID -- used client-side only
+// to show a "you sure?" warning before even attempting the steal call; the
+// actual punishment is enforced server-side regardless of this check.
+export const FOUNDER_OPENID = "oF5PnxfxG4rGc0QHHDuPaeddZaPY";
+
 // Mirrors cloudfunctions/townSteal & townSkim's SUBSCRIBE_TEMPLATE_ID -- the
 // "名片被访通知" template (公共模板库 #801) used for steal/skim victim pushes.
 export const STEAL_SUBSCRIBE_TEMPLATE_ID: string = "2pMbXON4D1mJGcWnyEAnIZEkvCKufeXsfruclncjtdU";
