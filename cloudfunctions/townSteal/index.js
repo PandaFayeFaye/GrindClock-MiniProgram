@@ -9,6 +9,10 @@ const _ = db.command;
 const STEAL_COOLDOWN_MS = 24 * 3_600_000;
 const STEAL_MAX_PER_WINDOW = 3;
 const STEAL_EXP_GAIN = 3;
+// A global per-actor throttle on top of the per-target cap -- without this,
+// someone could burn through several different victims' 3-per-24h budgets
+// back to back in one sitting.
+const STEAL_GLOBAL_COOLDOWN_MS = 3_600_000;
 
 // "名片被访通知" template (公共模板库 #801), whose 场景说明 literally says
 // "偷菜和摊派" -- dedicated to this exact use case, unlike townCriticize's
@@ -51,16 +55,21 @@ exports.main = async (event) => {
   if (!target || !target.unlocked) return { ok: false, error: "target_not_found" };
 
   const now = Date.now();
-  const recentSteals = await db
-    .collection("townJobLog")
-    .where({
+  const [recentStealsOnTarget, recentStealsAnywhere] = await Promise.all([
+    db.collection("townJobLog").where({
       openid: OPENID,
       targetOpenid,
       type: "steal",
       createdAt: _.gte(now - STEAL_COOLDOWN_MS),
-    })
-    .count();
-  if (recentSteals.total >= STEAL_MAX_PER_WINDOW) return { ok: false, error: "steal_cooldown" };
+    }).count(),
+    db.collection("townJobLog").where({
+      openid: OPENID,
+      type: "steal",
+      createdAt: _.gte(now - STEAL_GLOBAL_COOLDOWN_MS),
+    }).count(),
+  ]);
+  if (recentStealsOnTarget.total >= STEAL_MAX_PER_WINDOW) return { ok: false, error: "steal_cooldown" };
+  if (recentStealsAnywhere.total >= 1) return { ok: false, error: "steal_global_cooldown" };
 
   const targetInventory = target.inventory || {};
   const stealableItems = Object.entries(targetInventory).filter(([, qty]) => qty > 0);

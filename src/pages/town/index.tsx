@@ -470,22 +470,32 @@ export default function TownPage() {
       {drawer === "promote" && (
         <View className="town-picker-mask" onClick={() => setDrawer(null)}>
           <View className="town-picker-sheet" onClick={(e) => e.stopPropagation()}>
+            <Text className="town-picker-title">职场晋升之路</Text>
+            <View className="town-ladder">
+              {TOWN_LEVELS.map((lvl, i) => {
+                const state = i < titleIndex ? "done" : i === titleIndex ? "current" : "locked";
+                const isNext = i === titleIndex + 1;
+                return (
+                  <View className={`town-ladder-row ${state}`} key={lvl.title}>
+                    <Text className="town-ladder-title">{lvl.title}</Text>
+                    <Text className="town-ladder-exp">资历{lvl.expThreshold}</Text>
+                    {isNext && Object.keys(lvl.materials ?? {}).length > 0 && (
+                      <Text className="town-ladder-materials">
+                        {Object.entries(lvl.materials ?? {})
+                          .map(([item, need]) => `${ITEM_LABEL[item as keyof typeof ITEM_LABEL]} ${inventory[item as keyof typeof inventory] ?? 0}/${need}`)
+                          .join("　")}
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
             {nextLevel ? (
-              <>
-                <Text className="town-picker-title">晋升到「{nextLevel.title}」</Text>
-                <Text className="town-empty">
-                  资历 {profile.companionExp}/{nextLevel.expThreshold}
-                  {Object.keys(nextLevel.materials ?? {}).length > 0 ? "　·　" : ""}
-                  {Object.entries(nextLevel.materials ?? {})
-                    .map(([item, need]) => `${ITEM_LABEL[item as keyof typeof ITEM_LABEL]} ${inventory[item as keyof typeof inventory] ?? 0}/${need}`)
-                    .join("　")}
-                </Text>
-                <Button className="town-secondary-btn" disabled={!canPromote(profile)} onClick={handlePromote}>
-                  申请晋升
-                </Button>
-              </>
+              <Button className="town-secondary-btn" disabled={!canPromote(profile)} onClick={handlePromote}>
+                申请晋升到「{nextLevel.title}」
+              </Button>
             ) : (
-              <Text className="town-picker-title">已经是最高职级「{level.title}」啦</Text>
+              <Text className="town-empty">已经是最高职级啦，摸鱼资历天花板！</Text>
             )}
           </View>
         </View>

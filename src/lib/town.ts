@@ -133,6 +133,14 @@ export const TOWN_DECORATIONS: TownDecoration[] = [
 // swapped for a different template.
 export const SUBSCRIBE_TEMPLATE_ID: string = "eqyBvDNghz6B1MqTm1MluJ_ttKt9c811eQ3yZRIRGFw";
 
+// Mirrors cloudfunctions/townSteal & townSkim's SUBSCRIBE_TEMPLATE_ID -- the
+// "名片被访通知" template (公共模板库 #801) used for steal/skim victim pushes.
+export const STEAL_SUBSCRIBE_TEMPLATE_ID: string = "2pMbXON4D1mJGcWnyEAnIZEkvCKufeXsfruclncjtdU";
+
+// Every one-time template the World page should ask the viewer to grant in
+// one batched prompt, so they stay reachable for both kinds of push.
+export const ALL_SUBSCRIBE_TEMPLATE_IDS: string[] = [SUBSCRIBE_TEMPLATE_ID, STEAL_SUBSCRIBE_TEMPLATE_ID];
+
 export const DAILY_RATION = 15;
 export const FEED_COST = 10;
 export const STEAL_COOLDOWN_MS = 24 * 3_600_000;

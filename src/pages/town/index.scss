@@ -637,3 +637,55 @@
   font-size: 20rpx;
   color: var(--semantic-error);
 }
+
+// The full career ladder, not just the immediate next rung -- seeing the
+// whole climb (and how far you've already come) is more motivating than a
+// single next-step readout.
+.town-ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  max-height: 480rpx;
+  overflow-y: auto;
+}
+
+.town-ladder-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  padding: 10rpx 16rpx;
+  border-radius: var(--radius-quiet);
+  border: 1.5px solid transparent;
+}
+
+.town-ladder-row.done {
+  background: rgba(57, 201, 122, 0.15);
+}
+
+.town-ladder-row.current {
+  background: var(--accent-yellow);
+  border-color: var(--border-bold);
+}
+
+.town-ladder-row.locked {
+  opacity: 0.55;
+}
+
+.town-ladder-title {
+  font-size: 24rpx;
+  font-weight: 700;
+  min-width: 140rpx;
+}
+
+.town-ladder-exp {
+  font-size: 20rpx;
+  color: var(--text-muted);
+}
+
+.town-ladder-materials {
+  flex-basis: 100%;
+  font-size: 18rpx;
+  color: #6B4A2E;
+  font-weight: 700;
+}

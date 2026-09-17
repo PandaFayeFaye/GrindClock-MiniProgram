@@ -4,7 +4,7 @@ import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, criticizeForNotCheckingIn, type WorldEntry } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
 import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
-import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, SUBSCRIBE_TEMPLATE_ID, buildingImageSrc } from "../../lib/town";
+import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, ALL_SUBSCRIBE_TEMPLATE_IDS, buildingImageSrc } from "../../lib/town";
 import "./index.scss";
 
 function relativeTime(ts: number | null): string {
@@ -54,14 +54,15 @@ export default function TownWorldPage() {
   useDidShow(() => {
     load();
     // Best-effort opt-in so friends can actually reach this viewer with a
-    // "批评" push later -- a one-time subscribe grant is consumed per send,
-    // so re-asking on every visit here keeps them reachable. No-ops until
-    // SUBSCRIBE_TEMPLATE_ID is filled in (see cloudfunctions/townCriticize).
-    if (SUBSCRIBE_TEMPLATE_ID) {
-      // `entityIds` is an Alipay-only field that Taro's weapp types still
-      // require structurally -- harmless empty placeholder on this target.
-      Taro.requestSubscribeMessage({ tmplIds: [SUBSCRIBE_TEMPLATE_ID], entityIds: [] }).catch(() => {});
-    }
+    // 批评/偷菜/摊派 push later -- each one-time subscribe grant is consumed
+    // per send, so re-asking for BOTH templates on every visit here keeps
+    // them reachable for both kinds of notification. `entityIds` is an
+    // Alipay-only field -- adding it here (even empty) was tripping up the
+    // real weapp call, which is why the permission prompt never showed; the
+    // type-only cast avoids sending it while still satisfying Taro's types.
+    Taro.requestSubscribeMessage({ tmplIds: ALL_SUBSCRIBE_TEMPLATE_IDS } as Taro.requestSubscribeMessage.Option)
+      .then((res) => console.log("[town-world] requestSubscribeMessage result:", res))
+      .catch((err) => console.error("[town-world] requestSubscribeMessage failed:", err));
   });
 
   async function handleSteal(entry: WorldEntry) {
@@ -73,6 +74,7 @@ export default function TownWorldPage() {
       const msg = (err as Error).message;
       const text =
         msg === "steal_cooldown" ? "今天偷TA偷够啦，明天再来" :
+        msg === "steal_global_cooldown" ? "手速太快啦，每小时只能出手一次" :
         msg === "nothing_to_steal" ? "TA的仓库空空如也" : "偷菜失败";
       Taro.showToast({ title: text, icon: "none" });
     }
