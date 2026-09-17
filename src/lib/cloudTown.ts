@@ -73,6 +73,8 @@ export type WorldEntry = {
   openid: string;
   rank: number;
   nickname: string;
+  animal: string;
+  mbti?: string;
   companionTitle: string;
   titleIndex: number;
   companionExp: number;
@@ -83,7 +85,9 @@ export type WorldEntry = {
 };
 
 export function fetchWorld() {
-  return call<{ list: WorldEntry[]; myRank: number | null; totalRanked: number }>("townListWorld");
+  return call<{ list: WorldEntry[]; me: WorldEntry | null; myRank: number | null; totalRanked: number }>(
+    "townListWorld",
+  );
 }
 
 export function stealFrom(targetOpenid: string) {

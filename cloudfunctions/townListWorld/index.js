@@ -30,11 +30,11 @@ exports.main = async () => {
   const profiles = res.data || [];
 
   const openids = profiles.map((p) => p._id);
-  let nicknameByOpenid = {};
+  let userInfoByOpenid = {};
   if (openids.length > 0) {
     const profileRes = await db.collection("userProfile").where({ _openid: _.in(openids) }).limit(100).get();
-    nicknameByOpenid = (profileRes.data || []).reduce((acc, row) => {
-      acc[row._openid] = row.nickname;
+    userInfoByOpenid = (profileRes.data || []).reduce((acc, row) => {
+      acc[row._openid] = { nickname: row.nickname, animal: row.animal, mbti: row.mbti };
       return acc;
     }, {});
   }
@@ -53,20 +53,23 @@ exports.main = async () => {
   const mine = ranked.find((p) => p._id === OPENID);
   const myRank = mine ? mine.rank : null;
 
-  const list = ranked
-    .filter((p) => p._id !== OPENID)
-    .map((p) => ({
-      openid: p._id,
-      rank: p.rank,
-      nickname: nicknameByOpenid[p._id] || "神秘打工人",
-      companionTitle: TOWN_LEVEL_TITLES[p.titleIndex || 0],
-      titleIndex: p.titleIndex || 0,
-      companionExp: p.companionExp || 0,
-      lastActiveAt: p.lastActiveAt || null,
-      inventoryCount: Object.values(p.inventory || {}).reduce((s, n) => s + n, 0),
-      decorations: p.decorations || [],
-      checkedInToday: checkedInToday(p.lastDailyRationAt),
-    }));
+  const toEntry = (p) => ({
+    openid: p._id,
+    rank: p.rank,
+    nickname: (userInfoByOpenid[p._id] && userInfoByOpenid[p._id].nickname) || "神秘打工人",
+    animal: (userInfoByOpenid[p._id] && userInfoByOpenid[p._id].animal) || "cat",
+    mbti: userInfoByOpenid[p._id] && userInfoByOpenid[p._id].mbti,
+    companionTitle: TOWN_LEVEL_TITLES[p.titleIndex || 0],
+    titleIndex: p.titleIndex || 0,
+    companionExp: p.companionExp || 0,
+    lastActiveAt: p.lastActiveAt || null,
+    inventoryCount: Object.values(p.inventory || {}).reduce((s, n) => s + n, 0),
+    decorations: p.decorations || [],
+    checkedInToday: checkedInToday(p.lastDailyRationAt),
+  });
 
-  return { ok: true, list, myRank, totalRanked: ranked.length };
+  const list = ranked.filter((p) => p._id !== OPENID).map(toEntry);
+  const me = mine ? toEntry(mine) : null;
+
+  return { ok: true, list, me, myRank, totalRanked: ranked.length };
 };

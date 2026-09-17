@@ -3,7 +3,8 @@ import { View, Text, Button, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, criticizeForNotCheckingIn, type WorldEntry } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
-import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, TOWN_LEVELS, SUBSCRIBE_TEMPLATE_ID } from "../../lib/town";
+import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
+import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, SUBSCRIBE_TEMPLATE_ID } from "../../lib/town";
 import "./index.scss";
 
 function relativeTime(ts: number | null): string {
@@ -16,27 +17,35 @@ function relativeTime(ts: number | null): string {
   return `${Math.floor(diffH / 24)} 天前来过`;
 }
 
+// Deterministic pseudo-random 0..1 from a string, so the same player always
+// starts roaming from the same spot/pace on every load instead of jumping
+// around each refresh.
+function seededFraction(seed: string): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return (h % 1000) / 1000;
+}
+
+const WANDER_VARIANTS = 6;
+
 export default function TownWorldPage() {
   const [list, setList] = useState<WorldEntry[]>([]);
+  const [meEntry, setMeEntry] = useState<WorldEntry | null>(null);
   const [myTitleIndex, setMyTitleIndex] = useState(0);
-  const [myExp, setMyExp] = useState(0);
-  const [myDecorations, setMyDecorations] = useState<string[]>([]);
-  const [myNickname, setMyNickname] = useState("我");
   const [myRank, setMyRank] = useState<number | null>(null);
   const [totalRanked, setTotalRanked] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [activeEntry, setActiveEntry] = useState<WorldEntry | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
     Promise.all([fetchWorld(), fetchTownProfile(), fetchUserProfile()])
       .then(([world, mine, userProfile]) => {
         setList(world.list);
+        setMeEntry(world.me ? { ...world.me, nickname: userProfile?.nickname || world.me.nickname } : null);
         setMyRank(world.myRank);
         setTotalRanked(world.totalRanked);
         setMyTitleIndex(mine.profile.titleIndex);
-        setMyExp(mine.profile.companionExp);
-        setMyDecorations(mine.profile.decorations || []);
-        if (userProfile?.nickname) setMyNickname(userProfile.nickname);
       })
       .catch(() => Taro.showToast({ title: "加载失败", icon: "none" }))
       .finally(() => setLoading(false));
@@ -96,11 +105,55 @@ export default function TownWorldPage() {
     }
   }
 
+  const plazaEntries = meEntry ? [...list, meEntry] : list;
+
   return (
     <View className="world-page">
       <Image className="world-bg" src={TOWN_SCENE_BG} mode="aspectFill" aria-label="小镇世界背景" />
       <View className="world-content">
-        <Text className="world-hint">所有开启了摸鱼小镇的搭子都在这里，互相可见互相可逛～</Text>
+        <Text className="world-hint">所有开启了摸鱼小镇的搭子都在这里，互相可见互相可逛～点搭子可以直接操作</Text>
+
+        {!loading && plazaEntries.length > 0 && (
+          <View className="world-plaza">
+            {plazaEntries.map((entry, i) => {
+              const isMe = meEntry && entry.openid === meEntry.openid;
+              const seed = seededFraction(entry.openid);
+              const startX = 12 + seed * 76;
+              const startY = 15 + seededFraction(entry.openid + "y") * 60;
+              const variant = i % WANDER_VARIANTS;
+              const duration = 14 + (i % 5) * 3;
+              const delay = seededFraction(entry.openid + "d") * -duration;
+              return (
+                <View
+                  key={entry.openid}
+                  className={`world-roamer wander-${variant}${isMe ? " is-me" : ""}`}
+                  style={{
+                    left: `${startX}%`,
+                    top: `${startY}%`,
+                    animationDuration: `${duration}s`,
+                    animationDelay: `${delay}s`,
+                  }}
+                  onClick={() => (isMe ? null : setActiveEntry(entry))}
+                  aria-label={`${entry.nickname}，职级${entry.companionTitle}${isMe ? "，这是你自己" : ""}`}
+                >
+                  <View className="world-roamer-deco">
+                    {entry.decorations.slice(0, 3).map((key) => {
+                      const deco = TOWN_DECORATIONS.find((d) => d.key === key);
+                      return deco ? <Image key={key} className="world-roamer-deco-icon" src={deco.icon} mode="aspectFit" /> : null;
+                    })}
+                  </View>
+                  <Image
+                    className="world-roamer-img"
+                    src={characterImageSrc(entry.animal as AnimalKey, entry.mbti)}
+                    mode="aspectFit"
+                  />
+                  <Text className="world-roamer-name">{isMe ? "我" : entry.nickname}</Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         {myRank && (
           <View className="world-my-rank" aria-label={`你的摸鱼资历排名第${myRank}名，共${totalRanked}人`}>
             <Text className="world-my-rank-label">你的排名</Text>
@@ -108,20 +161,20 @@ export default function TownWorldPage() {
             <Text className="world-my-rank-total">/ 共{totalRanked}人</Text>
           </View>
         )}
-        {!loading && (
+        {!loading && meEntry && (
           <View className="world-card world-self-card">
             <View className="world-card-head">
               <Text className="world-self-tag">我的展示</Text>
-              <Text className="world-nickname">{myNickname}</Text>
-              <View className="world-title-badge" aria-label={`职级 ${TOWN_LEVELS[myTitleIndex]?.title}`}>
+              <Text className="world-nickname">{meEntry.nickname}</Text>
+              <View className="world-title-badge" aria-label={`职级 ${meEntry.companionTitle}`}>
                 <Image className="world-title-icon" src={HUD_ICON_TROPHY} mode="aspectFit" />
-                <Text>{TOWN_LEVELS[myTitleIndex]?.title}</Text>
+                <Text>{meEntry.companionTitle}</Text>
               </View>
             </View>
-            <Text className="world-exp-line">摸鱼资历 {myExp}</Text>
-            {myDecorations.length > 0 ? (
-              <View className="world-deco-row" aria-label={`我拥有的装饰：${myDecorations.map((k) => TOWN_DECORATIONS.find((d) => d.key === k)?.name ?? k).join("、")}`}>
-                {myDecorations.map((key) => {
+            <Text className="world-exp-line">摸鱼资历 {meEntry.companionExp}</Text>
+            {meEntry.decorations.length > 0 ? (
+              <View className="world-deco-row" aria-label={`我拥有的装饰：${meEntry.decorations.map((k) => TOWN_DECORATIONS.find((d) => d.key === k)?.name ?? k).join("、")}`}>
+                {meEntry.decorations.map((key) => {
                   const deco = TOWN_DECORATIONS.find((d) => d.key === key);
                   return deco ? <Image key={key} className="world-deco-icon" src={deco.icon} mode="aspectFit" /> : null;
                 })}
@@ -190,6 +243,46 @@ export default function TownWorldPage() {
           })
         )}
       </View>
+
+      {activeEntry && (
+        <View className="world-picker-mask" onClick={() => setActiveEntry(null)}>
+          <View className="world-picker-sheet" onClick={(e) => e.stopPropagation()}>
+            <View className="world-card-head">
+              <View className={`world-rank-badge${activeEntry.rank <= 3 ? ` rank-${activeEntry.rank}` : ""}`}>
+                <Text>#{activeEntry.rank}</Text>
+              </View>
+              <Text className="world-nickname">{activeEntry.nickname}</Text>
+              <View className="world-title-badge">
+                <Image className="world-title-icon" src={HUD_ICON_TROPHY} mode="aspectFit" />
+                <Text>{activeEntry.companionTitle}</Text>
+              </View>
+            </View>
+            <Text className="world-exp-line">摸鱼资历 {activeEntry.companionExp}</Text>
+            <Text className={`world-checkin-tag${activeEntry.checkedInToday ? " done" : ""}`}>
+              {activeEntry.checkedInToday ? "今日已打卡" : "今日未打卡"}
+            </Text>
+            {myTitleIndex < activeEntry.titleIndex ? (
+              <Text className="world-blocked">老板的地盘，先憋着</Text>
+            ) : (
+              <View className="world-actions">
+                <Button className="world-btn" size="mini" onClick={() => { handleSteal(activeEntry); setActiveEntry(null); }}>
+                  偷一点
+                </Button>
+                {myTitleIndex > activeEntry.titleIndex && (
+                  <Button className="world-btn skim" size="mini" onClick={() => { handleSkim(activeEntry); setActiveEntry(null); }}>
+                    画饼摊派
+                  </Button>
+                )}
+                {!activeEntry.checkedInToday && (
+                  <Button className="world-btn criticize" size="mini" onClick={() => { handleCriticize(activeEntry); setActiveEntry(null); }}>
+                    批评TA
+                  </Button>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      )}
     </View>
   );
 }

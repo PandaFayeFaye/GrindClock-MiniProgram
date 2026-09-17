@@ -26,6 +26,144 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+// The plaza: everyone's companion actually wanders the box instead of just
+// sitting in a list -- each gets one of a handful of long, multi-waypoint
+// translate paths (never `rotate()`, which doesn't render reliably in this
+// runtime) at its own duration/delay so the crowd doesn't move in unison.
+// Decorations are children of the same roamer, so they travel with it.
+.world-plaza {
+  position: relative;
+  width: 100%;
+  height: 420rpx;
+  border: 2.5px solid var(--border-bold);
+  border-radius: var(--radius-bold);
+  box-shadow: var(--shadow-bold-sm);
+  overflow: hidden;
+  background: rgba(150, 200, 130, 0.35);
+}
+
+.world-roamer {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 88rpx;
+  z-index: 1;
+}
+
+.world-roamer.is-me {
+  z-index: 2;
+}
+
+.world-roamer-img {
+  width: 72rpx;
+  height: 72rpx;
+  filter: drop-shadow(0 4rpx 3rpx rgba(0, 0, 0, 0.3));
+}
+
+.world-roamer-name {
+  margin-top: -4rpx;
+  font-size: 16rpx;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(26, 26, 26, 0.6);
+  border-radius: 6rpx;
+  padding: 0 6rpx;
+  white-space: nowrap;
+}
+
+.world-roamer-deco {
+  display: flex;
+  gap: 2rpx;
+}
+
+.world-roamer-deco-icon {
+  width: 20rpx;
+  height: 20rpx;
+  background: #fff;
+  border: 1px solid var(--border-bold);
+  border-radius: 4rpx;
+}
+
+@keyframes world-wander-0 {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(120rpx, -40rpx); }
+  45% { transform: translate(60rpx, 90rpx); }
+  70% { transform: translate(-100rpx, 40rpx); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes world-wander-1 {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-90rpx, 60rpx); }
+  50% { transform: translate(-140rpx, -30rpx); }
+  75% { transform: translate(-30rpx, -80rpx); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes world-wander-2 {
+  0% { transform: translate(0, 0); }
+  30% { transform: translate(80rpx, 80rpx); }
+  60% { transform: translate(140rpx, -20rpx); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes world-wander-3 {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-60rpx, -70rpx); }
+  50% { transform: translate(90rpx, -100rpx); }
+  80% { transform: translate(120rpx, 30rpx); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes world-wander-4 {
+  0% { transform: translate(0, 0); }
+  35% { transform: translate(-120rpx, 20rpx); }
+  65% { transform: translate(-50rpx, 100rpx); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes world-wander-5 {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(70rpx, -100rpx); }
+  55% { transform: translate(-80rpx, -60rpx); }
+  80% { transform: translate(-40rpx, 70rpx); }
+  100% { transform: translate(0, 0); }
+}
+
+.wander-0 { animation-name: world-wander-0; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.wander-1 { animation-name: world-wander-1; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.wander-2 { animation-name: world-wander-2; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.wander-3 { animation-name: world-wander-3; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.wander-4 { animation-name: world-wander-4; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.wander-5 { animation-name: world-wander-5; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+
+.world-picker-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  box-sizing: border-box;
+  z-index: 50;
+}
+
+.world-picker-sheet {
+  width: 100%;
+  max-width: 640rpx;
+  background: #F3E8CE;
+  border-radius: var(--radius-poster);
+  border: 4rpx solid #6B4A2E;
+  padding: var(--space-4);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.35);
+}
+
 .world-hint {
   font-size: 22rpx;
   font-weight: 700;
