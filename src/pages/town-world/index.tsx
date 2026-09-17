@@ -26,7 +26,16 @@ function seededFraction(seed: string): number {
   return (h % 1000) / 1000;
 }
 
-const WANDER_VARIANTS = 6;
+const WANDER_VARIANTS = 8;
+// Golden-ratio (Weyl sequence) spacing: frac(i * 0.618...) spreads N points
+// across 0..1 far more evenly than plain randomness or i/N, which is why
+// it's the standard trick for "scatter these without clustering" -- used
+// below for both the working-roamer position and the wander-variant pick.
+const GOLDEN_FRACTION = 0.6180339887;
+function weylFraction(i: number, offset: number): number {
+  const v = i * GOLDEN_FRACTION + offset;
+  return v - Math.floor(v);
+}
 
 export default function TownWorldPage() {
   const [list, setList] = useState<WorldEntry[]>([]);
@@ -134,8 +143,14 @@ export default function TownWorldPage() {
               // start pinned near an edge left no room to travel toward it.
               const startX = 30 + seed * 40;
               const startY = 35 + seededFraction(entry.openid + "y") * 30;
-              const variant = i % WANDER_VARIANTS;
-              const duration = 14 + (i % 5) * 3;
+              // Weyl/golden-ratio spacing by POSITION (not a per-person hash)
+              // so working roamers -- who stand still -- are guaranteed to
+              // spread out across the box instead of clustering wherever
+              // their individual seeds happen to land close together.
+              const workX = 12 + weylFraction(i, 0.13) * 76;
+              const workY = 16 + weylFraction(i, 0.71) * 60;
+              const variant = Math.floor(weylFraction(i, seed) * WANDER_VARIANTS);
+              const duration = 16 + (i % 5) * 3;
               const delay = seededFraction(entry.openid + "d") * -duration;
               const working = entry.isWorking;
               return (
@@ -144,7 +159,7 @@ export default function TownWorldPage() {
                   className={`world-roamer${working ? " working" : ` wander-${variant}`}${isMe ? " is-me" : ""}`}
                   style={
                     working
-                      ? { left: `${startX}%`, top: `${startY}%` }
+                      ? { left: `${workX}%`, top: `${workY}%` }
                       : { left: `${startX}%`, top: `${startY}%`, animationDuration: `${duration}s`, animationDelay: `${delay}s` }
                   }
                   onClick={() => (isMe ? null : setActiveEntry(entry))}
