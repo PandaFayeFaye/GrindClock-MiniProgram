@@ -22,7 +22,10 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const SUBSCRIBE_TEMPLATE_ID = ""; // TODO: fill in once a template exists
+// "打卡超时通知" template (公共模板库 #74908), fields confirmed from its
+// detail page: thing1=缺卡人, thing2=提醒原因, time3=最后打卡时间,
+// thing4=处理建议. `thing` fields are capped at 20 chars by WeChat.
+const SUBSCRIBE_TEMPLATE_ID = "eqyBvDNghz6B1MqTm1MluJ_ttKt9c811eQ3yZRIRGFw";
 const CRITICIZE_COOLDOWN_MS = 12 * 3_600_000;
 const CN_TZ_OFFSET_MS = 8 * 3_600_000;
 
@@ -61,13 +64,25 @@ exports.main = async (event) => {
   let pushed = false;
   if (SUBSCRIBE_TEMPLATE_ID) {
     try {
+      const [selfProfileRes, targetProfileRes] = await Promise.all([
+        db.collection("userProfile").where({ _openid: OPENID }).limit(1).get(),
+        db.collection("userProfile").where({ _openid: targetOpenid }).limit(1).get(),
+      ]);
+      const selfNickname = (selfProfileRes.data[0] && selfProfileRes.data[0].nickname) || "牛马搭子";
+      const targetNickname = (targetProfileRes.data[0] && targetProfileRes.data[0].nickname) || "打工人";
+      const lastCheckin = target.lastDailyRationAt
+        ? new Date(target.lastDailyRationAt + CN_TZ_OFFSET_MS).toISOString().slice(0, 16).replace("T", " ")
+        : "从未打卡";
+
       await cloud.openapi.subscribeMessage.send({
         touser: targetOpenid,
         templateId: SUBSCRIBE_TEMPLATE_ID,
         page: "pages/town/index",
         data: {
-          thing1: { value: "搭子今天还没来摸鱼小镇打卡哦" },
-          time2: { value: new Date(now + CN_TZ_OFFSET_MS).toISOString().slice(0, 16).replace("T", " ") },
+          thing1: { value: targetNickname.slice(0, 20) },
+          thing2: { value: `被${selfNickname}批评啦`.slice(0, 20) },
+          time3: { value: lastCheckin },
+          thing4: { value: "快去摸鱼小镇签到" },
         },
       });
       pushed = true;
