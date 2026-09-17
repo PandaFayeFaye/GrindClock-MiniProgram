@@ -18,7 +18,7 @@ import { RetroClockInModal } from "../../components/RetroClockInModal";
 import { ScheduleConfirmModal } from "../../components/ScheduleConfirmModal";
 import { CoachTour, HOME_COACH_STEPS } from "../../components/CoachTour";
 import { fetchTownProfile, unlockTown, awardRealPunchBonus } from "../../lib/cloudTown";
-import type { TownProfile } from "../../lib/town";
+import { TOWN_LEVELS, type TownProfile } from "../../lib/town";
 import type { Employer, PayType, TimeEntry } from "../../lib/types";
 import "./index.scss";
 
@@ -168,6 +168,15 @@ export default function Index() {
   const petStageIdx = currentPetStageIndex(totalHoursAllTime);
   const petStage = PET_STAGES[petStageIdx];
   const nextPetStage = PET_STAGES[petStageIdx + 1];
+  // The user's own tier/title (shown in the header and 我的 page) stays
+  // purely real-hours-based. But the companion is the resident of 摸鱼小镇,
+  // so once that's unlocked its OWN displayed title switches to the town's
+  // independent 摸鱼资历 ladder instead of the pet-growth name -- the two
+  // systems stay fully decoupled, this only changes which one labels the
+  // companion widget's popover.
+  const companionStageName = townProfile?.unlocked
+    ? TOWN_LEVELS[townProfile.titleIndex]?.title ?? petStage.name
+    : petStage.name;
   const petHungry = isPetHungry(lastFedAt);
   const hungryHours = Math.floor(hoursSinceFed(lastFedAt));
   const companionMood = useMemo(() => latestMoodOrFallback(entries), [entries]);
@@ -500,7 +509,7 @@ export default function Index() {
         <CompanionWidget
           animal={animal}
           mbti={mbti}
-          stageName={petStage.name}
+          stageName={companionStageName}
           stageAccessory={petStage.accessory}
           hungry={petHungry}
           progressPct={petProgressPct}
