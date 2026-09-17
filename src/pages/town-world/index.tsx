@@ -199,7 +199,11 @@ export default function TownWorldPage() {
                       // Spread decorations in a ring around the companion instead
                       // of stacking them above its head -- circle math keyed off
                       // index/total so N items are always evenly spaced.
-                      const angle = (di / entry.decorations.length) * Math.PI * 2 - Math.PI / 2;
+                      // Start at 0 (right) instead of top -- with 2 owned
+                      // items (the common case) that lands one on each side
+                      // of the body instead of one on the head and one at
+                      // the feet.
+                      const angle = (di / entry.decorations.length) * Math.PI * 2;
                       const cx = 50 + Math.cos(angle) * 46;
                       const cy = 50 + Math.sin(angle) * 46;
                       return (
