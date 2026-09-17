@@ -38,14 +38,18 @@
 .sway-1 { animation: town-sway-b 4.1s ease-in-out infinite; }
 .sway-2 { animation: town-sway-a 3.8s ease-in-out infinite reverse; }
 
+// `rotate()` transforms turned out not to render reliably in this runtime
+// (confirmed: only the effects below that avoid rotate -- steam, and this
+// translate/scale-based sway -- actually animate on real test). Every idle
+// animation on this page sticks to translateY/scale from here on.
 @keyframes town-sway-a {
-  0%, 100% { transform: rotate(-3deg); }
-  50% { transform: rotate(3deg); }
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6rpx) scale(1.04); }
 }
 
 @keyframes town-sway-b {
-  0%, 100% { transform: rotate(2deg) scale(1); }
-  50% { transform: rotate(-2deg) scale(1.03); }
+  0%, 100% { transform: translateY(-4rpx) scale(1.03); }
+  50% { transform: translateY(2rpx) scale(0.97); }
 }
 
 .town-building {
@@ -80,26 +84,25 @@
 // filters on WeChat's native <image> component are unreliable, but a plain
 // <view> always animates correctly.
 .effect-sway {
-  transform-origin: 50% 92%;
-  animation: town-sway-b 3s ease-in-out infinite;
+  animation: town-building-sway 2.2s ease-in-out infinite;
 }
 
-@keyframes town-sway-b {
-  0%, 100% { transform: rotate(-7deg); }
-  50% { transform: rotate(7deg); }
+@keyframes town-building-sway {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10rpx) scale(1.05); }
 }
 
 .effect-shake {
-  animation: town-shake 1.8s ease-in-out infinite;
+  animation: town-shake 1.6s ease-in-out infinite;
 }
 
 @keyframes town-shake {
-  0%, 60%, 100% { transform: rotate(0deg) translateX(0); }
-  65% { transform: rotate(-6deg) translateX(-4rpx); }
-  70% { transform: rotate(6deg) translateX(4rpx); }
-  75% { transform: rotate(-5deg) translateX(-3rpx); }
-  80% { transform: rotate(4deg) translateX(2rpx); }
-  85% { transform: rotate(0deg) translateX(0); }
+  0%, 55%, 100% { transform: translateX(0) translateY(0); }
+  60% { transform: translateX(-6rpx) translateY(-2rpx); }
+  65% { transform: translateX(6rpx) translateY(0); }
+  70% { transform: translateX(-5rpx) translateY(-2rpx); }
+  75% { transform: translateX(4rpx) translateY(0); }
+  80% { transform: translateX(0) translateY(0); }
 }
 
 .effect-glint {
@@ -234,8 +237,8 @@
 }
 
 @keyframes town-sprite-busy {
-  0%, 100% { transform: translate(-50%, -50%) rotate(-4deg) translateY(0); }
-  50% { transform: translate(-50%, -50%) rotate(4deg) translateY(-6rpx); }
+  0%, 100% { transform: translate(-50%, -50%) scale(1) translateY(0); }
+  50% { transform: translate(-50%, -50%) scale(1.08) translateY(-10rpx); }
 }
 
 .town-sprite-activity {

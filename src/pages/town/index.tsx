@@ -375,7 +375,7 @@ export default function TownPage() {
             <Text className="town-picker-title deco-title">用特产兑换装饰（去世界页面展示）</Text>
             <View className="town-deco-shop">
               {TOWN_DECORATIONS.map((deco) => {
-                const owned = profile.decorations.includes(deco.key);
+                const owned = (profile.decorations || []).includes(deco.key);
                 const have = inventory[deco.costItem] ?? 0;
                 return (
                   <View className="town-deco-item" key={deco.key}>

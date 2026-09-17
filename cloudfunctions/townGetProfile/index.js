@@ -42,6 +42,13 @@ exports.main = async (event) => {
     await ref.update({ data: { unlocked: true, unlockedAt: profile.unlockedAt } });
   }
 
+  // Self-heal profiles created before a field existed (e.g. `decorations`
+  // added later) so older accounts don't crash client code that assumes it.
+  if (!profile.decorations) {
+    profile.decorations = [];
+    await ref.update({ data: { decorations: [] } });
+  }
+
   await ref.update({ data: { lastActiveAt: Date.now() } });
 
   return { ok: true, profile };
