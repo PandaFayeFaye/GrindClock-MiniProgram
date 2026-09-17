@@ -80,9 +80,11 @@ exports.main = async (event) => {
         page: "pages/town/index",
         data: {
           thing1: { value: targetNickname.slice(0, 20) },
-          thing2: { value: `被${selfNickname}批评啦`.slice(0, 20) },
+          // thing fields are capped at 20 chars -- trim the nickname first
+          // so the fixed wording around it never gets silently truncated.
+          thing2: { value: `被${selfNickname.slice(0, 8)}发现你没打卡，批评你啦`.slice(0, 20) },
           time3: { value: lastCheckin },
-          thing4: { value: "快去摸鱼小镇签到" },
+          thing4: { value: "还不快滚去摸鱼小镇签到打卡认真搬砖！" },
         },
       });
       pushed = true;
