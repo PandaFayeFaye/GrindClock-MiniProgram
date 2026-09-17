@@ -222,6 +222,16 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
+.world-notify-btn {
+  align-self: flex-start;
+  border: 2px solid var(--border-bold);
+  border-radius: var(--radius-quiet);
+  background: var(--accent-yellow);
+  font-size: 20rpx;
+  font-weight: 700;
+  margin: 0;
+}
+
 .world-my-rank {
   display: flex;
   align-items: baseline;

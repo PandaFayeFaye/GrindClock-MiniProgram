@@ -30,6 +30,7 @@ import {
   HUD_ICON_COIN,
   TOWN_IDLE_SPOT,
   TOWN_DECORATIONS,
+  ALL_SUBSCRIBE_TEMPLATE_IDS,
   type TownJob,
   type TownProfile,
 } from "../../lib/town";
@@ -211,6 +212,15 @@ export default function TownPage() {
     }
   }
 
+  function handleGoToWorld() {
+    // Piggyback the subscribe-message ask on this real tap -- WeChat only
+    // shows the permission popup when requestSubscribeMessage is called
+    // directly inside a genuine user gesture, never from a lifecycle hook,
+    // so this is the most "automatic-feeling" reliable place to ask.
+    Taro.requestSubscribeMessage({ tmplIds: ALL_SUBSCRIBE_TEMPLATE_IDS } as Taro.requestSubscribeMessage.Option).catch(() => {});
+    Taro.navigateTo({ url: "/pages/town-world/index" });
+  }
+
   function handleSpriteTap() {
     setTapPulse(true);
     setTimeout(() => setTapPulse(false), 500);
@@ -352,7 +362,7 @@ export default function TownPage() {
             <Text>晋升</Text>
           </View>
         </View>
-        <View className="town-hud-btn" onClick={() => Taro.navigateTo({ url: "/pages/town-world/index" })} aria-label="前往世界页面">
+        <View className="town-hud-btn" onClick={handleGoToWorld} aria-label="前往世界页面">
           <Image className="town-hud-btn-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
           <View className="town-hud-btn-content">
             <Image className="town-hud-btn-icon" src={HUD_ICON_FLAG} mode="aspectFit" />

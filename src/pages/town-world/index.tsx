@@ -51,19 +51,25 @@ export default function TownWorldPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useDidShow(() => {
-    load();
-    // Best-effort opt-in so friends can actually reach this viewer with a
-    // 批评/偷菜/摊派 push later -- each one-time subscribe grant is consumed
-    // per send, so re-asking for BOTH templates on every visit here keeps
-    // them reachable for both kinds of notification. `entityIds` is an
-    // Alipay-only field -- adding it here (even empty) was tripping up the
-    // real weapp call, which is why the permission prompt never showed; the
-    // type-only cast avoids sending it while still satisfying Taro's types.
+  useDidShow(() => load());
+
+  // WeChat's requestSubscribeMessage reliably shows its permission popup
+  // only when called directly inside a genuine user tap -- calling it from
+  // a lifecycle hook like useDidShow gets silently skipped (no popup, no
+  // error), which is why it never appeared before. Must be triggered by an
+  // actual button tap instead.
+  function handleEnableNotify() {
     Taro.requestSubscribeMessage({ tmplIds: ALL_SUBSCRIBE_TEMPLATE_IDS } as Taro.requestSubscribeMessage.Option)
-      .then((res) => console.log("[town-world] requestSubscribeMessage result:", res))
-      .catch((err) => console.error("[town-world] requestSubscribeMessage failed:", err));
-  });
+      .then((res) => {
+        console.log("[town-world] requestSubscribeMessage result:", res);
+        const accepted = ALL_SUBSCRIBE_TEMPLATE_IDS.some((id) => res[id] === "accept");
+        Taro.showToast({ title: accepted ? "已开启，下次会收到微信提醒" : "没有勾选同意的话收不到提醒哦", icon: "none" });
+      })
+      .catch((err) => {
+        console.error("[town-world] requestSubscribeMessage failed:", err);
+        Taro.showToast({ title: "开启失败，稍后再试", icon: "none" });
+      });
+  }
 
   async function handleSteal(entry: WorldEntry) {
     try {
@@ -114,6 +120,9 @@ export default function TownWorldPage() {
       <Image className="world-bg" src={TOWN_SCENE_BG} mode="aspectFill" aria-label="小镇世界背景" />
       <View className="world-content">
         <Text className="world-hint">所有开启了摸鱼小镇的搭子都在这里，互相可见互相可逛～点搭子可以直接操作</Text>
+        <Button className="world-notify-btn" size="mini" onClick={handleEnableNotify}>
+          开启微信提醒（被偷/被批评时收到通知）
+        </Button>
 
         {!loading && plazaEntries.length > 0 && (
           <View className="world-plaza">
