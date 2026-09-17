@@ -62,6 +62,26 @@
   color: var(--text-muted);
 }
 
+// A self-preview card so the player can confirm what decorations actually
+// look like on display -- their own entry is otherwise excluded from the
+// visitable list below, so there was no way to see this without asking a
+// friend to check.
+.world-self-card {
+  border-color: var(--accent-skyblue);
+  box-shadow: 0 0 0 3px rgba(90, 200, 250, 0.35), var(--shadow-bold-sm);
+}
+
+.world-self-tag {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  font-weight: 800;
+  color: #fff;
+  background: var(--accent-skyblue);
+  border: 2px solid var(--border-bold);
+  border-radius: var(--radius-quiet);
+  padding: 4rpx 12rpx;
+}
+
 .world-exp-line {
   font-size: 22rpx;
   font-weight: 700;

@@ -2,7 +2,8 @@ import { useState, useCallback } from "react";
 import { View, Text, Button, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, criticizeForNotCheckingIn, type WorldEntry } from "../../lib/cloudTown";
-import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, SUBSCRIBE_TEMPLATE_ID } from "../../lib/town";
+import { fetchUserProfile } from "../../lib/cloud";
+import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, TOWN_LEVELS, SUBSCRIBE_TEMPLATE_ID } from "../../lib/town";
 import "./index.scss";
 
 function relativeTime(ts: number | null): string {
@@ -18,18 +19,24 @@ function relativeTime(ts: number | null): string {
 export default function TownWorldPage() {
   const [list, setList] = useState<WorldEntry[]>([]);
   const [myTitleIndex, setMyTitleIndex] = useState(0);
+  const [myExp, setMyExp] = useState(0);
+  const [myDecorations, setMyDecorations] = useState<string[]>([]);
+  const [myNickname, setMyNickname] = useState("我");
   const [myRank, setMyRank] = useState<number | null>(null);
   const [totalRanked, setTotalRanked] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
     setLoading(true);
-    Promise.all([fetchWorld(), fetchTownProfile()])
-      .then(([world, mine]) => {
+    Promise.all([fetchWorld(), fetchTownProfile(), fetchUserProfile()])
+      .then(([world, mine, userProfile]) => {
         setList(world.list);
         setMyRank(world.myRank);
         setTotalRanked(world.totalRanked);
         setMyTitleIndex(mine.profile.titleIndex);
+        setMyExp(mine.profile.companionExp);
+        setMyDecorations(mine.profile.decorations || []);
+        if (userProfile?.nickname) setMyNickname(userProfile.nickname);
       })
       .catch(() => Taro.showToast({ title: "加载失败", icon: "none" }))
       .finally(() => setLoading(false));
@@ -99,6 +106,29 @@ export default function TownWorldPage() {
             <Text className="world-my-rank-label">你的排名</Text>
             <Text className="world-my-rank-value">第 {myRank} 名</Text>
             <Text className="world-my-rank-total">/ 共{totalRanked}人</Text>
+          </View>
+        )}
+        {!loading && (
+          <View className="world-card world-self-card">
+            <View className="world-card-head">
+              <Text className="world-self-tag">我的展示</Text>
+              <Text className="world-nickname">{myNickname}</Text>
+              <View className="world-title-badge" aria-label={`职级 ${TOWN_LEVELS[myTitleIndex]?.title}`}>
+                <Image className="world-title-icon" src={HUD_ICON_TROPHY} mode="aspectFit" />
+                <Text>{TOWN_LEVELS[myTitleIndex]?.title}</Text>
+              </View>
+            </View>
+            <Text className="world-exp-line">摸鱼资历 {myExp}</Text>
+            {myDecorations.length > 0 ? (
+              <View className="world-deco-row" aria-label={`我拥有的装饰：${myDecorations.map((k) => TOWN_DECORATIONS.find((d) => d.key === k)?.name ?? k).join("、")}`}>
+                {myDecorations.map((key) => {
+                  const deco = TOWN_DECORATIONS.find((d) => d.key === key);
+                  return deco ? <Image key={key} className="world-deco-icon" src={deco.icon} mode="aspectFit" /> : null;
+                })}
+              </View>
+            ) : (
+              <Text className="world-meta">还没有任何装饰，去仓库里用特产兑换一个吧——兑换后别人逛到你的地盘就能看到</Text>
+            )}
           </View>
         )}
         {loading ? (
