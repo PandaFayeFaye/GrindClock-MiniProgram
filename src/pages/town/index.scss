@@ -142,6 +142,33 @@
   animation: town-sprite-bob 2.2s ease-in-out infinite, town-sprite-jump 0.5s ease-out;
 }
 
+// While actually on shift, the companion gets a busier, faster wiggle
+// instead of the calm idle bob, plus a small floating icon of what it's
+// doing (see .town-sprite-activity) -- otherwise "working" was indistinguishable
+// from idling next to a building.
+.town-sprite.working {
+  animation: town-sprite-busy 0.9s ease-in-out infinite;
+}
+
+@keyframes town-sprite-busy {
+  0%, 100% { transform: translate(-50%, -50%) rotate(-4deg) translateY(0); }
+  50% { transform: translate(-50%, -50%) rotate(4deg) translateY(-6rpx); }
+}
+
+.town-sprite-activity {
+  position: absolute;
+  top: -108rpx;
+  width: 64rpx;
+  height: 64rpx;
+  animation: town-activity-float 1.4s ease-in-out infinite;
+  filter: drop-shadow(0 4rpx 4rpx rgba(0, 0, 0, 0.3));
+}
+
+@keyframes town-activity-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10rpx) scale(1.08); }
+}
+
 @keyframes town-sprite-bob {
   0%, 100% { transform: translate(-50%, -50%) translateY(0); }
   50% { transform: translate(-50%, -50%) translateY(-10rpx); }
@@ -383,10 +410,14 @@
 
 // WeChat's native <button disabled> applies its own washed-out text color
 // by default, which combined with our white background made the "申请晋升"
-// button look like an empty box -- pin an explicit, still-legible color.
+// button look like an empty box -- pin an explicit, still-legible color AND
+// a visibly greyed background, so "disabled" reads unambiguously instead of
+// looking like a normal button that just does nothing when tapped.
 .town-secondary-btn[disabled],
 .town-primary-btn[disabled] {
-  color: var(--text-muted);
+  background: #DCD5C4;
+  color: #8A8272;
+  border-color: #8A8272;
   opacity: 1;
 }
 

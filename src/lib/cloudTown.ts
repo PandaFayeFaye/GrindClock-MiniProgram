@@ -42,6 +42,10 @@ export function feedCompanionInTown() {
   return call<{ profile: TownProfile }>("townFeed");
 }
 
+export function cancelJob() {
+  return call<{ profile: TownProfile }>("townCancelJob");
+}
+
 export function sendToWork(jobKey: string) {
   return call<{ profile: TownProfile }>("townSendToWork", { jobKey });
 }

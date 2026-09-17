@@ -8,6 +8,7 @@ import {
   sendToWork,
   collectJob,
   promote,
+  cancelJob,
 } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
 import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
@@ -120,6 +121,25 @@ export default function TownPage() {
     }
   }
 
+  async function handleCancelJob() {
+    Taro.showModal({
+      title: "召回搭子？",
+      content: "已经花掉的班车费不会退还，且这一趟不会有任何产出，确定要提前召回吗？",
+      confirmText: "召回",
+      cancelText: "再等等",
+      success: (res) => {
+        if (!res.confirm) return;
+        setDrawer(null);
+        cancelJob()
+          .then((r) => {
+            setProfile(r.profile);
+            Taro.showToast({ title: "搭子回来了", icon: "none" });
+          })
+          .catch(() => Taro.showToast({ title: "召回失败", icon: "none" }));
+      },
+    });
+  }
+
   async function handleSendToWork(job: TownJob) {
     try {
       const res = await sendToWork(job.key);
@@ -188,10 +208,12 @@ export default function TownPage() {
     );
   }
 
-  // Companion sits at its work building while a job is running, otherwise
-  // idles in the town square center -- tapping it always opens quick actions.
-  const spriteX = workingJob ? workingJob.x : TOWN_IDLE_SPOT.x;
-  const spriteY = workingJob ? workingJob.y + 6 : TOWN_IDLE_SPOT.y;
+  // Companion stands just beside its work building (offset sideways, not
+  // stacked directly under it where it could overlap whatever building sits
+  // in the row below) while a job is running, otherwise idles at the fixed
+  // clearing -- tapping it always opens quick actions.
+  const spriteX = workingJob ? workingJob.x + (workingJob.x < 50 ? 9 : -9) : TOWN_IDLE_SPOT.x;
+  const spriteY = workingJob ? workingJob.y - 2 : TOWN_IDLE_SPOT.y;
 
   return (
     <View className="town-page">
@@ -233,7 +255,7 @@ export default function TownPage() {
       })}
 
       <View
-        className={`town-sprite${tapPulse ? " tap-pulse" : ""}`}
+        className={`town-sprite${tapPulse ? " tap-pulse" : ""}${workingJob && !jobReady ? " working" : ""}`}
         style={{ left: `${spriteX}%`, top: `${spriteY}%` }}
         onClick={handleSpriteTap}
         aria-label="搬砖搭子，点击查看状态和喂食"
@@ -241,6 +263,9 @@ export default function TownPage() {
         <View className={`town-sprite-bubble${jobReady ? " ready" : ""}`}>
           <Text>{workingJob ? (jobReady ? "打完卡啦！" : formatDuration(jobRemainingMs)) : "点我看看～"}</Text>
         </View>
+        {workingJob && !jobReady && (
+          <Image className="town-sprite-activity" src={buildingImageSrc(workingJob.key)} mode="aspectFit" />
+        )}
         <View className="town-sprite-glow" />
         <Image className="town-sprite-img" src={characterImageSrc(animal, mbti)} mode="aspectFit" />
         <View className="town-sprite-shadow" />
@@ -296,9 +321,15 @@ export default function TownPage() {
           <View className="town-picker-sheet" onClick={(e) => e.stopPropagation()}>
             <Text className="town-picker-title">搭子在干嘛</Text>
             <Text className="town-empty">{workingJob ? `正在「${workingJob.name}」打工` : "正闲着呢"}</Text>
-            <Button className="town-secondary-btn" onClick={handleFeed} disabled={profile.oxFeed < FEED_COST}>
-              喂食（{FEED_COST}粮）
-            </Button>
+            {workingJob && !jobReady ? (
+              <Button className="town-secondary-btn" onClick={handleCancelJob}>
+                提前召回（不领工资）
+              </Button>
+            ) : (
+              <Button className="town-secondary-btn" onClick={handleFeed} disabled={profile.oxFeed < FEED_COST}>
+                喂食（{FEED_COST}粮）
+              </Button>
+            )}
           </View>
         </View>
       )}
