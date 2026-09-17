@@ -129,8 +129,11 @@ export default function TownWorldPage() {
             {plazaEntries.map((entry, i) => {
               const isMe = meEntry && entry.openid === meEntry.openid;
               const seed = seededFraction(entry.openid);
-              const startX = 12 + seed * 76;
-              const startY = 15 + seededFraction(entry.openid + "y") * 60;
+              // Keep starting points closer to the middle -- the wander
+              // paths now swing a large distance in every direction, so a
+              // start pinned near an edge left no room to travel toward it.
+              const startX = 30 + seed * 40;
+              const startY = 35 + seededFraction(entry.openid + "y") * 30;
               const variant = i % WANDER_VARIANTS;
               const duration = 14 + (i % 5) * 3;
               const delay = seededFraction(entry.openid + "d") * -duration;

@@ -136,49 +136,59 @@
 .world-roamer-badge.empty { background: #8A8272; }
 .world-roamer-badge.steal { background: var(--accent-coral); }
 
+// Each path deliberately visits all four quadrants (a far up-left AND a far
+// down-right excursion, etc.) with a large amplitude relative to the plaza
+// box, so a roamer actually crosses the whole area over one loop instead of
+// pacing a small patch near wherever it happened to start.
 @keyframes world-wander-0 {
   0% { transform: translate(0, 0); }
-  20% { transform: translate(160rpx, -70rpx); }
-  45% { transform: translate(80rpx, 150rpx); }
-  70% { transform: translate(-140rpx, 70rpx); }
+  15% { transform: translate(220rpx, -260rpx); }
+  35% { transform: translate(-260rpx, -220rpx); }
+  55% { transform: translate(-300rpx, 220rpx); }
+  80% { transform: translate(240rpx, 260rpx); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes world-wander-1 {
   0% { transform: translate(0, 0); }
-  25% { transform: translate(-120rpx, 100rpx); }
-  50% { transform: translate(-180rpx, -60rpx); }
-  75% { transform: translate(-40rpx, -140rpx); }
+  20% { transform: translate(-280rpx, 200rpx); }
+  45% { transform: translate(260rpx, 240rpx); }
+  70% { transform: translate(280rpx, -240rpx); }
+  90% { transform: translate(-220rpx, -200rpx); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes world-wander-2 {
   0% { transform: translate(0, 0); }
-  30% { transform: translate(110rpx, 130rpx); }
-  60% { transform: translate(180rpx, -40rpx); }
+  25% { transform: translate(260rpx, 230rpx); }
+  50% { transform: translate(300rpx, -240rpx); }
+  75% { transform: translate(-260rpx, -220rpx); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes world-wander-3 {
   0% { transform: translate(0, 0); }
-  20% { transform: translate(-80rpx, -120rpx); }
-  50% { transform: translate(120rpx, -160rpx); }
-  80% { transform: translate(160rpx, 50rpx); }
+  20% { transform: translate(-240rpx, -240rpx); }
+  45% { transform: translate(260rpx, -220rpx); }
+  70% { transform: translate(280rpx, 240rpx); }
+  90% { transform: translate(-260rpx, 200rpx); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes world-wander-4 {
   0% { transform: translate(0, 0); }
-  35% { transform: translate(-160rpx, 40rpx); }
-  65% { transform: translate(-70rpx, 160rpx); }
+  30% { transform: translate(-280rpx, 220rpx); }
+  60% { transform: translate(-260rpx, -240rpx); }
+  85% { transform: translate(240rpx, -200rpx); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes world-wander-5 {
   0% { transform: translate(0, 0); }
-  25% { transform: translate(100rpx, -150rpx); }
-  55% { transform: translate(-110rpx, -90rpx); }
-  80% { transform: translate(-60rpx, 100rpx); }
+  20% { transform: translate(240rpx, -250rpx); }
+  50% { transform: translate(-260rpx, -210rpx); }
+  75% { transform: translate(-280rpx, 230rpx); }
+  90% { transform: translate(220rpx, 210rpx); }
   100% { transform: translate(0, 0); }
 }
 
