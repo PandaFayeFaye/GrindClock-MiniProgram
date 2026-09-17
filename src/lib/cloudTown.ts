@@ -79,6 +79,7 @@ export type WorldEntry = {
   lastActiveAt: number | null;
   inventoryCount: number;
   decorations: string[];
+  checkedInToday: boolean;
 };
 
 export function fetchWorld() {
@@ -91,6 +92,10 @@ export function stealFrom(targetOpenid: string) {
 
 export function skimFrom(targetOpenid: string) {
   return call<{ profile: TownProfile; item: string; amount: number }>("townSkim", { targetOpenid });
+}
+
+export function criticizeForNotCheckingIn(targetOpenid: string) {
+  return call<{ pushed: boolean }>("townCriticize", { targetOpenid });
 }
 
 export function promote() {

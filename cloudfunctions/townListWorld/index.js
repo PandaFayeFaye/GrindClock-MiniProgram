@@ -14,6 +14,15 @@ const TOWN_LEVEL_TITLES = [
   "高级经理", "总监", "VP副总裁", "总经理", "CEO", "董事长",
 ];
 
+const CN_TZ_OFFSET_MS = 8 * 3_600_000;
+function cnDateKey(ts) {
+  return new Date(ts + CN_TZ_OFFSET_MS).toISOString().slice(0, 10);
+}
+function checkedInToday(lastDailyRationAt) {
+  if (!lastDailyRationAt) return false;
+  return cnDateKey(lastDailyRationAt) === cnDateKey(Date.now());
+}
+
 exports.main = async () => {
   const { OPENID } = cloud.getWXContext();
 
@@ -56,6 +65,7 @@ exports.main = async () => {
       lastActiveAt: p.lastActiveAt || null,
       inventoryCount: Object.values(p.inventory || {}).reduce((s, n) => s + n, 0),
       decorations: p.decorations || [],
+      checkedInToday: checkedInToday(p.lastDailyRationAt),
     }));
 
   return { ok: true, list, myRank, totalRanked: ranked.length };

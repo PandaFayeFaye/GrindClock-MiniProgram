@@ -35,6 +35,15 @@ import {
 } from "../../lib/town";
 import "./index.scss";
 
+function cnDateKey(t: number): string {
+  return new Date(t + 8 * 3_600_000).toISOString().slice(0, 10);
+}
+
+function isClaimedToday(lastDailyRationAt: number | null, now: number): boolean {
+  if (!lastDailyRationAt) return false;
+  return cnDateKey(lastDailyRationAt) === cnDateKey(now);
+}
+
 function formatDuration(ms: number): string {
   if (ms <= 0) return "已完成";
   const totalMin = Math.ceil(ms / 60000);
@@ -44,7 +53,7 @@ function formatDuration(ms: number): string {
   return `${m}分钟`;
 }
 
-type Drawer = "inventory" | "promote" | "actions" | null;
+type Drawer = "inventory" | "promote" | "actions" | "checkinPrompt" | null;
 
 export default function TownPage() {
   const [profile, setProfile] = useState<TownProfile | null>(null);
@@ -59,7 +68,15 @@ export default function TownPage() {
 
   const load = useCallback(() => {
     fetchTownProfile()
-      .then((res) => setProfile(res.profile))
+      .then((res) => {
+        setProfile(res.profile);
+        // Nudge the player toward today's check-in the moment they open the
+        // town, instead of leaving 牛马粮 collection as an easy-to-forget
+        // side action buried in the top bar.
+        if (res.profile.unlocked && !isClaimedToday(res.profile.lastDailyRationAt, Date.now())) {
+          setDrawer("checkinPrompt");
+        }
+      })
       .catch(() => Taro.showToast({ title: "加载失败", icon: "none" }))
       .finally(() => setLoading(false));
     fetchUserProfile().then((p) => {
@@ -96,11 +113,10 @@ export default function TownPage() {
   const jobReady = !!profile?.currentJob && jobRemainingMs <= 0;
   const workingJob = profile?.currentJob ? TOWN_JOBS.find((j) => j.key === profile.currentJob!.jobKey) : null;
 
-  const todayClaimed = useMemo(() => {
-    if (!profile?.lastDailyRationAt) return false;
-    const key = (t: number) => new Date(t + 8 * 3_600_000).toISOString().slice(0, 10);
-    return key(profile.lastDailyRationAt) === key(now);
-  }, [profile, now]);
+  const todayClaimed = useMemo(
+    () => isClaimedToday(profile?.lastDailyRationAt ?? null, now),
+    [profile, now],
+  );
 
   async function handleCheckin() {
     try {
@@ -339,6 +355,27 @@ export default function TownPage() {
           </View>
         </View>
       </View>
+
+      {drawer === "checkinPrompt" && (
+        <View className="town-picker-mask" onClick={() => setDrawer(null)}>
+          <View className="town-picker-sheet checkin-prompt" onClick={(e) => e.stopPropagation()}>
+            <Text className="town-picker-title">今天还没签到哦</Text>
+            <Text className="town-empty">搭子在等着摸鱼呢～先领一份牛马粮再开工吧</Text>
+            <Button
+              className="town-primary-btn"
+              onClick={() => {
+                setDrawer(null);
+                handleCheckin();
+              }}
+            >
+              立即签到
+            </Button>
+            <Button className="town-secondary-btn" onClick={() => setDrawer(null)}>
+              先逛逛小镇
+            </Button>
+          </View>
+        </View>
+      )}
 
       {drawer === "actions" && (
         <View className="town-picker-mask" onClick={() => setDrawer(null)}>

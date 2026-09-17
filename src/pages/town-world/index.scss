@@ -68,6 +68,31 @@
   color: #6B4A2E;
 }
 
+.world-checkin-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.world-checkin-tag {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #fff;
+  background: #8B3A2A;
+  border: 1.5px solid var(--border-bold);
+  border-radius: 6rpx;
+  padding: 2rpx 12rpx;
+}
+
+.world-checkin-tag.done {
+  background: var(--semantic-success);
+}
+
+.world-btn.criticize {
+  background: #8B3A2A;
+  color: #fff;
+}
+
 .world-loading {
   margin-top: 120rpx;
   text-align: center;

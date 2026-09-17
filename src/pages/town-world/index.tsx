@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import { View, Text, Button, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
-import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, type WorldEntry } from "../../lib/cloudTown";
-import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS } from "../../lib/town";
+import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, criticizeForNotCheckingIn, type WorldEntry } from "../../lib/cloudTown";
+import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, SUBSCRIBE_TEMPLATE_ID } from "../../lib/town";
 import "./index.scss";
 
 function relativeTime(ts: number | null): string {
@@ -35,7 +35,18 @@ export default function TownWorldPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useDidShow(() => load());
+  useDidShow(() => {
+    load();
+    // Best-effort opt-in so friends can actually reach this viewer with a
+    // "批评" push later -- a one-time subscribe grant is consumed per send,
+    // so re-asking on every visit here keeps them reachable. No-ops until
+    // SUBSCRIBE_TEMPLATE_ID is filled in (see cloudfunctions/townCriticize).
+    if (SUBSCRIBE_TEMPLATE_ID) {
+      // `entityIds` is an Alipay-only field that Taro's weapp types still
+      // require structurally -- harmless empty placeholder on this target.
+      Taro.requestSubscribeMessage({ tmplIds: [SUBSCRIBE_TEMPLATE_ID], entityIds: [] }).catch(() => {});
+    }
+  });
 
   async function handleSteal(entry: WorldEntry) {
     try {
@@ -47,6 +58,19 @@ export default function TownWorldPage() {
       const text =
         msg === "steal_cooldown" ? "今天偷TA偷够啦，明天再来" :
         msg === "nothing_to_steal" ? "TA的仓库空空如也" : "偷菜失败";
+      Taro.showToast({ title: text, icon: "none" });
+    }
+  }
+
+  async function handleCriticize(entry: WorldEntry) {
+    try {
+      const res = await criticizeForNotCheckingIn(entry.openid);
+      Taro.showToast({ title: res.pushed ? "已经批评TA，微信通知发过去了" : "已经批评TA啦（对方打开小程序会看到）", icon: "none" });
+    } catch (err) {
+      const msg = (err as Error).message;
+      const text =
+        msg === "already_checked_in" ? "TA已经打卡了，冤枉TA了" :
+        msg === "criticize_cooldown" ? "已经批评过了，再等等" : "批评失败";
       Taro.showToast({ title: text, icon: "none" });
     }
   }
@@ -98,6 +122,16 @@ export default function TownWorldPage() {
                   </View>
                 </View>
                 <Text className="world-exp-line">摸鱼资历 {entry.companionExp}</Text>
+                <View className="world-checkin-row">
+                  <Text className={`world-checkin-tag${entry.checkedInToday ? " done" : ""}`}>
+                    {entry.checkedInToday ? "今日已打卡" : "今日未打卡"}
+                  </Text>
+                  {!entry.checkedInToday && (
+                    <Button className="world-btn criticize" size="mini" onClick={() => handleCriticize(entry)}>
+                      批评TA
+                    </Button>
+                  )}
+                </View>
                 <Text className="world-meta">仓库里有 {entry.inventoryCount} 件特产 · {relativeTime(entry.lastActiveAt)}</Text>
                 {entry.decorations.length > 0 && (
                   <View className="world-deco-row" aria-label={`拥有装饰：${entry.decorations.map((k) => TOWN_DECORATIONS.find((d) => d.key === k)?.name ?? k).join("、")}`}>

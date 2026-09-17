@@ -127,6 +127,13 @@ export const TOWN_DECORATIONS: TownDecoration[] = [
   { key: "bossSofa", name: "老板专属沙发", icon: "/town/deco-icons/bossSofa.png", costItem: "dividend", costAmount: 8 },
 ];
 
+// Mirrors cloudfunctions/townCriticize's SUBSCRIBE_TEMPLATE_ID -- leave
+// empty until a one-time subscribe-message template exists in the mini
+// program's admin console (mp.weixin.qq.com -> 订阅消息), then fill in both
+// places with the real template id. Until then the World page simply skips
+// asking for subscribe permission, and criticize-pushes silently no-op.
+export const SUBSCRIBE_TEMPLATE_ID: string = "";
+
 export const DAILY_RATION = 15;
 export const FEED_COST = 10;
 export const STEAL_COOLDOWN_MS = 24 * 3_600_000;
