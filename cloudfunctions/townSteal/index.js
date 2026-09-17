@@ -10,30 +10,25 @@ const STEAL_COOLDOWN_MS = 24 * 3_600_000;
 const STEAL_MAX_PER_WINDOW = 3;
 const STEAL_EXP_GAIN = 3;
 
-// Reuses the same "打卡超时通知" template as townCriticize (see that
-// function for the field layout and setup notes) -- the outer notification
-// card will still read "打卡超时通知" since a template's title isn't
-// per-send editable, but the four content lines are, which is what
-// actually carries "you got robbed, go get it back" to the victim.
-const SUBSCRIBE_TEMPLATE_ID = "eqyBvDNghz6B1MqTm1MluJ_ttKt9c811eQ3yZRIRGFw";
+// "名片被访通知" template (公共模板库 #801), whose 场景说明 literally says
+// "偷菜和摊派" -- dedicated to this exact use case, unlike townCriticize's
+// check-in template. Fields: name1=访问人, date2=访问时间, thing3=访问详情,
+// thing4=温馨提示.
+const SUBSCRIBE_TEMPLATE_ID = "2pMbXON4D1mJGcWnyEAnIZEkvCKufeXsfruclncjtdU";
 
 async function notifyVictim(db, targetOpenid, thiefOpenid, item) {
   if (!SUBSCRIBE_TEMPLATE_ID) return;
   try {
-    const [targetProfileRes, thiefProfileRes] = await Promise.all([
-      db.collection("userProfile").where({ _openid: targetOpenid }).limit(1).get(),
-      db.collection("userProfile").where({ _openid: thiefOpenid }).limit(1).get(),
-    ]);
-    const targetNickname = (targetProfileRes.data[0] && targetProfileRes.data[0].nickname) || "打工人";
+    const thiefProfileRes = await db.collection("userProfile").where({ _openid: thiefOpenid }).limit(1).get();
     const thiefNickname = (thiefProfileRes.data[0] && thiefProfileRes.data[0].nickname) || "神秘搭子";
     await cloud.openapi.subscribeMessage.send({
       touser: targetOpenid,
       templateId: SUBSCRIBE_TEMPLATE_ID,
       page: "pages/town-world/index",
       data: {
-        thing1: { value: targetNickname.slice(0, 20) },
-        thing2: { value: `被${thiefNickname.slice(0, 6)}偷家啦`.slice(0, 20) },
-        time3: { value: new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 16).replace("T", " ") },
+        name1: { value: thiefNickname.slice(0, 10) },
+        date2: { value: new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10) },
+        thing3: { value: `被${thiefNickname.slice(0, 6)}偷家啦`.slice(0, 20) },
         thing4: { value: "快去世界里偷回来" },
       },
     });

@@ -9,27 +9,24 @@ const _ = db.command;
 const SKIM_COOLDOWN_MS = 6 * 3_600_000;
 const SKIM_RATE = 0.1;
 
-// See townSteal's copy of this for the full explanation -- same template,
-// reused fields, best-effort and awaited before returning.
-const SUBSCRIBE_TEMPLATE_ID = "eqyBvDNghz6B1MqTm1MluJ_ttKt9c811eQ3yZRIRGFw";
+// "名片被访通知" template (公共模板库 #801, 场景说明: "偷菜和摊派") -- see
+// townSteal's copy for the field layout. Same template, best-effort and
+// awaited before returning.
+const SUBSCRIBE_TEMPLATE_ID = "2pMbXON4D1mJGcWnyEAnIZEkvCKufeXsfruclncjtdU";
 
 async function notifyVictim(targetOpenid, actorOpenid) {
   if (!SUBSCRIBE_TEMPLATE_ID) return;
   try {
-    const [targetProfileRes, actorProfileRes] = await Promise.all([
-      db.collection("userProfile").where({ _openid: targetOpenid }).limit(1).get(),
-      db.collection("userProfile").where({ _openid: actorOpenid }).limit(1).get(),
-    ]);
-    const targetNickname = (targetProfileRes.data[0] && targetProfileRes.data[0].nickname) || "打工人";
+    const actorProfileRes = await db.collection("userProfile").where({ _openid: actorOpenid }).limit(1).get();
     const actorNickname = (actorProfileRes.data[0] && actorProfileRes.data[0].nickname) || "神秘搭子";
     await cloud.openapi.subscribeMessage.send({
       touser: targetOpenid,
       templateId: SUBSCRIBE_TEMPLATE_ID,
       page: "pages/town-world/index",
       data: {
-        thing1: { value: targetNickname.slice(0, 20) },
-        thing2: { value: `被${actorNickname.slice(0, 6)}画饼摊派了`.slice(0, 20) },
-        time3: { value: new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 16).replace("T", " ") },
+        name1: { value: actorNickname.slice(0, 10) },
+        date2: { value: new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10) },
+        thing3: { value: `被${actorNickname.slice(0, 6)}画饼摊派了`.slice(0, 20) },
         thing4: { value: "快去世界里争口气" },
       },
     });
