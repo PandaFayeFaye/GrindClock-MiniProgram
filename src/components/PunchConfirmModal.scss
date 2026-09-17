@@ -7,6 +7,10 @@
   z-index: 200;
 }
 
+// Plain <view> with overflow:auto is NOT touch-scrollable in WeChat mini
+// programs -- only <scroll-view> actually responds to swipes. The sheet
+// itself just sets the card chrome/max-height; a <scroll-view> inside it
+// (punch-modal-scroll) does the actual scrolling.
 .punch-modal-sheet {
   width: 100%;
   box-sizing: border-box;
@@ -14,12 +18,23 @@
   border-radius: 56rpx 56rpx 0 0;
   border: 3px solid var(--border-bold);
   border-bottom: none;
-  padding: 48rpx 44rpx 64rpx;
+  padding: 24rpx 0 0;
   display: flex;
   flex-direction: column;
-  gap: 36rpx;
   max-height: 85vh;
-  overflow-y: auto;
+}
+
+.punch-modal-scroll {
+  flex: 1;
+  min-height: 0;
+  padding: 24rpx 44rpx 64rpx;
+  box-sizing: border-box;
+}
+
+// scroll-view's own direct children don't get the parent's flex gap, so
+// this recreates the vertical rhythm the old flex column gave every section.
+.punch-modal-scroll > view + view {
+  margin-top: 36rpx;
 }
 
 .punch-modal-handle {

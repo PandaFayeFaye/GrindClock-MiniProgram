@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, Input, Textarea, Picker } from "@tarojs/components";
+import { View, Text, Input, Textarea, Picker, ScrollView } from "@tarojs/components";
 import type { Adjustment, Employer, Mood, TimeEntry } from "../lib/types";
 import { entryHours, entryPay } from "../lib/pay";
 import { currencySymbol } from "../lib/currency";
@@ -92,8 +92,9 @@ export function PunchConfirmModal({
 
   return (
     <View className="punch-modal-backdrop" catchMove onClick={onCancel}>
-      <View className="punch-modal-sheet" onClick={(e) => e.stopPropagation()} catchMove>
+      <View className="punch-modal-sheet" onClick={(e) => e.stopPropagation()}>
         <View className="punch-modal-handle" />
+        <ScrollView scrollY className="punch-modal-scroll" enableFlex>
 
         <View className="punch-modal-summary">
           <Text className="emp">{employer.name} · 本次工时</Text>
@@ -195,6 +196,7 @@ export function PunchConfirmModal({
         >
           <Text>确认，保存</Text>
         </View>
+        </ScrollView>
       </View>
     </View>
   );

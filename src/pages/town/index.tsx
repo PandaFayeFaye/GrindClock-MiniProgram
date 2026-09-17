@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { View, Text, Button, Image } from "@tarojs/components";
+import { View, Text, Button, Image, ScrollView } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import {
   fetchTownProfile,
@@ -442,7 +442,7 @@ export default function TownPage() {
             )}
 
             <Text className="town-picker-title deco-title">用特产兑换装饰（去世界页面展示）</Text>
-            <View className="town-deco-shop">
+            <ScrollView scrollY className="town-deco-shop">
               {TOWN_DECORATIONS.map((deco) => {
                 const owned = (profile.decorations || []).includes(deco.key);
                 const have = inventory[deco.costItem] ?? 0;
@@ -462,7 +462,7 @@ export default function TownPage() {
                   </View>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
         </View>
       )}
@@ -471,7 +471,7 @@ export default function TownPage() {
         <View className="town-picker-mask" onClick={() => setDrawer(null)}>
           <View className="town-picker-sheet" onClick={(e) => e.stopPropagation()}>
             <Text className="town-picker-title">职场晋升之路</Text>
-            <View className="town-ladder">
+            <ScrollView scrollY className="town-ladder">
               {TOWN_LEVELS.map((lvl, i) => {
                 const state = i < titleIndex ? "done" : i === titleIndex ? "current" : "locked";
                 const isNext = i === titleIndex + 1;
@@ -489,7 +489,7 @@ export default function TownPage() {
                   </View>
                 );
               })}
-            </View>
+            </ScrollView>
             {nextLevel ? (
               <Button className="town-secondary-btn" disabled={!canPromote(profile)} onClick={handlePromote}>
                 申请晋升到「{nextLevel.title}」
