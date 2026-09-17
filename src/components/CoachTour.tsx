@@ -24,6 +24,7 @@ export const HOME_COACH_STEPS: CoachStep[] = [
   { title: "AI记工 / 补录 / 开副本", body: "首页下方按钮可以拍照/语音记工、批量补录搬砖时长、或者开启新副本。", target: "fab-wrap" },
   { title: "统计页：趋势 / 日历 / 排行", body: "能看每天的工时收入趋势、加班统计，以及完整明细。" },
   { title: "我的：心情记录 & 数据洞察", body: "能记录每天的心情曲线、查看净收益对比和本月战绩总结，还能管理成就徽章墙。" },
+  { title: "多摸摸你的搭子……", body: "认真喂养它之外，好像还藏着点别的小秘密，多点几下试试看？", target: "companion-widget" },
 ];
 
 interface Rect {
