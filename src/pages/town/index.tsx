@@ -53,7 +53,7 @@ function formatDuration(ms: number): string {
   return `${m}分钟`;
 }
 
-type Drawer = "inventory" | "promote" | "actions" | "checkinPrompt" | null;
+type Drawer = "inventory" | "promote" | "actions" | "checkinPrompt" | "jobReadyPrompt" | null;
 
 export default function TownPage() {
   const [profile, setProfile] = useState<TownProfile | null>(null);
@@ -70,10 +70,11 @@ export default function TownPage() {
     fetchTownProfile()
       .then((res) => {
         setProfile(res.profile);
-        // Nudge the player toward today's check-in the moment they open the
-        // town, instead of leaving 牛马粮 collection as an easy-to-forget
-        // side action buried in the top bar.
-        if (res.profile.unlocked && !isClaimedToday(res.profile.lastDailyRationAt, Date.now())) {
+        // A finished shift takes priority over the check-in nudge -- it's
+        // an actual reward waiting to be claimed, not just a reminder.
+        if (res.profile.currentJob && res.profile.currentJob.endsAt <= Date.now()) {
+          setDrawer("jobReadyPrompt");
+        } else if (res.profile.unlocked && !isClaimedToday(res.profile.lastDailyRationAt, Date.now())) {
           setDrawer("checkinPrompt");
         }
       })
@@ -180,8 +181,12 @@ export default function TownPage() {
       const res = await collectJob();
       setProfile(res.profile);
       Taro.showToast({ title: `收获 ${ITEM_LABEL[res.itemGained as keyof typeof ITEM_LABEL]} x${res.amountGained}`, icon: "none" });
-    } catch {
-      Taro.showToast({ title: "收工失败", icon: "none" });
+    } catch (err) {
+      // The generic "收工失败" toast gave no way to tell what actually went
+      // wrong -- surface the real error code so it shows up next to the
+      // transport/result errors already logged in lib/cloudTown.ts's call().
+      console.error("[town] collectJob failed:", err);
+      Taro.showToast({ title: `收工失败：${(err as Error).message || "未知错误"}`, icon: "none" });
     }
   }
 
@@ -355,6 +360,30 @@ export default function TownPage() {
           </View>
         </View>
       </View>
+
+      {drawer === "jobReadyPrompt" && workingJob && (
+        <View className="town-picker-mask" onClick={() => setDrawer(null)}>
+          <View className="town-picker-sheet" onClick={(e) => e.stopPropagation()}>
+            <View className="town-picker-header">
+              <Image className="town-picker-icon" src={buildingImageSrc(workingJob.key)} mode="aspectFit" />
+              <Text className="town-picker-title">「{workingJob.name}」打完卡啦！</Text>
+            </View>
+            <Text className="town-empty">搭子在等你去收工领取 {ITEM_LABEL[workingJob.item]} 呢</Text>
+            <Button
+              className="town-primary-btn"
+              onClick={() => {
+                setDrawer(null);
+                handleCollect();
+              }}
+            >
+              立即收工
+            </Button>
+            <Button className="town-secondary-btn" onClick={() => setDrawer(null)}>
+              等会再说
+            </Button>
+          </View>
+        </View>
+      )}
 
       {drawer === "checkinPrompt" && (
         <View className="town-picker-mask" onClick={() => setDrawer(null)}>
