@@ -253,7 +253,10 @@ export default function TownPage() {
             onClick={() => handleBuildingTap(job)}
             aria-label={`${job.name}${locked ? "，未解锁" : isWorkingHere ? (jobReady ? "，打工已完成可收工" : "，打工中") : ""}`}
           >
-            <View className={`town-building-imgwrap${job.effect ? ` effect-${job.effect}` : ""}`}>
+            <View
+              className={`town-building-imgwrap${job.effect ? ` effect-${job.effect}` : ""}`}
+              style={{ animationDelay: `${(job.x % 10) * 0.15}s` }}
+            >
               <Image
                 className="town-building-img"
                 src={job.key === "bbqStall" && flicker ? "/town/bbqStall-b.png" : buildingImageSrc(job.key)}
@@ -378,7 +381,7 @@ export default function TownPage() {
                 const owned = (profile.decorations || []).includes(deco.key);
                 const have = inventory[deco.costItem] ?? 0;
                 return (
-                  <View className="town-deco-item" key={deco.key}>
+                  <View className={`town-deco-item${owned ? " owned" : ""}`} key={deco.key}>
                     <Image className="town-deco-item-icon" src={deco.icon} mode="aspectFit" />
                     <Text className="town-deco-item-name">{deco.name}</Text>
                     <Text className="town-deco-item-cost">{ITEM_LABEL[deco.costItem]} {have}/{deco.costAmount}</Text>

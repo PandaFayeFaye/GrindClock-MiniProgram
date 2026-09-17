@@ -92,17 +92,17 @@
   50% { transform: translateY(-10rpx) scale(1.05); }
 }
 
+// A calm little "ping" bounce (was a left-right shake, which read as
+// jarring/broken with all four shake-jobs moving in lockstep) -- each job
+// gets a slightly different animation-delay (set inline) so they bounce out
+// of sync instead of all twitching together.
 .effect-shake {
-  animation: town-shake 1.6s ease-in-out infinite;
+  animation: town-ping 2.4s ease-in-out infinite;
 }
 
-@keyframes town-shake {
-  0%, 55%, 100% { transform: translateX(0) translateY(0); }
-  60% { transform: translateX(-6rpx) translateY(-2rpx); }
-  65% { transform: translateX(6rpx) translateY(0); }
-  70% { transform: translateX(-5rpx) translateY(-2rpx); }
-  75% { transform: translateX(4rpx) translateY(0); }
-  80% { transform: translateX(0) translateY(0); }
+@keyframes town-ping {
+  0%, 70%, 100% { transform: translateY(0) scale(1); }
+  85% { transform: translateY(-8rpx) scale(1.06); }
 }
 
 .effect-glint {
@@ -540,79 +540,78 @@
 }
 
 .town-deco-shop {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--space-2);
-  max-height: 320rpx;
+  max-height: 420rpx;
   overflow-y: auto;
+  padding: 2rpx;
 }
 
 .town-deco-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
+  gap: 6rpx;
   background: #fff;
   border: 2px solid var(--border-bold);
   border-radius: var(--radius-quiet);
-  padding: 10rpx 16rpx;
+  padding: 16rpx 10rpx 12rpx;
+  box-shadow: var(--shadow-bold-sm);
+}
+
+.town-deco-item.owned {
+  background: #FFF6D8;
 }
 
 .town-deco-item-icon {
-  width: 56rpx;
-  height: 56rpx;
-  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
 }
 
 .town-deco-item-name {
   font-size: 22rpx;
   font-weight: 700;
-  flex-shrink: 0;
+  text-align: center;
 }
 
 .town-deco-item-cost {
   font-size: 20rpx;
   color: var(--text-muted);
-  flex: 1;
+  text-align: center;
 }
 
+// Centered modal dialogs (was a bottom pull-up sheet -- the drag/slide
+// interaction read as clunky for something that's really just a quick
+// info+action popup, not a long scrollable list).
 .town-picker-mask {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  box-sizing: border-box;
   z-index: 50;
 }
 
 // A parchment-toned panel (warm paper color, thick wood-brown border) so
-// drawers read as part of the town's world -- like a quest scroll -- rather
-// than a generic white app bottom-sheet dropped on top of the scene.
+// dialogs read as part of the town's world -- like a quest scroll -- rather
+// than a generic white app modal dropped on top of the scene.
 .town-picker-sheet {
   width: 100%;
-  max-height: 75vh;
+  max-width: 560rpx;
+  max-height: 80vh;
   background: #F3E8CE;
-  border-radius: var(--radius-poster) var(--radius-poster) 0 0;
+  border-radius: var(--radius-poster);
   border: 4rpx solid #6B4A2E;
-  border-bottom: none;
   padding: var(--space-4);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-4));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  box-shadow: 0 -8rpx 24rpx rgba(0, 0, 0, 0.25);
-}
-
-.town-picker-sheet::before {
-  content: "";
-  display: block;
-  width: 72rpx;
-  height: 8rpx;
-  border-radius: 4rpx;
-  background: #6B4A2E;
-  opacity: 0.4;
-  align-self: center;
-  margin-bottom: -4rpx;
+  box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.35);
 }
 
 .town-picker-header {
