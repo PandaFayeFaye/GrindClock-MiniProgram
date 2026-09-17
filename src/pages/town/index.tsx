@@ -30,7 +30,8 @@ import {
   HUD_ICON_COIN,
   TOWN_IDLE_SPOT,
   TOWN_DECORATIONS,
-  ALL_SUBSCRIBE_TEMPLATE_IDS,
+  SUBSCRIBE_TEMPLATE_ID,
+  STEAL_SUBSCRIBE_TEMPLATE_ID,
   type TownJob,
   type TownProfile,
 } from "../../lib/town";
@@ -121,6 +122,11 @@ export default function TownPage() {
   );
 
   async function handleCheckin() {
+    // Piggyback the "打卡超时通知" subscribe ask on this tap -- it's the
+    // template that later reminds THEM to check in, so asking for it right
+    // as they check in is the most relevant moment, and it's a real user
+    // gesture (required for the permission popup to actually show).
+    Taro.requestSubscribeMessage({ tmplIds: [SUBSCRIBE_TEMPLATE_ID] } as Taro.requestSubscribeMessage.Option).catch(() => {});
     try {
       const res = await townCheckin();
       setProfile(res.profile);
@@ -213,11 +219,11 @@ export default function TownPage() {
   }
 
   function handleGoToWorld() {
-    // Piggyback the subscribe-message ask on this real tap -- WeChat only
-    // shows the permission popup when requestSubscribeMessage is called
-    // directly inside a genuine user gesture, never from a lifecycle hook,
-    // so this is the most "automatic-feeling" reliable place to ask.
-    Taro.requestSubscribeMessage({ tmplIds: ALL_SUBSCRIBE_TEMPLATE_IDS } as Taro.requestSubscribeMessage.Option).catch(() => {});
+    // Piggyback the "名片被访通知" (偷菜/摊派) subscribe ask on this tap --
+    // relevant the moment they're heading somewhere they might get stolen
+    // from or steal from someone else, and it's a real user gesture (the
+    // permission popup only actually shows inside one).
+    Taro.requestSubscribeMessage({ tmplIds: [STEAL_SUBSCRIBE_TEMPLATE_ID] } as Taro.requestSubscribeMessage.Option).catch(() => {});
     Taro.navigateTo({ url: "/pages/town-world/index" });
   }
 
