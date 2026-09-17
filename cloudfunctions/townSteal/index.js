@@ -91,11 +91,18 @@ exports.main = async (event) => {
   selfInventory[item] = (selfInventory[item] || 0) + amount;
   const companionExp = (self.companionExp || 0) + STEAL_EXP_GAIN;
 
-  // The founder punishment: half of everything the thief owns (after the
-  // steal above is added in) gets clawed back and handed to the founder.
+  // The founder punishment only strikes the FIRST time a given thief steals
+  // from the founder -- a one-time "lesson learned", not a standing tax on
+  // every future steal.
   let punished = false;
   if (targetOpenid === FOUNDER_OPENID) {
-    punished = true;
+    const alreadyPunished = await db
+      .collection("townJobLog")
+      .where({ openid: OPENID, targetOpenid: FOUNDER_OPENID, type: "steal", punished: true })
+      .count();
+    punished = alreadyPunished.total === 0;
+  }
+  if (punished) {
     const tribute = {};
     for (const [k, qty] of Object.entries(selfInventory)) {
       const half = Math.floor((qty || 0) / 2);
