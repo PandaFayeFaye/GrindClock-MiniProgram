@@ -9,6 +9,7 @@ import {
   collectJob,
   promote,
   cancelJob,
+  buyDecoration,
 } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
 import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
@@ -28,6 +29,7 @@ import {
   HUD_ICON_FLAG,
   HUD_ICON_COIN,
   TOWN_IDLE_SPOT,
+  TOWN_DECORATIONS,
   type TownJob,
   type TownProfile,
 } from "../../lib/town";
@@ -177,6 +179,17 @@ export default function TownPage() {
     }
   }
 
+  async function handleBuyDecoration(key: string) {
+    try {
+      const res = await buyDecoration(key);
+      setProfile(res.profile);
+      Taro.showToast({ title: "兑换成功，去世界页面展示一下吧～", icon: "none" });
+    } catch (err) {
+      const msg = (err as Error).message;
+      Taro.showToast({ title: msg === "insufficient_materials" ? "材料不够" : msg === "already_owned" ? "已经拥有啦" : "兑换失败", icon: "none" });
+    }
+  }
+
   function handleSpriteTap() {
     setTapPulse(true);
     setTimeout(() => setTapPulse(false), 500);
@@ -240,17 +253,19 @@ export default function TownPage() {
             onClick={() => handleBuildingTap(job)}
             aria-label={`${job.name}${locked ? "，未解锁" : isWorkingHere ? (jobReady ? "，打工已完成可收工" : "，打工中") : ""}`}
           >
-            <Image
-              className={`town-building-img${job.effect && !locked ? ` effect-${job.effect}` : ""}`}
-              src={job.key === "bbqStall" && flicker ? "/town/bbqStall-b.png" : buildingImageSrc(job.key)}
-              mode="aspectFit"
-            />
-            {job.effect === "steam" && !locked && (
-              <View className="town-steam">
-                <View className="steam-puff puff-1" />
-                <View className="steam-puff puff-2" />
-              </View>
-            )}
+            <View className={`town-building-imgwrap${job.effect && !locked ? ` effect-${job.effect}` : ""}`}>
+              <Image
+                className="town-building-img"
+                src={job.key === "bbqStall" && flicker ? "/town/bbqStall-b.png" : buildingImageSrc(job.key)}
+                mode="aspectFit"
+              />
+              {job.effect === "steam" && !locked && (
+                <View className="town-steam">
+                  <View className="steam-puff puff-1" />
+                  <View className="steam-puff puff-2" />
+                </View>
+              )}
+            </View>
             {locked && <Text className="town-building-lock">未解锁</Text>}
             <Text className="town-building-label">{job.name}</Text>
             {isWorkingHere && (
@@ -356,6 +371,29 @@ export default function TownPage() {
                 ))}
               </View>
             )}
+
+            <Text className="town-picker-title deco-title">用特产兑换装饰（去世界页面展示）</Text>
+            <View className="town-deco-shop">
+              {TOWN_DECORATIONS.map((deco) => {
+                const owned = profile.decorations.includes(deco.key);
+                const have = inventory[deco.costItem] ?? 0;
+                return (
+                  <View className="town-deco-item" key={deco.key}>
+                    <Image className="town-deco-item-icon" src={deco.icon} mode="aspectFit" />
+                    <Text className="town-deco-item-name">{deco.name}</Text>
+                    <Text className="town-deco-item-cost">{ITEM_LABEL[deco.costItem]} {have}/{deco.costAmount}</Text>
+                    <Button
+                      className="town-secondary-btn"
+                      size="mini"
+                      disabled={owned || have < deco.costAmount}
+                      onClick={() => handleBuyDecoration(deco.key)}
+                    >
+                      {owned ? "已拥有" : "兑换"}
+                    </Button>
+                  </View>
+                );
+              })}
+            </View>
           </View>
         </View>
       )}

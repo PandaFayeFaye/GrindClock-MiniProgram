@@ -61,8 +61,8 @@ export type TownJob = {
 // and stagger x across 4 loose rows so buildings don't crowd each other.
 export const TOWN_JOBS: TownJob[] = [
   { key: "milkTeaShop", name: "奶茶店学徒", emoji: "🧋", color: "#FFD93D", feedCost: 5, durationMs: 1 * 3_600_000, expGain: 5, item: "milkTea", itemAmount: 1, unlockLevel: 0, x: 13, y: 27, effect: "steam" },
-  { key: "barista", name: "咖啡师", emoji: "☕", color: "#B084F5", feedCost: 8, durationMs: 2 * 3_600_000, expGain: 8, item: "coffeeBean", itemAmount: 2, unlockLevel: 1, x: 38, y: 33, effect: "steam" },
-  { key: "callCenter", name: "客服接线员", emoji: "📞", color: "#39C97A", feedCost: 10, durationMs: 4 * 3_600_000, expGain: 12, item: "phoneCard", itemAmount: 3, unlockLevel: 2, x: 64, y: 24, effect: "shake" },
+  { key: "barista", name: "咖啡师", emoji: "☕", color: "#B084F5", feedCost: 8, durationMs: 2 * 3_600_000, expGain: 8, item: "coffeeBean", itemAmount: 2, unlockLevel: 1, x: 38, y: 40, effect: "steam" },
+  { key: "callCenter", name: "客服接线员", emoji: "📞", color: "#39C97A", feedCost: 10, durationMs: 4 * 3_600_000, expGain: 12, item: "phoneCard", itemAmount: 3, unlockLevel: 2, x: 64, y: 32, effect: "shake" },
   { key: "convenienceStore", name: "便利店收银", emoji: "🏪", color: "#5AC8FA", feedCost: 5, durationMs: 1.5 * 3_600_000, expGain: 5, item: "snackPack", itemAmount: 1, unlockLevel: 0, x: 90, y: 34, effect: "glint" },
   { key: "rider", name: "外卖骑手", emoji: "🛵", color: "#FF6B6B", feedCost: 8, durationMs: 0.5 * 3_600_000, expGain: 5, item: "riderSubsidy", itemAmount: 1, unlockLevel: 1, x: 9, y: 51, effect: "shake" },
   { key: "boardroom", name: "董事会摸鱼", emoji: "💼", color: "#1A1A1A", feedCost: 20, durationMs: 4 * 3_600_000, expGain: 20, item: "dividend", itemAmount: 1, unlockLevel: 8, x: 56, y: 40, effect: "glint" },
@@ -103,6 +103,20 @@ export function townLevelIndex(exp: number): number {
   return TOWN_LEVELS.reduce((idx, lvl, i) => (exp >= lvl.expThreshold ? i : idx), 0);
 }
 
+// Decorations are pure cosmetics -- traded in from town-job specialties,
+// never affecting exp/title/oxFeed. This is the "装饰类" outlet from
+// MOYU_TOWN_SPEC.md section 7 that was originally missing: specialties had
+// nowhere to go except promotion materials and being stolen. Owned keys show
+// up next to the player's card on the World page as a small brag-worthy
+// badge row.
+export type TownDecoration = { key: string; name: string; icon: string; costItem: TownItemType; costAmount: number };
+export const TOWN_DECORATIONS: TownDecoration[] = [
+  { key: "milkTeaLantern", name: "奶茶灯笼", icon: "/town/deco-icons/milkTeaLantern.png", costItem: "milkTea", costAmount: 5 },
+  { key: "coffeeSign", name: "咖啡招牌", icon: "/town/deco-icons/coffeeSign.png", costItem: "coffeeBean", costAmount: 8 },
+  { key: "harvestScarecrow", name: "丰收稻草人", icon: "/town/deco-icons/harvestScarecrow.png", costItem: "veggie", costAmount: 10 },
+  { key: "goldTrophy", name: "金色奖杯", icon: "/town/deco-icons/goldTrophy.png", costItem: "dividend", costAmount: 3 },
+];
+
 export const DAILY_RATION = 15;
 export const FEED_COST = 10;
 export const STEAL_COOLDOWN_MS = 24 * 3_600_000;
@@ -122,6 +136,7 @@ export type TownProfile = {
   currentJob: { jobKey: string; startedAt: number; endsAt: number } | null;
   inventory: TownInventory;
   promotionSubmissions: Record<string, TownInventory>;
+  decorations: string[];
   lastActiveAt: number | null;
 };
 

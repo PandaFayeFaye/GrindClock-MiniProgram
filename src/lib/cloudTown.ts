@@ -46,6 +46,19 @@ export function cancelJob() {
   return call<{ profile: TownProfile }>("townCancelJob");
 }
 
+/** Fire-and-forget after a real punch-clock clock-out. Silently resolves
+ * false (never throws) when the town isn't unlocked or the call fails, so
+ * callers can await it without any try/catch cluttering the real clock-out
+ * flow -- the real punch must never be blocked or slowed by the town. */
+export async function awardRealPunchBonus(): Promise<number> {
+  try {
+    const res = await call<{ gained: number }>("townPunchBonus");
+    return res.gained;
+  } catch {
+    return 0;
+  }
+}
+
 export function sendToWork(jobKey: string) {
   return call<{ profile: TownProfile }>("townSendToWork", { jobKey });
 }
@@ -64,6 +77,7 @@ export type WorldEntry = {
   companionExp: number;
   lastActiveAt: number | null;
   inventoryCount: number;
+  decorations: string[];
 };
 
 export function fetchWorld() {
@@ -80,4 +94,8 @@ export function skimFrom(targetOpenid: string) {
 
 export function promote() {
   return call<{ profile: TownProfile; newTitle: string }>("townPromote");
+}
+
+export function buyDecoration(key: string) {
+  return call<{ profile: TownProfile }>("townBuyDecoration", { key });
 }

@@ -85,6 +85,21 @@
   color: var(--text-muted);
 }
 
+.world-deco-row {
+  display: flex;
+  gap: 8rpx;
+}
+
+.world-deco-icon {
+  width: 40rpx;
+  height: 40rpx;
+  background: #fff;
+  border: 1.5px solid var(--border-bold);
+  border-radius: 6rpx;
+  padding: 2rpx;
+  box-sizing: border-box;
+}
+
 .world-blocked {
   font-size: 22rpx;
   color: var(--text-muted);

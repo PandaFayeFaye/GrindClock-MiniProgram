@@ -17,7 +17,7 @@ import { PunchConfirmModal, type PunchConfirmData } from "../../components/Punch
 import { RetroClockInModal } from "../../components/RetroClockInModal";
 import { ScheduleConfirmModal } from "../../components/ScheduleConfirmModal";
 import { CoachTour, HOME_COACH_STEPS } from "../../components/CoachTour";
-import { fetchTownProfile, unlockTown } from "../../lib/cloudTown";
+import { fetchTownProfile, unlockTown, awardRealPunchBonus } from "../../lib/cloudTown";
 import type { TownProfile } from "../../lib/town";
 import type { Employer, PayType, TimeEntry } from "../../lib/types";
 import "./index.scss";
@@ -252,6 +252,11 @@ export default function Index() {
       });
       setConfirming(null);
       reload();
+      if (townProfile?.unlocked) {
+        awardRealPunchBonus().then((gained) => {
+          if (gained > 0) Taro.showToast({ title: `真实打卡+${gained}牛马粮`, icon: "none" });
+        });
+      }
     } catch (err) {
       console.error("Clock-out failed", err);
       Taro.showToast({ title: "打卡失败，重试一下", icon: "none" });

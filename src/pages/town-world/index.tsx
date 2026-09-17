@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { View, Text, Button, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, type WorldEntry } from "../../lib/cloudTown";
-import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY } from "../../lib/town";
+import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS } from "../../lib/town";
 import "./index.scss";
 
 function relativeTime(ts: number | null): string {
@@ -84,6 +84,14 @@ export default function TownWorldPage() {
                   </View>
                 </View>
                 <Text className="world-meta">仓库里有 {entry.inventoryCount} 件特产 · {relativeTime(entry.lastActiveAt)}</Text>
+                {entry.decorations.length > 0 && (
+                  <View className="world-deco-row" aria-label={`拥有装饰：${entry.decorations.map((k) => TOWN_DECORATIONS.find((d) => d.key === k)?.name ?? k).join("、")}`}>
+                    {entry.decorations.map((key) => {
+                      const deco = TOWN_DECORATIONS.find((d) => d.key === key);
+                      return deco ? <Image key={key} className="world-deco-icon" src={deco.icon} mode="aspectFit" /> : null;
+                    })}
+                  </View>
+                )}
                 {isLower ? (
                   <Text className="world-blocked">老板的地盘，先憋着</Text>
                 ) : (

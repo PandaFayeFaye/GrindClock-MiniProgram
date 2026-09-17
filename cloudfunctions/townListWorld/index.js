@@ -37,6 +37,7 @@ exports.main = async () => {
       companionExp: p.companionExp || 0,
       lastActiveAt: p.lastActiveAt || null,
       inventoryCount: Object.values(p.inventory || {}).reduce((s, n) => s + n, 0),
+      decorations: p.decorations || [],
     }))
     .sort((a, b) => (b.lastActiveAt || 0) - (a.lastActiveAt || 0));
 

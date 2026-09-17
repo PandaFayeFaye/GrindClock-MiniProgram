@@ -58,6 +58,12 @@
   z-index: 2;
 }
 
+.town-building-imgwrap {
+  position: relative;
+  width: 96rpx;
+  height: 168rpx;
+}
+
 .town-building-img {
   width: 96rpx;
   height: 168rpx;
@@ -70,31 +76,49 @@
 
 // Per-job idle animation so every shop has some life, not just the bbq
 // stall's flame-swap frames (each job picks one of these in TOWN_JOBS).
+// Animated on the wrapping <View>, not the <image> itself -- transforms and
+// filters on WeChat's native <image> component are unreliable, but a plain
+// <view> always animates correctly.
 .effect-sway {
   transform-origin: 50% 92%;
-  animation: town-sway-a 3.6s ease-in-out infinite;
+  animation: town-sway-b 3s ease-in-out infinite;
+}
+
+@keyframes town-sway-b {
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(7deg); }
 }
 
 .effect-shake {
-  animation: town-shake 2.6s ease-in-out infinite;
+  animation: town-shake 1.8s ease-in-out infinite;
 }
 
 @keyframes town-shake {
-  0%, 82%, 100% { transform: rotate(0deg); }
-  85% { transform: rotate(-3deg); }
-  88% { transform: rotate(3deg); }
-  91% { transform: rotate(-2deg); }
-  94% { transform: rotate(0deg); }
+  0%, 60%, 100% { transform: rotate(0deg) translateX(0); }
+  65% { transform: rotate(-6deg) translateX(-4rpx); }
+  70% { transform: rotate(6deg) translateX(4rpx); }
+  75% { transform: rotate(-5deg) translateX(-3rpx); }
+  80% { transform: rotate(4deg) translateX(2rpx); }
+  85% { transform: rotate(0deg) translateX(0); }
 }
 
 .effect-glint {
   position: relative;
-  animation: town-glint-pulse 2.4s ease-in-out infinite;
+}
+
+.effect-glint::after {
+  content: "";
+  position: absolute;
+  inset: -12rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 245, 180, 0.9) 0%, rgba(255, 245, 180, 0) 70%);
+  animation: town-glint-pulse 2s ease-in-out infinite;
+  pointer-events: none;
 }
 
 @keyframes town-glint-pulse {
-  0%, 100% { filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.4)); }
-  50% { filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.4)) drop-shadow(0 0 10rpx rgba(255, 236, 160, 0.85)); }
+  0%, 100% { opacity: 0.15; transform: scale(0.85); }
+  50% { opacity: 0.9; transform: scale(1.1); }
 }
 
 // Rising steam puffs for hot-drink shops (milk tea / coffee) -- two dots
@@ -505,6 +529,47 @@
 .town-inventory-qty {
   font-weight: 700;
   color: var(--accent-coral);
+}
+
+.deco-title {
+  font-size: 24rpx;
+  margin-top: var(--space-2);
+}
+
+.town-deco-shop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 320rpx;
+  overflow-y: auto;
+}
+
+.town-deco-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: #fff;
+  border: 2px solid var(--border-bold);
+  border-radius: var(--radius-quiet);
+  padding: 10rpx 16rpx;
+}
+
+.town-deco-item-icon {
+  width: 56rpx;
+  height: 56rpx;
+  flex-shrink: 0;
+}
+
+.town-deco-item-name {
+  font-size: 22rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.town-deco-item-cost {
+  font-size: 20rpx;
+  color: var(--text-muted);
+  flex: 1;
 }
 
 .town-picker-mask {

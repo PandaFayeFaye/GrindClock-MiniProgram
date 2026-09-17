@@ -18,6 +18,7 @@ function defaultProfile() {
     currentJob: null,
     inventory: {},
     promotionSubmissions: {},
+    decorations: [],
     lastActiveAt: Date.now(),
   };
 }
