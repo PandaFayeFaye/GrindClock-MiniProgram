@@ -66,6 +66,7 @@ exports.main = async () => {
     inventoryCount: Object.values(p.inventory || {}).reduce((s, n) => s + n, 0),
     decorations: p.decorations || [],
     checkedInToday: checkedInToday(p.lastDailyRationAt),
+    isWorking: !!p.currentJob,
   });
 
   const list = ranked.filter((p) => p._id !== OPENID).map(toEntry);

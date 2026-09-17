@@ -21,7 +21,7 @@
   padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
   box-sizing: border-box;
   background: rgba(255, 255, 255, 0.08);
 }
@@ -34,7 +34,7 @@
 .world-plaza {
   position: relative;
   width: 100%;
-  height: 420rpx;
+  height: 680rpx;
   border: 2.5px solid var(--border-bold);
   border-radius: var(--radius-bold);
   box-shadow: var(--shadow-bold-sm);
@@ -85,49 +85,73 @@
   border-radius: 4rpx;
 }
 
+// At-a-glance status right on the roamer -- otherwise the only way to tell
+// who's checked in / working / worth visiting was to scroll to their card
+// in the list below.
+.world-roamer-status {
+  display: flex;
+  gap: 2rpx;
+  margin-bottom: 2rpx;
+}
+
+.world-roamer-badge {
+  font-size: 14rpx;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #fff;
+  padding: 0 4rpx;
+  border-radius: 4rpx;
+  white-space: nowrap;
+}
+
+.world-roamer-badge.ok { background: var(--semantic-success); }
+.world-roamer-badge.warn { background: #8B3A2A; }
+.world-roamer-badge.working { background: var(--accent-skyblue); }
+.world-roamer-badge.empty { background: #8A8272; }
+
 @keyframes world-wander-0 {
   0% { transform: translate(0, 0); }
-  20% { transform: translate(120rpx, -40rpx); }
-  45% { transform: translate(60rpx, 90rpx); }
-  70% { transform: translate(-100rpx, 40rpx); }
+  20% { transform: translate(160rpx, -70rpx); }
+  45% { transform: translate(80rpx, 150rpx); }
+  70% { transform: translate(-140rpx, 70rpx); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes world-wander-1 {
   0% { transform: translate(0, 0); }
-  25% { transform: translate(-90rpx, 60rpx); }
-  50% { transform: translate(-140rpx, -30rpx); }
-  75% { transform: translate(-30rpx, -80rpx); }
+  25% { transform: translate(-120rpx, 100rpx); }
+  50% { transform: translate(-180rpx, -60rpx); }
+  75% { transform: translate(-40rpx, -140rpx); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes world-wander-2 {
   0% { transform: translate(0, 0); }
-  30% { transform: translate(80rpx, 80rpx); }
-  60% { transform: translate(140rpx, -20rpx); }
+  30% { transform: translate(110rpx, 130rpx); }
+  60% { transform: translate(180rpx, -40rpx); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes world-wander-3 {
   0% { transform: translate(0, 0); }
-  20% { transform: translate(-60rpx, -70rpx); }
-  50% { transform: translate(90rpx, -100rpx); }
-  80% { transform: translate(120rpx, 30rpx); }
+  20% { transform: translate(-80rpx, -120rpx); }
+  50% { transform: translate(120rpx, -160rpx); }
+  80% { transform: translate(160rpx, 50rpx); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes world-wander-4 {
   0% { transform: translate(0, 0); }
-  35% { transform: translate(-120rpx, 20rpx); }
-  65% { transform: translate(-50rpx, 100rpx); }
+  35% { transform: translate(-160rpx, 40rpx); }
+  65% { transform: translate(-70rpx, 160rpx); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes world-wander-5 {
   0% { transform: translate(0, 0); }
-  25% { transform: translate(70rpx, -100rpx); }
-  55% { transform: translate(-80rpx, -60rpx); }
-  80% { transform: translate(-40rpx, 70rpx); }
+  25% { transform: translate(100rpx, -150rpx); }
+  55% { transform: translate(-110rpx, -90rpx); }
+  80% { transform: translate(-60rpx, 100rpx); }
   100% { transform: translate(0, 0); }
 }
 
@@ -259,15 +283,17 @@
   font-size: 24rpx;
 }
 
+// Compact: the plaza above is the main event now, this list is just a
+// scannable directory underneath it.
 .world-card {
   background: #F3E8CE;
-  border: 3px solid #6B4A2E;
-  border-radius: var(--radius-bold);
+  border: 2px solid #6B4A2E;
+  border-radius: var(--radius-quiet);
   box-shadow: var(--shadow-bold-sm);
-  padding: var(--space-3);
+  padding: 12rpx var(--space-2);
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 4rpx;
 }
 
 .world-card.top-rank {
@@ -300,7 +326,7 @@
 
 .world-nickname {
   flex: 1;
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;

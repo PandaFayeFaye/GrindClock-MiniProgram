@@ -82,6 +82,7 @@ export type WorldEntry = {
   inventoryCount: number;
   decorations: string[];
   checkedInToday: boolean;
+  isWorking: boolean;
 };
 
 export function fetchWorld() {

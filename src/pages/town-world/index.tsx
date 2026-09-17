@@ -134,13 +134,20 @@ export default function TownWorldPage() {
                     animationDelay: `${delay}s`,
                   }}
                   onClick={() => (isMe ? null : setActiveEntry(entry))}
-                  aria-label={`${entry.nickname}，职级${entry.companionTitle}${isMe ? "，这是你自己" : ""}`}
+                  aria-label={`${entry.nickname}，职级${entry.companionTitle}${isMe ? "，这是你自己" : ""}，${entry.checkedInToday ? "今日已打卡" : "今日未打卡"}，${entry.isWorking ? "正在打工" : "空闲"}，仓库${entry.inventoryCount > 0 ? `有${entry.inventoryCount}件特产` : "是空的"}`}
                 >
                   <View className="world-roamer-deco">
                     {entry.decorations.slice(0, 3).map((key) => {
                       const deco = TOWN_DECORATIONS.find((d) => d.key === key);
                       return deco ? <Image key={key} className="world-roamer-deco-icon" src={deco.icon} mode="aspectFit" /> : null;
                     })}
+                  </View>
+                  <View className="world-roamer-status">
+                    <Text className={`world-roamer-badge${entry.checkedInToday ? " ok" : " warn"}`}>
+                      {entry.checkedInToday ? "签" : "未签"}
+                    </Text>
+                    {entry.isWorking && <Text className="world-roamer-badge working">打工</Text>}
+                    {entry.inventoryCount === 0 && <Text className="world-roamer-badge empty">无货</Text>}
                   </View>
                   <Image
                     className="world-roamer-img"
