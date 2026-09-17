@@ -9,6 +9,35 @@ const _ = db.command;
 const SKIM_COOLDOWN_MS = 6 * 3_600_000;
 const SKIM_RATE = 0.1;
 
+// See townSteal's copy of this for the full explanation -- same template,
+// reused fields, best-effort and awaited before returning.
+const SUBSCRIBE_TEMPLATE_ID = "eqyBvDNghz6B1MqTm1MluJ_ttKt9c811eQ3yZRIRGFw";
+
+async function notifyVictim(targetOpenid, actorOpenid) {
+  if (!SUBSCRIBE_TEMPLATE_ID) return;
+  try {
+    const [targetProfileRes, actorProfileRes] = await Promise.all([
+      db.collection("userProfile").where({ _openid: targetOpenid }).limit(1).get(),
+      db.collection("userProfile").where({ _openid: actorOpenid }).limit(1).get(),
+    ]);
+    const targetNickname = (targetProfileRes.data[0] && targetProfileRes.data[0].nickname) || "打工人";
+    const actorNickname = (actorProfileRes.data[0] && actorProfileRes.data[0].nickname) || "神秘搭子";
+    await cloud.openapi.subscribeMessage.send({
+      touser: targetOpenid,
+      templateId: SUBSCRIBE_TEMPLATE_ID,
+      page: "pages/town-world/index",
+      data: {
+        thing1: { value: targetNickname.slice(0, 20) },
+        thing2: { value: `被${actorNickname.slice(0, 6)}画饼摊派了`.slice(0, 20) },
+        time3: { value: new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 16).replace("T", " ") },
+        thing4: { value: "快去世界里争口气" },
+      },
+    });
+  } catch (err) {
+    console.error("subscribeMessage.send (skim) failed", err);
+  }
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   const targetOpenid = event && event.targetOpenid;
@@ -50,6 +79,8 @@ exports.main = async (event) => {
       data: { openid: OPENID, targetOpenid, type: "skim", expGained, itemsGained: { [item]: amount }, createdAt: now },
     }),
   ]);
+
+  await notifyVictim(targetOpenid, OPENID).catch(() => {});
 
   return { ok: true, profile: { ...self, inventory: selfInventory, companionExp }, item, amount };
 };

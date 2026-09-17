@@ -4,7 +4,7 @@ import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, criticizeForNotCheckingIn, type WorldEntry } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
 import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
-import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, SUBSCRIBE_TEMPLATE_ID } from "../../lib/town";
+import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, SUBSCRIBE_TEMPLATE_ID, buildingImageSrc } from "../../lib/town";
 import "./index.scss";
 
 function relativeTime(ts: number | null): string {
@@ -123,19 +123,22 @@ export default function TownWorldPage() {
               const variant = i % WANDER_VARIANTS;
               const duration = 14 + (i % 5) * 3;
               const delay = seededFraction(entry.openid + "d") * -duration;
+              const working = entry.isWorking;
               return (
                 <View
                   key={entry.openid}
-                  className={`world-roamer wander-${variant}${isMe ? " is-me" : ""}`}
-                  style={{
-                    left: `${startX}%`,
-                    top: `${startY}%`,
-                    animationDuration: `${duration}s`,
-                    animationDelay: `${delay}s`,
-                  }}
+                  className={`world-roamer${working ? " working" : ` wander-${variant}`}${isMe ? " is-me" : ""}`}
+                  style={
+                    working
+                      ? { left: `${startX}%`, top: `${startY}%` }
+                      : { left: `${startX}%`, top: `${startY}%`, animationDuration: `${duration}s`, animationDelay: `${delay}s` }
+                  }
                   onClick={() => (isMe ? null : setActiveEntry(entry))}
                   aria-label={`${entry.nickname}，职级${entry.companionTitle}${isMe ? "，这是你自己" : ""}，${entry.checkedInToday ? "今日已打卡" : "今日未打卡"}，${entry.isWorking ? "正在打工" : "空闲"}，仓库${entry.inventoryCount > 0 ? `有${entry.inventoryCount}件特产` : "是空的"}`}
                 >
+                  {working && entry.workingJobKey && (
+                    <Image className="world-roamer-activity" src={buildingImageSrc(entry.workingJobKey)} mode="aspectFit" />
+                  )}
                   <View className="world-roamer-deco">
                     {entry.decorations.slice(0, 3).map((key) => {
                       const deco = TOWN_DECORATIONS.find((d) => d.key === key);
@@ -146,8 +149,12 @@ export default function TownWorldPage() {
                     <Text className={`world-roamer-badge${entry.checkedInToday ? " ok" : " warn"}`}>
                       {entry.checkedInToday ? "签" : "未签"}
                     </Text>
-                    {entry.isWorking && <Text className="world-roamer-badge working">打工</Text>}
-                    {entry.inventoryCount === 0 && <Text className="world-roamer-badge empty">无货</Text>}
+                    {working && <Text className="world-roamer-badge working">打工</Text>}
+                    {entry.inventoryCount > 0 ? (
+                      <Text className="world-roamer-badge steal">可偷x{entry.inventoryCount}</Text>
+                    ) : (
+                      <Text className="world-roamer-badge empty">无货</Text>
+                    )}
                   </View>
                   <Image
                     className="world-roamer-img"

@@ -83,6 +83,7 @@ export type WorldEntry = {
   decorations: string[];
   checkedInToday: boolean;
   isWorking: boolean;
+  workingJobKey: string | null;
 };
 
 export function fetchWorld() {

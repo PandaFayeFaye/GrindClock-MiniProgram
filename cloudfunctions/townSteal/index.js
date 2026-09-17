@@ -10,6 +10,38 @@ const STEAL_COOLDOWN_MS = 24 * 3_600_000;
 const STEAL_MAX_PER_WINDOW = 3;
 const STEAL_EXP_GAIN = 3;
 
+// Reuses the same "打卡超时通知" template as townCriticize (see that
+// function for the field layout and setup notes) -- the outer notification
+// card will still read "打卡超时通知" since a template's title isn't
+// per-send editable, but the four content lines are, which is what
+// actually carries "you got robbed, go get it back" to the victim.
+const SUBSCRIBE_TEMPLATE_ID = "eqyBvDNghz6B1MqTm1MluJ_ttKt9c811eQ3yZRIRGFw";
+
+async function notifyVictim(db, targetOpenid, thiefOpenid, item) {
+  if (!SUBSCRIBE_TEMPLATE_ID) return;
+  try {
+    const [targetProfileRes, thiefProfileRes] = await Promise.all([
+      db.collection("userProfile").where({ _openid: targetOpenid }).limit(1).get(),
+      db.collection("userProfile").where({ _openid: thiefOpenid }).limit(1).get(),
+    ]);
+    const targetNickname = (targetProfileRes.data[0] && targetProfileRes.data[0].nickname) || "打工人";
+    const thiefNickname = (thiefProfileRes.data[0] && thiefProfileRes.data[0].nickname) || "神秘搭子";
+    await cloud.openapi.subscribeMessage.send({
+      touser: targetOpenid,
+      templateId: SUBSCRIBE_TEMPLATE_ID,
+      page: "pages/town-world/index",
+      data: {
+        thing1: { value: targetNickname.slice(0, 20) },
+        thing2: { value: `被${thiefNickname.slice(0, 6)}偷家啦`.slice(0, 20) },
+        time3: { value: new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 16).replace("T", " ") },
+        thing4: { value: "快去世界里偷回来" },
+      },
+    });
+  } catch (err) {
+    console.error("subscribeMessage.send (steal) failed", err);
+  }
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   const targetOpenid = event && event.targetOpenid;
@@ -54,6 +86,13 @@ exports.main = async (event) => {
       data: { openid: OPENID, targetOpenid, type: "steal", expGained: STEAL_EXP_GAIN, itemsGained: { [item]: amount }, createdAt: now },
     }),
   ]);
+
+  // Best-effort and awaited (not fire-and-forget) -- a cloud function's
+  // execution environment can be torn down the instant exports.main
+  // resolves, which would silently kill an un-awaited async call before its
+  // network request ever completes. The .catch keeps a push failure from
+  // turning into a steal failure.
+  await notifyVictim(db, targetOpenid, OPENID, item).catch(() => {});
 
   return { ok: true, profile: { ...self, inventory: selfInventory, companionExp }, item, amount };
 };

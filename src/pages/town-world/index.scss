@@ -55,6 +55,32 @@
   z-index: 2;
 }
 
+// A working player stays put instead of roaming, with the same floating
+// job-icon bounce used on the main town page's companion -- so "busy" reads
+// identically in both places instead of just another roamer.
+.world-roamer.working {
+  animation: world-roamer-busy 0.9s ease-in-out infinite;
+}
+
+@keyframes world-roamer-busy {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.06) translateY(-6rpx); }
+}
+
+.world-roamer-activity {
+  position: absolute;
+  top: -64rpx;
+  width: 48rpx;
+  height: 48rpx;
+  animation: world-activity-float 1.4s ease-in-out infinite;
+  filter: drop-shadow(0 3rpx 3rpx rgba(0, 0, 0, 0.3));
+}
+
+@keyframes world-activity-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8rpx) scale(1.08); }
+}
+
 .world-roamer-img {
   width: 72rpx;
   height: 72rpx;
@@ -108,6 +134,7 @@
 .world-roamer-badge.warn { background: #8B3A2A; }
 .world-roamer-badge.working { background: var(--accent-skyblue); }
 .world-roamer-badge.empty { background: #8A8272; }
+.world-roamer-badge.steal { background: var(--accent-coral); }
 
 @keyframes world-wander-0 {
   0% { transform: translate(0, 0); }

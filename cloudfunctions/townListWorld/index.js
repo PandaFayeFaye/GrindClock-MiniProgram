@@ -67,6 +67,7 @@ exports.main = async () => {
     decorations: p.decorations || [],
     checkedInToday: checkedInToday(p.lastDailyRationAt),
     isWorking: !!p.currentJob,
+    workingJobKey: p.currentJob ? p.currentJob.jobKey : null,
   });
 
   const list = ranked.filter((p) => p._id !== OPENID).map(toEntry);
