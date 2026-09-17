@@ -241,10 +241,16 @@ export default function TownPage() {
             aria-label={`${job.name}${locked ? "，未解锁" : isWorkingHere ? (jobReady ? "，打工已完成可收工" : "，打工中") : ""}`}
           >
             <Image
-              className="town-building-img"
+              className={`town-building-img${job.effect && !locked ? ` effect-${job.effect}` : ""}`}
               src={job.key === "bbqStall" && flicker ? "/town/bbqStall-b.png" : buildingImageSrc(job.key)}
               mode="aspectFit"
             />
+            {job.effect === "steam" && !locked && (
+              <View className="town-steam">
+                <View className="steam-puff puff-1" />
+                <View className="steam-puff puff-2" />
+              </View>
+            )}
             {locked && <Text className="town-building-lock">未解锁</Text>}
             <Text className="town-building-label">{job.name}</Text>
             {isWorkingHere && (
