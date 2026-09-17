@@ -253,13 +253,13 @@ export default function TownPage() {
             onClick={() => handleBuildingTap(job)}
             aria-label={`${job.name}${locked ? "，未解锁" : isWorkingHere ? (jobReady ? "，打工已完成可收工" : "，打工中") : ""}`}
           >
-            <View className={`town-building-imgwrap${job.effect && !locked ? ` effect-${job.effect}` : ""}`}>
+            <View className={`town-building-imgwrap${job.effect ? ` effect-${job.effect}` : ""}`}>
               <Image
                 className="town-building-img"
                 src={job.key === "bbqStall" && flicker ? "/town/bbqStall-b.png" : buildingImageSrc(job.key)}
                 mode="aspectFit"
               />
-              {job.effect === "steam" && !locked && (
+              {job.effect === "steam" && (
                 <View className="town-steam">
                   <View className="steam-puff puff-1" />
                   <View className="steam-puff puff-2" />

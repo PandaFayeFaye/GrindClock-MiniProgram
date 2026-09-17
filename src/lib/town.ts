@@ -112,9 +112,19 @@ export function townLevelIndex(exp: number): number {
 export type TownDecoration = { key: string; name: string; icon: string; costItem: TownItemType; costAmount: number };
 export const TOWN_DECORATIONS: TownDecoration[] = [
   { key: "milkTeaLantern", name: "奶茶灯笼", icon: "/town/deco-icons/milkTeaLantern.png", costItem: "milkTea", costAmount: 5 },
+  { key: "snackBox", name: "零食礼盒堆", icon: "/town/deco-icons/snackBox.png", costItem: "snackPack", costAmount: 6 },
   { key: "coffeeSign", name: "咖啡招牌", icon: "/town/deco-icons/coffeeSign.png", costItem: "coffeeBean", costAmount: 8 },
+  { key: "helmet", name: "骑手头盔摆件", icon: "/town/deco-icons/helmet.png", costItem: "riderSubsidy", costAmount: 6 },
+  { key: "phoneBooth", name: "复古电话亭", icon: "/town/deco-icons/phoneBooth.png", costItem: "phoneCard", costAmount: 6 },
+  { key: "gasPump", name: "迷你加油站", icon: "/town/deco-icons/gasPump.png", costItem: "gasCard", costAmount: 6 },
   { key: "harvestScarecrow", name: "丰收稻草人", icon: "/town/deco-icons/harvestScarecrow.png", costItem: "veggie", costAmount: 10 },
+  { key: "bbqLights", name: "烧烤灯串", icon: "/town/deco-icons/bbqLights.png", costItem: "bbqCoupon", costAmount: 6 },
+  { key: "neonLive", name: "直播霓虹灯牌", icon: "/town/deco-icons/neonLive.png", costItem: "liveCommission", costAmount: 5 },
+  { key: "lightbulb", name: "补习灯泡", icon: "/town/deco-icons/lightbulb.png", costItem: "tutorFee", costAmount: 6 },
   { key: "goldTrophy", name: "金色奖杯", icon: "/town/deco-icons/goldTrophy.png", costItem: "dividend", costAmount: 3 },
+  { key: "luckyCat", name: "幸运招财猫", icon: "/town/deco-icons/luckyCat.png", costItem: "snackPack", costAmount: 12 },
+  { key: "loungeChair", name: "摸鱼躺椅", icon: "/town/deco-icons/loungeChair.png", costItem: "veggie", costAmount: 16 },
+  { key: "bossSofa", name: "老板专属沙发", icon: "/town/deco-icons/bossSofa.png", costItem: "dividend", costAmount: 8 },
 ];
 
 export const DAILY_RATION = 15;

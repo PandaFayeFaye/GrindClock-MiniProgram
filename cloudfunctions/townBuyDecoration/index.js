@@ -8,9 +8,19 @@ const db = cloud.database();
 
 const TOWN_DECORATIONS = [
   { key: "milkTeaLantern", costItem: "milkTea", costAmount: 5 },
+  { key: "snackBox", costItem: "snackPack", costAmount: 6 },
   { key: "coffeeSign", costItem: "coffeeBean", costAmount: 8 },
+  { key: "helmet", costItem: "riderSubsidy", costAmount: 6 },
+  { key: "phoneBooth", costItem: "phoneCard", costAmount: 6 },
+  { key: "gasPump", costItem: "gasCard", costAmount: 6 },
   { key: "harvestScarecrow", costItem: "veggie", costAmount: 10 },
+  { key: "bbqLights", costItem: "bbqCoupon", costAmount: 6 },
+  { key: "neonLive", costItem: "liveCommission", costAmount: 5 },
+  { key: "lightbulb", costItem: "tutorFee", costAmount: 6 },
   { key: "goldTrophy", costItem: "dividend", costAmount: 3 },
+  { key: "luckyCat", costItem: "snackPack", costAmount: 12 },
+  { key: "loungeChair", costItem: "veggie", costAmount: 16 },
+  { key: "bossSofa", costItem: "dividend", costAmount: 8 },
 ];
 
 exports.main = async (event) => {
