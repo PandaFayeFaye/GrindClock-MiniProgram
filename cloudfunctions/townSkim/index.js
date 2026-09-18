@@ -1,20 +1,42 @@
 // "画大饼/摊派" -- only available when the actor's town title outranks the
-// target's. A gentler, more frequent skim than townSteal (see
-// MOYU_TOWN_SPEC.md 8.3). Also inventory-only, never touches real progress.
+// target's. Forces the target's companion into a random unlocked shift
+// (interrupting whatever it was doing, unpaid) instead of just lifting
+// items -- "the boss makes you work, then takes a cut" is the whole joke.
+// The actor's cut is paid out later, in townCollectJob, when the target
+// actually collects that shift. Never touches oxFeed or promotion progress.
 const cloud = require("wx-server-sdk");
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
 const SKIM_COOLDOWN_MS = 6 * 3_600_000;
-const SKIM_RATE = 0.1;
+
+// Mirrors src/lib/town.ts TOWN_JOBS -- only the fields this function needs.
+const TOWN_JOBS = [
+  { key: "milkTeaShop", name: "奶茶店学徒", durationMs: 1 * 3_600_000, unlockLevel: 0 },
+  { key: "convenienceStore", name: "便利店收银", durationMs: 1.5 * 3_600_000, unlockLevel: 0 },
+  { key: "barista", name: "咖啡师", durationMs: 2 * 3_600_000, unlockLevel: 1 },
+  { key: "rider", name: "外卖骑手", durationMs: 0.5 * 3_600_000, unlockLevel: 1 },
+  { key: "callCenter", name: "客服接线员", durationMs: 4 * 3_600_000, unlockLevel: 2 },
+  { key: "driver", name: "网约车代驾", durationMs: 3 * 3_600_000, unlockLevel: 3 },
+  { key: "farmer", name: "菜地打工", durationMs: 3 * 3_600_000, unlockLevel: 4 },
+  { key: "bbqStall", name: "深夜烧烤摊", durationMs: 2 * 3_600_000, unlockLevel: 5, nightOnly: true },
+  { key: "liveStream", name: "直播带货", durationMs: 2 * 3_600_000, unlockLevel: 6 },
+  { key: "tutor", name: "家教老师", durationMs: 3 * 3_600_000, unlockLevel: 7 },
+  { key: "boardroom", name: "董事会摸鱼", durationMs: 4 * 3_600_000, unlockLevel: 8 },
+];
+
+function isNight(now) {
+  const h = new Date(now + 8 * 3_600_000).getUTCHours();
+  return h >= 22 || h < 6;
+}
 
 // "名片被访通知" template (公共模板库 #801, 场景说明: "偷菜和摊派") -- see
 // townSteal's copy for the field layout. Same template, best-effort and
 // awaited before returning.
 const SUBSCRIBE_TEMPLATE_ID = "2pMbXON4D1mJGcWnyEAnIZEkvCKufeXsfruclncjtdU";
 
-async function notifyVictim(targetOpenid, actorOpenid) {
+async function notifyVictim(targetOpenid, actorOpenid, jobName) {
   if (!SUBSCRIBE_TEMPLATE_ID) return;
   try {
     const actorProfileRes = await db.collection("userProfile").where({ _openid: actorOpenid }).limit(1).get();
@@ -26,8 +48,8 @@ async function notifyVictim(targetOpenid, actorOpenid) {
       data: {
         name1: { value: actorNickname.slice(0, 10) },
         date2: { value: new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10) },
-        thing3: { value: `被${actorNickname.slice(0, 6)}画饼摊派了`.slice(0, 20) },
-        thing4: { value: "快去世界里争口气" },
+        thing3: { value: `被${actorNickname.slice(0, 6)}画饼派去打工了`.slice(0, 20) },
+        thing4: { value: `${jobName}正等着你收工`.slice(0, 20) },
       },
     });
   } catch (err) {
@@ -56,28 +78,22 @@ exports.main = async (event) => {
     .count();
   if (recentSkims.total > 0) return { ok: false, error: "skim_cooldown" };
 
-  const targetInventory = target.inventory || {};
-  const skimmableItems = Object.entries(targetInventory).filter(([, qty]) => qty > 0);
-  if (skimmableItems.length === 0) return { ok: false, error: "nothing_to_skim" };
+  const night = isNight(now);
+  const eligibleJobs = TOWN_JOBS.filter((j) => j.unlockLevel <= (target.titleIndex || 0) && (!j.nightOnly || night));
+  if (eligibleJobs.length === 0) return { ok: false, error: "no_job_available" };
+  const job = eligibleJobs[Math.floor(Math.random() * eligibleJobs.length)];
 
-  const [item, available] = skimmableItems[Math.floor(Math.random() * skimmableItems.length)];
-  const amount = Math.max(1, Math.min(available, Math.round(available * SKIM_RATE)));
-  const expGained = amount * 2;
+  // currentJob may currently be `null` -- _.set() forces a full overwrite
+  // instead of merging into null, same pattern as townSendToWork. Whatever
+  // shift the target was already on is simply discarded, unpaid.
+  const currentJob = { jobKey: job.key, startedAt: now, endsAt: now + job.durationMs, assignedBy: OPENID };
+  await targetRef.update({ data: { currentJob: _.set(currentJob), lastActiveAt: now } });
 
-  const newTargetInventory = { ...targetInventory, [item]: available - amount };
-  const selfInventory = { ...(self.inventory || {}) };
-  selfInventory[item] = (selfInventory[item] || 0) + amount;
-  const companionExp = (self.companionExp || 0) + expGained;
+  await db.collection("townJobLog").add({
+    data: { openid: OPENID, targetOpenid, type: "skim", jobType: job.key, createdAt: now },
+  });
 
-  await Promise.all([
-    targetRef.update({ data: { inventory: newTargetInventory } }),
-    selfRef.update({ data: { inventory: selfInventory, companionExp, lastActiveAt: now } }),
-    db.collection("townJobLog").add({
-      data: { openid: OPENID, targetOpenid, type: "skim", expGained, itemsGained: { [item]: amount }, createdAt: now },
-    }),
-  ]);
+  await notifyVictim(targetOpenid, OPENID, job.name).catch(() => {});
 
-  await notifyVictim(targetOpenid, OPENID).catch(() => {});
-
-  return { ok: true, profile: { ...self, inventory: selfInventory, companionExp }, item, amount };
+  return { ok: true, jobKey: job.key, jobName: job.name, endsAt: currentJob.endsAt };
 };

@@ -135,13 +135,13 @@ export default function TownWorldPage() {
   async function handleSkim(entry: WorldEntry) {
     try {
       const res = await skimFrom(entry.openid);
-      Taro.showToast({ title: `画饼成功，抽成 ${ITEM_LABEL[res.item as keyof typeof ITEM_LABEL] ?? res.item} x${res.amount}`, icon: "none" });
+      Taro.showToast({ title: `已经把TA派去干「${res.jobName}」了，收工后你会分到一份`, icon: "none" });
       load();
     } catch (err) {
       const msg = (err as Error).message;
       const text =
         msg === "skim_cooldown" ? "这个饼刚画过，过会儿再来" :
-        msg === "nothing_to_skim" ? "TA的仓库空空如也" : "摊派失败";
+        msg === "no_job_available" ? "TA暂时没有能派的工作" : "摊派失败";
       Taro.showToast({ title: text, icon: "none" });
     }
   }

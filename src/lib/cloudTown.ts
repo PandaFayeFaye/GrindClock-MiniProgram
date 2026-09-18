@@ -97,7 +97,7 @@ export function stealFrom(targetOpenid: string) {
 }
 
 export function skimFrom(targetOpenid: string) {
-  return call<{ profile: TownProfile; item: string; amount: number }>("townSkim", { targetOpenid });
+  return call<{ jobKey: string; jobName: string; endsAt: number }>("townSkim", { targetOpenid });
 }
 
 export function criticizeForNotCheckingIn(targetOpenid: string) {

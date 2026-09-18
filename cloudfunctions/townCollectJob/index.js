@@ -55,6 +55,34 @@ exports.main = async () => {
     },
   });
 
+  // Whoever forced this shift on the caller (townSkim's "画饼摊派") takes a
+  // cut when it's actually collected -- a matching copy of the item plus
+  // half the exp, on top of what the worker keeps, not carved out of it.
+  const assignedBy = profile.currentJob.assignedBy;
+  if (assignedBy && assignedBy !== OPENID) {
+    const bossRef = db.collection("townProfiles").doc(assignedBy);
+    const bossRes = await bossRef.get().catch(() => null);
+    const boss = bossRes && bossRes.data;
+    if (boss) {
+      const bossInventory = { ...(boss.inventory || {}) };
+      bossInventory[job.item] = (bossInventory[job.item] || 0) + amount;
+      const bossExpGain = Math.ceil(job.expGain / 2);
+      const bossExp = (boss.companionExp || 0) + bossExpGain;
+      await bossRef.update({ data: { inventory: bossInventory, companionExp: bossExp } });
+      await db.collection("townJobLog").add({
+        data: {
+          openid: assignedBy,
+          targetOpenid: OPENID,
+          type: "skim_payout",
+          jobType: job.key,
+          expGained: bossExpGain,
+          itemsGained: { [job.item]: amount },
+          createdAt: now,
+        },
+      });
+    }
+  }
+
   return {
     ok: true,
     profile: { ...profile, inventory, companionExp, currentJob: null },

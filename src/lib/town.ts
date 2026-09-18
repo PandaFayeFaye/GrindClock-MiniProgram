@@ -162,7 +162,7 @@ export type TownProfile = {
   lastFedAt: number | null;
   companionExp: number;
   titleIndex: number;
-  currentJob: { jobKey: string; startedAt: number; endsAt: number } | null;
+  currentJob: { jobKey: string; startedAt: number; endsAt: number; assignedBy?: string } | null;
   inventory: TownInventory;
   promotionSubmissions: Record<string, TownInventory>;
   decorations: string[];
