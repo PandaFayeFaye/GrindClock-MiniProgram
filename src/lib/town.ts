@@ -154,6 +154,8 @@ export const SKIM_COOLDOWN_MS = 6 * 3_600_000;
 
 export type TownInventory = Partial<Record<TownItemType, number>>;
 
+export type TownRecentTheft = { thiefOpenid: string; item: TownItemType; amount: number; stolenAt: number };
+
 export type TownProfile = {
   unlocked: boolean;
   unlockedAt: number | null;
@@ -167,7 +169,33 @@ export type TownProfile = {
   promotionSubmissions: Record<string, TownInventory>;
   decorations: string[];
   lastActiveAt: number | null;
+  // Anti-theft state -- see cloudfunctions/townSteal's header comment for
+  // the full mechanic. `policeBadges`/`policeBadgesResetAt` reset once per
+  // local day and accumulate within it, same read pattern as the daily
+  // ration.
+  policeBadges?: number;
+  policeBadgesResetAt?: number | null;
+  recentThefts?: TownRecentTheft[];
+  trapSetAt?: number | null;
+  jailedUntil?: number | null;
 };
+
+export const STEAL_CATCH_WINDOW_MS = 5 * 60_000;
+export const TRAP_DURATION_MS = 2 * 3_600_000;
+export const JAIL_DURATION_MS = 3 * 3_600_000;
+
+export function todayBadgeCount(profile: Pick<TownProfile, "policeBadges" | "policeBadgesResetAt">, now = Date.now()): number {
+  if (!profile.policeBadgesResetAt || !isSameLocalDay(profile.policeBadgesResetAt, now)) return 0;
+  return profile.policeBadges || 0;
+}
+
+export function isJailed(profile: Pick<TownProfile, "jailedUntil">, now = Date.now()): boolean {
+  return !!profile.jailedUntil && profile.jailedUntil > now;
+}
+
+export function trapAlreadySetToday(profile: Pick<TownProfile, "trapSetAt">, now = Date.now()): boolean {
+  return !!profile.trapSetAt && isSameLocalDay(profile.trapSetAt, now);
+}
 
 /** Whether the next title is reachable: exp threshold met AND materials on
  * hand. Titles never auto-advance on exp alone -- see MOYU_TOWN_SPEC.md 6.3. */
@@ -217,4 +245,10 @@ export const TOWN_DECO: { src: string; x: number; y: number; size: number; delay
 export function isNightNow(now = new Date()): boolean {
   const h = now.getHours();
   return h >= 22 || h < 6;
+}
+
+export function isSameLocalDay(a: number, b: number): boolean {
+  const da = new Date(a);
+  const db = new Date(b);
+  return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
 }

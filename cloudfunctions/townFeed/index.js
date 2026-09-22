@@ -16,6 +16,9 @@ exports.main = async () => {
   if (!profile || !profile.unlocked) {
     return { ok: false, error: "not_unlocked" };
   }
+  if (profile.jailedUntil && profile.jailedUntil > Date.now()) {
+    return { ok: false, error: "jailed" };
+  }
   if ((profile.oxFeed || 0) < FEED_COST) {
     return { ok: false, error: "insufficient_oxfeed" };
   }

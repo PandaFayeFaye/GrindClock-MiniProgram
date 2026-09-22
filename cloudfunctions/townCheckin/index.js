@@ -23,6 +23,7 @@ exports.main = async () => {
   }
 
   const now = Date.now();
+  if (profile.jailedUntil && profile.jailedUntil > now) return { ok: false, error: "jailed" };
   if (profile.lastDailyRationAt && cnDateKey(profile.lastDailyRationAt) === cnDateKey(now)) {
     return { ok: false, error: "already_claimed_today" };
   }

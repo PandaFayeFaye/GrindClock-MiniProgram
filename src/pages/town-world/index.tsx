@@ -99,7 +99,15 @@ export default function TownWorldPage() {
   async function doSteal(entry: WorldEntry) {
     try {
       const res = await stealFrom(entry.openid);
-      if (res.punished) {
+      if (res.trapped) {
+        Taro.showModal({
+          title: "🚔 中埋伏了！",
+          content: res.item
+            ? `TA早有防备，你被罚了 ${ITEM_LABEL[res.item as keyof typeof ITEM_LABEL] ?? res.item} x${res.amount}，还要坐牢3小时`
+            : "TA早有防备，你被抓了，要坐牢3小时",
+          showCancel: false,
+        });
+      } else if (res.punished) {
         Taro.showModal({
           title: "遭报应了",
           content: "你一半的资产将上供给创始人熊猫吠吠",
@@ -112,6 +120,7 @@ export default function TownWorldPage() {
     } catch (err) {
       const msg = (err as Error).message;
       const text =
+        msg === "jailed" ? "还在坐牢呢，什么都干不了" :
         msg === "steal_cooldown" ? "今天偷TA偷够啦，明天再来" :
         msg === "steal_global_cooldown" ? "手速太快啦，每小时只能出手一次" :
         msg === "nothing_to_steal" ? "TA的仓库空空如也" : "偷菜失败";
@@ -140,6 +149,7 @@ export default function TownWorldPage() {
     } catch (err) {
       const msg = (err as Error).message;
       const text =
+        msg === "jailed" ? "还在坐牢呢，什么都干不了" :
         msg === "skim_cooldown" ? "这个饼刚画过，过会儿再来" :
         msg === "no_job_available" ? "TA暂时没有能派的工作" : "摊派失败";
       Taro.showToast({ title: text, icon: "none" });

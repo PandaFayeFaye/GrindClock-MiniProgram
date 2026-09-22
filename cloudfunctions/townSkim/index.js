@@ -68,6 +68,7 @@ exports.main = async (event) => {
   const self = selfRes && selfRes.data;
   const target = targetRes && targetRes.data;
   if (!self || !self.unlocked) return { ok: false, error: "not_unlocked" };
+  if (self.jailedUntil && self.jailedUntil > Date.now()) return { ok: false, error: "jailed" };
   if (!target || !target.unlocked) return { ok: false, error: "target_not_found" };
   if ((self.titleIndex || 0) <= (target.titleIndex || 0)) return { ok: false, error: "not_higher_rank" };
 

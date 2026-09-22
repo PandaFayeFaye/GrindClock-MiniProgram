@@ -27,6 +27,7 @@ exports.main = async () => {
   const res = await ref.get().catch(() => null);
   const profile = res && res.data;
   if (!profile || !profile.unlocked) return { ok: false, error: "not_unlocked" };
+  if (profile.jailedUntil && profile.jailedUntil > Date.now()) return { ok: false, error: "jailed" };
 
   const titleIndex = profile.titleIndex || 0;
   const next = TOWN_LEVELS[titleIndex + 1];

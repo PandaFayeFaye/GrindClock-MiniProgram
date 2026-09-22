@@ -34,6 +34,7 @@ exports.main = async (event) => {
   const res = await ref.get().catch(() => null);
   const profile = res && res.data;
   if (!profile || !profile.unlocked) return { ok: false, error: "not_unlocked" };
+  if (profile.jailedUntil && profile.jailedUntil > Date.now()) return { ok: false, error: "jailed" };
   if (profile.currentJob) return { ok: false, error: "already_working" };
   if ((profile.titleIndex || 0) < job.unlockLevel) return { ok: false, error: "level_too_low" };
   if ((profile.oxFeed || 0) < job.feedCost) return { ok: false, error: "insufficient_oxfeed" };

@@ -93,7 +93,22 @@ export function fetchWorld() {
 }
 
 export function stealFrom(targetOpenid: string) {
-  return call<{ profile: TownProfile; item: string; amount: number; punished: boolean }>("townSteal", { targetOpenid });
+  return call<{ trapped: boolean; profile?: TownProfile; item: string | null; amount: number; punished?: boolean; jailedUntil?: number }>(
+    "townSteal",
+    { targetOpenid },
+  );
+}
+
+/** Arms today's 2h anti-theft trap (once per local day) -- see
+ * cloudfunctions/townSetTrap's header comment. */
+export function setDailyTrap() {
+  return call<{ trapSetAt: number }>("townSetTrap");
+}
+
+/** Spends one of today's police badges to catch a thief who hit you within
+ * the last STEAL_CATCH_WINDOW_MS -- see cloudfunctions/townCatchThief. */
+export function catchThief(thiefOpenid: string) {
+  return call<{ item: string; amount: number }>("townCatchThief", { thiefOpenid });
 }
 
 export function skimFrom(targetOpenid: string) {

@@ -10,6 +10,34 @@ const STEAL_COOLDOWN_MS = 24 * 3_600_000;
 const STEAL_MAX_PER_WINDOW = 3;
 const STEAL_EXP_GAIN = 3;
 
+// ---- Anti-theft: police badges (reactive) + daily trap (proactive) ----
+// A badge is earned once per successful steal AGAINST you and lets you
+// "catch" that specific thief (see townCatchThief) if you open Town/World
+// within this window of the theft. The trap is a single self-chosen 2h
+// window, once per local day (see townSetTrap) -- any steal landing inside
+// it never succeeds: the thief is jailed and fined what they were trying
+// to take, paid to whoever set the trap.
+const STEAL_CATCH_WINDOW_MS = 5 * 60_000;
+const MAX_RECENT_THEFTS = 10;
+const TRAP_DURATION_MS = 2 * 3_600_000;
+const JAIL_DURATION_MS = 3 * 3_600_000;
+
+function isJailed(profile, now) {
+  return !!profile.jailedUntil && profile.jailedUntil > now;
+}
+
+function isTrapActive(profile, now) {
+  return !!profile.trapSetAt && now < profile.trapSetAt + TRAP_DURATION_MS;
+}
+
+function todayBadgeCount(profile, now) {
+  if (!profile.policeBadgesResetAt) return 0;
+  const a = new Date(profile.policeBadgesResetAt);
+  const b = new Date(now);
+  const sameDay = a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  return sameDay ? profile.policeBadges || 0 : 0;
+}
+
 // Small easter egg for the app's own creator: stealing from this specific
 // openid halves the THIEF's own inventory (rounded down per item) and
 // hands that half straight to the founder, on top of the normal steal. The
@@ -63,6 +91,8 @@ exports.main = async (event) => {
   if (!target || !target.unlocked) return { ok: false, error: "target_not_found" };
 
   const now = Date.now();
+  if (isJailed(self, now)) return { ok: false, error: "jailed" };
+
   const [recentStealsOnTarget, recentStealsAnywhere] = await Promise.all([
     db.collection("townJobLog").where({
       openid: OPENID,
@@ -81,6 +111,40 @@ exports.main = async (event) => {
 
   const targetInventory = target.inventory || {};
   const stealableItems = Object.entries(targetInventory).filter(([, qty]) => qty > 0);
+
+  // Caught in the target's invisible daily trap -- no item changes hands to
+  // the thief. If there's anything to reference, the thief pays a fine of
+  // that same item/amount straight to the target (capped at what the thief
+  // actually has, since they never received it), and they're jailed either
+  // way.
+  if (isTrapActive(target, now)) {
+    const jailedUntil = now + JAIL_DURATION_MS;
+    let fineItem = null;
+    let fineAmount = 0;
+    if (stealableItems.length > 0) {
+      const [item, available] = stealableItems[Math.floor(Math.random() * stealableItems.length)];
+      const intended = Math.min(available, 1 + Math.floor(Math.random() * 3));
+      const thiefHas = (self.inventory && self.inventory[item]) || 0;
+      fineAmount = Math.min(intended, thiefHas);
+      fineItem = item;
+    }
+    const updates = [
+      selfRef.update({ data: { jailedUntil, lastActiveAt: now } }),
+      db.collection("townJobLog").add({
+        data: { openid: OPENID, targetOpenid, type: "steal_trapped", createdAt: now },
+      }),
+    ];
+    if (fineAmount > 0) {
+      const selfInventory = { ...self.inventory };
+      selfInventory[fineItem] = (selfInventory[fineItem] || 0) - fineAmount;
+      const newTargetInventory = { ...targetInventory, [fineItem]: (targetInventory[fineItem] || 0) + fineAmount };
+      updates.push(targetRef.update({ data: { inventory: newTargetInventory } }));
+      updates.push(selfRef.update({ data: { inventory: selfInventory } }));
+    }
+    await Promise.all(updates);
+    return { ok: true, trapped: true, item: fineItem, amount: fineAmount, jailedUntil };
+  }
+
   if (stealableItems.length === 0) return { ok: false, error: "nothing_to_steal" };
 
   const [item, available] = stealableItems[Math.floor(Math.random() * stealableItems.length)];
@@ -116,8 +180,16 @@ exports.main = async (event) => {
     }
   }
 
+  const badgesToday = todayBadgeCount(target, now);
+  const recentThefts = [
+    ...(target.recentThefts || []),
+    { thiefOpenid: OPENID, item, amount, stolenAt: now },
+  ].slice(-MAX_RECENT_THEFTS);
+
   await Promise.all([
-    targetRef.update({ data: { inventory: newTargetInventory } }),
+    targetRef.update({
+      data: { inventory: newTargetInventory, recentThefts, policeBadges: badgesToday + 1, policeBadgesResetAt: now },
+    }),
     selfRef.update({ data: { inventory: selfInventory, companionExp, lastActiveAt: now } }),
     db.collection("townJobLog").add({
       data: { openid: OPENID, targetOpenid, type: "steal", expGained: STEAL_EXP_GAIN, itemsGained: { [item]: amount }, createdAt: now, punished },
@@ -131,5 +203,5 @@ exports.main = async (event) => {
   // turning into a steal failure.
   await notifyVictim(db, targetOpenid, OPENID, item).catch(() => {});
 
-  return { ok: true, profile: { ...self, inventory: selfInventory, companionExp }, item, amount, punished };
+  return { ok: true, trapped: false, profile: { ...self, inventory: selfInventory, companionExp }, item, amount, punished };
 };

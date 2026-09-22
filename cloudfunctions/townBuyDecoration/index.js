@@ -32,6 +32,7 @@ exports.main = async (event) => {
   const res = await ref.get().catch(() => null);
   const profile = res && res.data;
   if (!profile || !profile.unlocked) return { ok: false, error: "not_unlocked" };
+  if (profile.jailedUntil && profile.jailedUntil > Date.now()) return { ok: false, error: "jailed" };
 
   const owned = profile.decorations || [];
   if (owned.includes(deco.key)) return { ok: false, error: "already_owned" };

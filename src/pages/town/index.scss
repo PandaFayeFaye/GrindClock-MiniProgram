@@ -694,3 +694,62 @@
   color: #6B4A2E;
   font-weight: 700;
 }
+
+// ---- Anti-theft: jail status + police-badge catch prompt ----
+// Sit just under the HUD wood strip, same horizontal inset as the bottom
+// HUD buttons, so they read as part of the same chrome system rather than
+// a bolted-on alert.
+.town-jail-banner {
+  position: absolute;
+  top: 108rpx;
+  left: 24rpx;
+  right: 24rpx;
+  z-index: 6;
+  background: #8B3A2A;
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 700;
+  text-align: center;
+  padding: 12rpx 16rpx;
+  border-radius: var(--radius-quiet);
+  border: 2.5px solid var(--border-bold);
+  box-shadow: var(--shadow-bold-sm);
+}
+
+.town-catch-banner {
+  position: absolute;
+  top: 108rpx;
+  left: 24rpx;
+  right: 24rpx;
+  z-index: 6;
+  background: var(--accent-yellow);
+  border: 2.5px solid var(--border-bold);
+  border-radius: var(--radius-quiet);
+  box-shadow: var(--shadow-bold-sm);
+  padding: 12rpx 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.town-catch-banner Text {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #6B4A2E;
+}
+
+.town-catch-btn {
+  flex-shrink: 0;
+  background: var(--accent-coral);
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: 800;
+  padding: 8rpx 20rpx;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--border-bold);
+}
+
+.town-trap-btn {
+  margin-bottom: var(--space-3);
+}

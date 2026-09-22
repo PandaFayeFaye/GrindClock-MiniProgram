@@ -10,6 +10,8 @@ import {
   promote,
   cancelJob,
   buyDecoration,
+  setDailyTrap,
+  catchThief,
 } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
 import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
@@ -32,6 +34,10 @@ import {
   TOWN_DECORATIONS,
   SUBSCRIBE_TEMPLATE_ID,
   STEAL_SUBSCRIBE_TEMPLATE_ID,
+  STEAL_CATCH_WINDOW_MS,
+  isJailed,
+  todayBadgeCount,
+  trapAlreadySetToday,
   type TownJob,
   type TownProfile,
 } from "../../lib/town";
@@ -118,6 +124,15 @@ export default function TownPage() {
 
   const todayClaimed = useMemo(
     () => isClaimedToday(profile?.lastDailyRationAt ?? null, now),
+    [profile, now],
+  );
+
+  const jailed = profile ? isJailed(profile, now) : false;
+  const jailRemainingMin = jailed ? Math.ceil((profile!.jailedUntil! - now) / 60_000) : 0;
+  const badgesToday = profile ? todayBadgeCount(profile, now) : 0;
+  const trapSetToday = profile ? trapAlreadySetToday(profile, now) : false;
+  const catchableThefts = useMemo(
+    () => (profile?.recentThefts || []).filter((th) => now - th.stolenAt <= STEAL_CATCH_WINDOW_MS),
     [profile, now],
   );
 
@@ -215,6 +230,31 @@ export default function TownPage() {
     } catch (err) {
       const msg = (err as Error).message;
       Taro.showToast({ title: msg === "insufficient_materials" ? "材料不够" : msg === "already_owned" ? "已经拥有啦" : "兑换失败", icon: "none" });
+    }
+  }
+
+  async function handleSetTrap() {
+    try {
+      await setDailyTrap();
+      load();
+      Taro.showToast({ title: "陷阱已布置，接下来2小时内偷你的人会被抓", icon: "none" });
+    } catch (err) {
+      const msg = (err as Error).message;
+      Taro.showToast({ title: msg === "trap_already_set" ? "今天已经布置过陷阱了" : msg === "jailed" ? "还在坐牢呢，什么都干不了" : "布置失败", icon: "none" });
+    }
+  }
+
+  async function handleCatch(thiefOpenid: string) {
+    try {
+      const res = await catchThief(thiefOpenid);
+      load();
+      Taro.showToast({ title: `抓到了！要回 ${ITEM_LABEL[res.item as keyof typeof ITEM_LABEL] ?? res.item} x${res.amount}`, icon: "none" });
+    } catch (err) {
+      const msg = (err as Error).message;
+      const text =
+        msg === "no_badges" ? "今天的警察证用完了" :
+        msg === "no_recent_theft" ? "已经错过抓捕时间了" : "抓捕失败";
+      Taro.showToast({ title: text, icon: "none" });
     }
   }
 
@@ -353,6 +393,19 @@ export default function TownPage() {
         </View>
       </View>
 
+      {jailed && (
+        <View className="town-jail-banner">🚔 正在坐牢，还剩 {jailRemainingMin} 分钟，什么都干不了</View>
+      )}
+
+      {!jailed && badgesToday > 0 && catchableThefts.map((theft) => (
+        <View className="town-catch-banner" key={`${theft.thiefOpenid}-${theft.stolenAt}`}>
+          <Text>有人刚偷了你！要不要抓他？</Text>
+          <View className="town-catch-btn" onClick={() => handleCatch(theft.thiefOpenid)}>
+            <Text>抓小偷</Text>
+          </View>
+        </View>
+      ))}
+
       <View className="town-hud-bottom">
         <View className="town-hud-btn" onClick={() => setDrawer("inventory")} aria-label="打开仓库">
           <Image className="town-hud-btn-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
@@ -456,6 +509,17 @@ export default function TownPage() {
                 ))}
               </View>
             )}
+
+            <Text className="town-picker-title deco-title">防盗设置</Text>
+            <Text className="town-empty">今日临时警察证：{badgesToday} 张</Text>
+            <Button
+              className="town-secondary-btn town-trap-btn"
+              size="mini"
+              disabled={trapSetToday || jailed}
+              onClick={handleSetTrap}
+            >
+              {trapSetToday ? "今日陷阱已布置" : "布置今日陷阱（2小时）"}
+            </Button>
 
             <Text className="town-picker-title deco-title">用特产兑换装饰（去世界页面展示）</Text>
             <ScrollView scrollY className="town-deco-shop-scroll">
