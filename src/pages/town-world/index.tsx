@@ -144,7 +144,14 @@ export default function TownWorldPage() {
   async function handleSkim(entry: WorldEntry) {
     try {
       const res = await skimFrom(entry.openid);
-      Taro.showToast({ title: `已经把TA派去干「${res.jobName}」了，收工后你会分到一份`, icon: "none" });
+      // A toast (icon:"none") silently truncates past ~2 lines on real
+      // devices -- this message is long enough to hit that, so it needs a
+      // modal instead to actually show in full.
+      Taro.showModal({
+        title: "画饼成功",
+        content: `已经把TA派去干「${res.jobName}」了，收工后你会分到一份`,
+        showCancel: false,
+      });
       load();
     } catch (err) {
       const msg = (err as Error).message;

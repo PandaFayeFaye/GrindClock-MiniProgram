@@ -43,12 +43,15 @@
 }
 
 // scroll-view's own direct children don't get the parent's flex gap, so
-// this recreates the vertical rhythm the old flex column gave every section.
-// 44rpx still read as tight between two plain sections (their own last row
-// of buttons/inputs sits close to their bottom edge, so the visual gap to
-// the next label was smaller than the rpx value alone suggests) -- bumped
-// to a flat 56rpx everywhere, same as after the summary card.
-.punch-modal-scroll > view + view {
+// this recreates the vertical rhythm the old flex column gave every
+// section. Deliberately margin-top on the CLASS itself, not a `> view +
+// view` sibling selector -- that selector was silently not matching
+// (<scroll-view>'s rendered content isn't guaranteed to keep these as
+// direct-child <view> elements), which is why every earlier attempt at
+// tuning this rpx value visibly did nothing / made things look tighter
+// once other spacing changed around it.
+.section,
+.overtime-detected {
   margin-top: 56rpx;
 }
 
