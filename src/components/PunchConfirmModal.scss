@@ -44,15 +44,11 @@
 
 // scroll-view's own direct children don't get the parent's flex gap, so
 // this recreates the vertical rhythm the old flex column gave every section.
+// 44rpx still read as tight between two plain sections (their own last row
+// of buttons/inputs sits close to their bottom edge, so the visual gap to
+// the next label was smaller than the rpx value alone suggests) -- bumped
+// to a flat 56rpx everywhere, same as after the summary card.
 .punch-modal-scroll > view + view {
-  margin-top: 44rpx;
-}
-
-// The summary card is a solid block of color -- going straight from its
-// bottom edge into plain body text with the same 44rpx everything else
-// gets reads as visually cramped (a bright edge needs more air below it
-// than two plain-background sections need between each other).
-.punch-modal-summary + view {
   margin-top: 56rpx;
 }
 
