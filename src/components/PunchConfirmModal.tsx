@@ -180,6 +180,8 @@ export function PunchConfirmModal({
           <Textarea className="note-input" placeholder="随便写点什么" value={note} onInput={(e) => setNote(e.detail.value)} />
         </View>
 
+        </ScrollView>
+
         <View
           className="confirm-btn"
           onClick={() => onConfirm({
@@ -196,7 +198,6 @@ export function PunchConfirmModal({
         >
           <Text>确认，保存</Text>
         </View>
-        </ScrollView>
       </View>
     </View>
   );

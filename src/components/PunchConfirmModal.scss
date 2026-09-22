@@ -11,6 +11,17 @@
 // programs -- only <scroll-view> actually responds to swipes. The sheet
 // itself just sets the card chrome/max-height; a <scroll-view> inside it
 // (punch-modal-scroll) does the actual scrolling.
+//
+// The confirm button lives OUTSIDE that scroll-view, as a plain sibling
+// after it -- not flex:1, so it keeps its natural size while the
+// scroll-view (flex:1; min-height:0) shrinks to fill whatever's left above
+// it. That makes it a permanently-visible footer instead of the last
+// scrollable item: on a short/wide desktop WeChat window the sheet's
+// available height can be much less than on a phone, and with the button
+// inside the scroll area it could sit below the fold with no reliable way
+// to reach it (mouse-wheel scrolling inside a <scroll-view> is unreliable
+// on the desktop client) -- this was reported as "can't click the save
+// button" on desktop.
 .punch-modal-sheet {
   width: 100%;
   box-sizing: border-box;
@@ -27,7 +38,7 @@
 .punch-modal-scroll {
   flex: 1;
   min-height: 0;
-  padding: 24rpx 44rpx 64rpx;
+  padding: 24rpx 44rpx 24rpx;
   box-sizing: border-box;
 }
 
@@ -225,13 +236,19 @@
   min-height: 100rpx;
 }
 
+// Fixed footer, not a scroll-view child (see the comment on
+// .punch-modal-sheet above) -- flex-shrink:0 so it never gets squeezed
+// even if the sheet's max-height is tight.
 .confirm-btn {
+  flex-shrink: 0;
   width: 100%;
   box-sizing: border-box;
-  padding: 30rpx 0;
+  margin: 0;
+  padding: 30rpx 44rpx;
   text-align: center;
-  border-radius: 28rpx;
-  border: 2.5px solid var(--border-bold);
+  border-radius: 0;
+  border: none;
+  border-top: 2.5px solid var(--border-bold);
   background: var(--accent-coral);
   color: var(--border-bold);
   font-weight: 900;
