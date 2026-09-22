@@ -32,12 +32,20 @@
   padding: 24rpx 0 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   max-height: 85vh;
 }
 
+// `flex:1; min-height:0` on this to let it shrink inside the sheet's
+// max-height turned out unreliable in this WXSS engine -- once section
+// spacing/content grew past 85vh, the scroll-view kept growing to its full
+// content height instead of compressing, pushing the confirm button below
+// the screen with no way to scroll down to it. A hard cap here instead --
+// budgeted for the handle+padding above and the confirm button below --
+// guarantees the button always fits under 85vh regardless of how tall the
+// scrollable content gets.
 .punch-modal-scroll {
-  flex: 1;
-  min-height: 0;
+  max-height: calc(85vh - 176rpx);
   padding: 24rpx 44rpx 24rpx;
   box-sizing: border-box;
 }
