@@ -45,8 +45,16 @@
 // guarantees the button always fits under 85vh regardless of how tall the
 // scrollable content gets.
 .punch-modal-scroll {
-  max-height: calc(85vh - 176rpx);
-  padding: 24rpx 44rpx 24rpx;
+  // <textarea> is a "native component" in WeChat Mini Programs -- it
+  // renders in its own layer that composites ABOVE regular <view>
+  // content and can visually bleed past a scroll-view's clipping
+  // boundary even though its WXSS box is correctly constrained. Give the
+  // scroll-view real slack (not just enough to make the math work) so the
+  // note textarea, the last thing in it, never sits right at that edge
+  // in the first place -- this is what was reading as "the note box
+  // covers half the save button".
+  max-height: calc(85vh - 240rpx);
+  padding: 24rpx 44rpx 40rpx;
   box-sizing: border-box;
 }
 
@@ -257,7 +265,7 @@
   border-radius: 24rpx;
   font-size: 26rpx;
   background: var(--bg-surface);
-  min-height: 100rpx;
+  height: 80rpx;
 }
 
 // Fixed footer, not a scroll-view child (see the comment on
