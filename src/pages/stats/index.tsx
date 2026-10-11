@@ -17,9 +17,7 @@ type Viz = "trend" | "calendar" | "rank";
 type RangeKey = "today" | "week" | "month" | "all" | "pickMonth" | "pickYear";
 const RANGES: { key: RangeKey; label: string }[] = [
   { key: "today", label: "今日" },
-  { key: "week", label: "本周" },
   { key: "month", label: "本月" },
-  { key: "all", label: "全部" },
 ];
 const MONTH_LABELS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 const HEAT_HEX = ["#FBF7EC", "#FFEFA8", "#FFD93D", "#E8B400"];
@@ -297,7 +295,7 @@ export default function Stats() {
       <Text className="stats-title">统计</Text>
 
       <View className="range-row-wrap">
-        <ScrollView scrollX className="range-row">
+        <View className="range-row">
           {RANGES.map((r) => (
             <View key={r.key} className={`range-chip${range === r.key ? " active" : ""}`} onClick={() => setRange(r.key)}>
               <Text>{r.label}</Text>
@@ -333,7 +331,7 @@ export default function Stats() {
               <Text>{range === "pickYear" && pickedYearNum ? `${pickedYearNum}年` : "按年"}</Text>
             </View>
           </Picker>
-        </ScrollView>
+        </View>
         <View className="jump-detail-btn" onClick={jumpToDetail}>
           <Text>看明细 ↓</Text>
         </View>
