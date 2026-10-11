@@ -697,15 +697,6 @@
   color: var(--accent-coral);
 }
 
-.bars-scroll {
-  overflow-x: auto;
-  white-space: nowrap;
-}
-
-.bar-col-fixed {
-  flex-shrink: 0;
-  width: 64rpx;
-}
 
 .month-summary-list {
   display: flex;

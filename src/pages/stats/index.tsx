@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { View, Text, Input, Image, Picker, ScrollView, type ITouchEvent } from "@tarojs/components";
+import { View, Text, Input, Image, Picker, type ITouchEvent } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
@@ -241,25 +241,35 @@ export default function Stats() {
   }, [dailyPay, dailyHours, viewedMonth]);
   const selectedCalDayInfo = useMemo(() => heatCells.find((c) => c.day === selectedCalDay) ?? null, [heatCells, selectedCalDay]);
 
-  // Trend-tab data for the two picker-driven ranges -- a day-by-day bar row
-  // for a picked month, a month-by-month bar row for a picked year. The
-  // default today/week/month/all ranges keep using last7Days below,
-  // unchanged.
-  const pickedMonthDayBars = useMemo(() => {
+  // Trend-tab data for the two picker-driven ranges -- a week-by-week bar
+  // row for a picked month (simple 7-day chunks starting day 1, not
+  // calendar Mon-Sun weeks, so a month never has a confusing partial week
+  // at either end), a month-by-month bar row for a picked year. The
+  // default today/month ranges keep using last7Days below, unchanged.
+  const pickedMonthWeekBars = useMemo(() => {
     if (range !== "pickMonth" || !pickedMonthDate) return [];
     const year = pickedMonthDate.getFullYear();
     const month = pickedMonthDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    return Array.from({ length: daysInMonth }, (_, i) => {
-      const key = dateKey(new Date(year, month, i + 1).getTime());
-      return { label: String(i + 1), pay: dailyPay.get(key) ?? 0, hours: dailyHours.get(key) ?? 0 };
-    });
+    const weeks: { label: string; pay: number; hours: number }[] = [];
+    for (let startDay = 1; startDay <= daysInMonth; startDay += 7) {
+      const endDay = Math.min(startDay + 6, daysInMonth);
+      let pay = 0;
+      let hours = 0;
+      for (let day = startDay; day <= endDay; day++) {
+        const key = dateKey(new Date(year, month, day).getTime());
+        pay += dailyPay.get(key) ?? 0;
+        hours += dailyHours.get(key) ?? 0;
+      }
+      weeks.push({ label: `${startDay}-${endDay}日`, pay, hours });
+    }
+    return weeks;
   }, [range, pickedMonthDate, dailyPay, dailyHours]);
   const pickedYearMonthBars = useMemo(() => {
     if (range !== "pickYear" || !pickedYearNum) return [];
     return monthlyTotalsForYear(pickedYearNum).map((m) => ({ label: MONTH_LABELS[m.month], pay: m.pay, hours: m.hours }));
   }, [range, pickedYearNum, monthlyTotalsForYear]);
-  const trendBars = range === "pickMonth" ? pickedMonthDayBars : range === "pickYear" ? pickedYearMonthBars : null;
+  const trendBars = range === "pickMonth" ? pickedMonthWeekBars : range === "pickYear" ? pickedYearMonthBars : null;
   const maxTrendBarPay = Math.max(1, ...(trendBars ?? []).map((b) => b.pay));
 
   const streak = useMemo(() => currentStreak(personalConfirmed), [personalConfirmed]);
@@ -403,39 +413,21 @@ export default function Stats() {
             <>
               <View className="chart-nav-row">
                 <Text className="chart-title">
-                  {range === "pickMonth" ? `${monthLabel} 每日收入` : `${pickedYearNum}年 每月收入`}
+                  {range === "pickMonth" ? `${monthLabel} 每周收入` : `${pickedYearNum}年 每月收入`}
                 </Text>
               </View>
-              {range === "pickMonth" ? (
-                // A month can have up to 31 bars -- a plain <view> with
-                // overflow isn't touch-scrollable in WeChat Mini Programs,
-                // only <scroll-view> actually responds to swipes.
-                <ScrollView scrollX className="bars bars-scroll">
-                  {trendBars.map((b, i) => (
-                    <View className="bar-col bar-col-fixed" key={i}>
-                      <Text className="bar-pay">{b.pay > 0 ? `${currencySymbol(DEFAULT_CURRENCY)}${b.pay.toFixed(0)}` : ""}</Text>
-                      <View className="bar-track">
-                        <View className="bar-stack" style={{ height: `${Math.max(4, (b.pay / maxTrendBarPay) * 100)}%` }} />
-                      </View>
-                      <Text className="bar-day">{b.label}</Text>
-                      <Text className="bar-hours">{b.hours > 0 ? `${b.hours.toFixed(1)}h` : "–"}</Text>
+              <View className="bars">
+                {trendBars.map((b, i) => (
+                  <View className="bar-col" key={i}>
+                    <Text className="bar-pay">{b.pay > 0 ? `${currencySymbol(DEFAULT_CURRENCY)}${b.pay.toFixed(0)}` : ""}</Text>
+                    <View className="bar-track">
+                      <View className="bar-stack" style={{ height: `${Math.max(4, (b.pay / maxTrendBarPay) * 100)}%` }} />
                     </View>
-                  ))}
-                </ScrollView>
-              ) : (
-                <View className="bars">
-                  {trendBars.map((b, i) => (
-                    <View className="bar-col" key={i}>
-                      <Text className="bar-pay">{b.pay > 0 ? `${currencySymbol(DEFAULT_CURRENCY)}${b.pay.toFixed(0)}` : ""}</Text>
-                      <View className="bar-track">
-                        <View className="bar-stack" style={{ height: `${Math.max(4, (b.pay / maxTrendBarPay) * 100)}%` }} />
-                      </View>
-                      <Text className="bar-day">{b.label}</Text>
-                      <Text className="bar-hours">{b.hours > 0 ? `${b.hours.toFixed(1)}h` : "–"}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+                    <Text className="bar-day">{b.label}</Text>
+                    <Text className="bar-hours">{b.hours > 0 ? `${b.hours.toFixed(1)}h` : "–"}</Text>
+                  </View>
+                ))}
+              </View>
             </>
           ) : (
             <>
