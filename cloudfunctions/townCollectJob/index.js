@@ -55,11 +55,15 @@ exports.main = async () => {
     },
   });
 
-  // Whoever forced this shift on the caller (townSkim's "画饼摊派") takes a
-  // cut when it's actually collected -- a matching copy of the item plus
-  // half the exp, on top of what the worker keeps, not carved out of it.
+  // Whoever forced this shift on the caller (townSkim's "画饼摊派") normally
+  // already got paid automatically the moment it ended -- see
+  // settleAssignedPayout in townGetProfile/townListWorld/townSkim, which
+  // runs opportunistically on any of those and doesn't wait for the worker
+  // to collect. This is just a safety net for the rare case none of those
+  // ran first: `payoutSettled` makes it a no-op if one of them already
+  // paid out, so this can never double-pay the boss.
   const assignedBy = profile.currentJob.assignedBy;
-  if (assignedBy && assignedBy !== OPENID) {
+  if (assignedBy && assignedBy !== OPENID && !profile.currentJob.payoutSettled) {
     const bossRef = db.collection("townProfiles").doc(assignedBy);
     const bossRes = await bossRef.get().catch(() => null);
     const boss = bossRes && bossRes.data;

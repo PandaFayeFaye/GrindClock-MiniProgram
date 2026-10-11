@@ -9,6 +9,57 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// Mirrors src/lib/town.ts TOWN_JOBS -- see townSkim's identical function
+// for the full rationale. Settling here means just VIEWING the World
+// screen pays out anyone's pending assigned-job cut, which in practice is
+// the single most reliable trigger for "the boss doesn't have to wait for
+// the worker to collect" -- the boss finding out at all usually means
+// they opened World to check.
+const TOWN_JOBS = [
+  { key: "milkTeaShop", item: "milkTea", itemAmount: 1, expGain: 5 },
+  { key: "convenienceStore", item: "snackPack", itemAmount: 1, expGain: 5 },
+  { key: "barista", item: "coffeeBean", itemAmount: 2, expGain: 8 },
+  { key: "rider", item: "riderSubsidy", itemAmount: 1, expGain: 5 },
+  { key: "callCenter", item: "phoneCard", itemAmount: 3, expGain: 12 },
+  { key: "driver", item: "gasCard", itemAmount: 2, expGain: 10 },
+  { key: "farmer", item: "veggie", itemAmount: 4, expGain: 12 },
+  { key: "bbqStall", item: "bbqCoupon", itemAmount: 3, expGain: 15 },
+  { key: "liveStream", item: "liveCommission", itemAmount: 1, expGain: 15, doubleChance: 0.1 },
+  { key: "tutor", item: "tutorFee", itemAmount: 1, expGain: 18 },
+  { key: "boardroom", item: "dividend", itemAmount: 1, expGain: 20 },
+];
+
+async function settleAssignedPayout(workerOpenid, workerProfile, now) {
+  const job = workerProfile && workerProfile.currentJob;
+  if (!job || !job.assignedBy || job.payoutSettled || now < job.endsAt) return;
+  const jobDef = TOWN_JOBS.find((j) => j.key === job.jobKey);
+  if (!jobDef) return;
+
+  let amount = jobDef.itemAmount;
+  if (jobDef.doubleChance && Math.random() < jobDef.doubleChance) amount *= 2;
+  const bossRef = db.collection("townProfiles").doc(job.assignedBy);
+  const bossRes = await bossRef.get().catch(() => null);
+  const boss = bossRes && bossRes.data;
+  if (boss) {
+    const bossInventory = { ...(boss.inventory || {}) };
+    bossInventory[jobDef.item] = (bossInventory[jobDef.item] || 0) + amount;
+    const bossExpGain = Math.ceil(jobDef.expGain / 2);
+    await bossRef.update({ data: { inventory: bossInventory, companionExp: (boss.companionExp || 0) + bossExpGain } });
+    await db.collection("townJobLog").add({
+      data: {
+        openid: job.assignedBy,
+        targetOpenid: workerOpenid,
+        type: "skim_payout",
+        jobType: jobDef.key,
+        expGained: bossExpGain,
+        itemsGained: { [jobDef.item]: amount },
+        createdAt: now,
+      },
+    });
+  }
+  await db.collection("townProfiles").doc(workerOpenid).update({ data: { currentJob: { ...job, payoutSettled: true } } });
+}
+
 const TOWN_LEVEL_TITLES = [
   "实习生", "新人专员", "资深员工", "组长", "主管", "经理",
   "高级经理", "总监", "VP副总裁", "总经理", "CEO", "董事长",
@@ -28,6 +79,9 @@ exports.main = async () => {
 
   const res = await db.collection("townProfiles").where({ unlocked: true }).limit(100).get();
   const profiles = res.data || [];
+
+  const now = Date.now();
+  await Promise.all(profiles.map((p) => settleAssignedPayout(p._id, p, now).catch(() => {})));
 
   const openids = profiles.map((p) => p._id);
   let userInfoByOpenid = {};

@@ -136,6 +136,7 @@ export default function TownWorldPage() {
       const text =
         msg === "jailed" ? "还在坐牢呢，什么都干不了" :
         msg === "skim_cooldown" ? "这个饼刚画过，过会儿再来" :
+        msg === "target_already_assigned" ? "TA已经被别人派去打工了，等那份活干完再来" :
         msg === "no_job_available" ? "TA暂时没有能派的工作" : "摊派失败";
       Taro.showToast({ title: text, icon: "none" });
     }
