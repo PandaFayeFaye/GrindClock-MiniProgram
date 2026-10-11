@@ -17,6 +17,32 @@ function todayBadgeCount(profile, now) {
   return sameDay ? profile.policeBadges || 0 : 0;
 }
 
+// "名片被访通知" template (公共模板库 #801) -- same one townSteal/townSkim use
+// for their own victim pushes. Fields: name1=访问人, date2=访问时间,
+// thing3=访问详情, thing4=温馨提示.
+const SUBSCRIBE_TEMPLATE_ID = "2pMbXON4D1mJGcWnyEAnIZEkvCKufeXsfruclncjtdU";
+
+async function notifyCaughtThief(targetOpenid, catcherOpenid) {
+  if (!SUBSCRIBE_TEMPLATE_ID) return;
+  try {
+    const catcherProfileRes = await db.collection("userProfile").where({ _openid: catcherOpenid }).limit(1).get();
+    const catcherNickname = (catcherProfileRes.data[0] && catcherProfileRes.data[0].nickname) || "神秘搭子";
+    await cloud.openapi.subscribeMessage.send({
+      touser: targetOpenid,
+      templateId: SUBSCRIBE_TEMPLATE_ID,
+      page: "pages/town-world/index",
+      data: {
+        name1: { value: catcherNickname.slice(0, 10) },
+        date2: { value: new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10) },
+        thing3: { value: `被${catcherNickname.slice(0, 6)}抓个正着`.slice(0, 20) },
+        thing4: { value: "偷来的东西要双倍还回去啦" },
+      },
+    });
+  } catch (err) {
+    console.error("subscribeMessage.send (catchThief) failed", err);
+  }
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   const thiefOpenid = event && event.thiefOpenid;
@@ -60,6 +86,10 @@ exports.main = async (event) => {
       data: { openid: OPENID, targetOpenid: thiefOpenid, type: "catch_thief", itemsGained: { [theft.item]: giveBack }, createdAt: now },
     }),
   ]);
+
+  // Best-effort and awaited (not fire-and-forget) -- see townSteal's
+  // identical comment on why this can't be left un-awaited.
+  await notifyCaughtThief(thiefOpenid, OPENID).catch(() => {});
 
   return { ok: true, item: theft.item, amount: giveBack };
 };

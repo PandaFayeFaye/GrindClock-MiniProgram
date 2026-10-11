@@ -93,7 +93,7 @@ export function fetchWorld() {
 }
 
 export function stealFrom(targetOpenid: string) {
-  return call<{ trapped: boolean; profile?: TownProfile; item: string | null; amount: number; punished?: boolean; jailedUntil?: number }>(
+  return call<{ trapped: boolean; profile?: TownProfile; item: string | null; amount: number; jailedUntil?: number }>(
     "townSteal",
     { targetOpenid },
   );

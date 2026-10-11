@@ -38,13 +38,6 @@ function todayBadgeCount(profile, now) {
   return sameDay ? profile.policeBadges || 0 : 0;
 }
 
-// Small easter egg for the app's own creator: stealing from this specific
-// openid halves the THIEF's own inventory (rounded down per item) and
-// hands that half straight to the founder, on top of the normal steal. The
-// client shows a warning before calling this at all, but the punishment is
-// enforced here unconditionally so it can't be skipped by bypassing the
-// client-side confirm.
-const FOUNDER_OPENID = "oF5PnxfxG4rGc0QHHDuPaeddZaPY";
 // A global per-actor throttle on top of the per-target cap -- without this,
 // someone could burn through several different victims' 3-per-24h budgets
 // back to back in one sitting.
@@ -74,6 +67,27 @@ async function notifyVictim(db, targetOpenid, thiefOpenid, item) {
     });
   } catch (err) {
     console.error("subscribeMessage.send (steal) failed", err);
+  }
+}
+
+async function notifyTrapSetter(targetOpenid, thiefOpenid) {
+  if (!SUBSCRIBE_TEMPLATE_ID) return;
+  try {
+    const thiefProfileRes = await db.collection("userProfile").where({ _openid: thiefOpenid }).limit(1).get();
+    const thiefNickname = (thiefProfileRes.data[0] && thiefProfileRes.data[0].nickname) || "神秘搭子";
+    await cloud.openapi.subscribeMessage.send({
+      touser: targetOpenid,
+      templateId: SUBSCRIBE_TEMPLATE_ID,
+      page: "pages/town-world/index",
+      data: {
+        name1: { value: thiefNickname.slice(0, 10) },
+        date2: { value: new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10) },
+        thing3: { value: `你的陷阱抓到了${thiefNickname.slice(0, 6)}`.slice(0, 20) },
+        thing4: { value: "TA被罚款还坐了3小时牢" },
+      },
+    });
+  } catch (err) {
+    console.error("subscribeMessage.send (trap) failed", err);
   }
 }
 
@@ -142,6 +156,8 @@ exports.main = async (event) => {
       updates.push(selfRef.update({ data: { inventory: selfInventory } }));
     }
     await Promise.all(updates);
+    // Best-effort and awaited -- same reasoning as notifyVictim below.
+    await notifyTrapSetter(targetOpenid, OPENID).catch(() => {});
     return { ok: true, trapped: true, item: fineItem, amount: fineAmount, jailedUntil };
   }
 
@@ -155,31 +171,6 @@ exports.main = async (event) => {
   selfInventory[item] = (selfInventory[item] || 0) + amount;
   const companionExp = (self.companionExp || 0) + STEAL_EXP_GAIN;
 
-  // The founder punishment only strikes the FIRST time a given thief steals
-  // from the founder -- a one-time "lesson learned", not a standing tax on
-  // every future steal.
-  let punished = false;
-  if (targetOpenid === FOUNDER_OPENID) {
-    const alreadyPunished = await db
-      .collection("townJobLog")
-      .where({ openid: OPENID, targetOpenid: FOUNDER_OPENID, type: "steal", punished: true })
-      .count();
-    punished = alreadyPunished.total === 0;
-  }
-  if (punished) {
-    const tribute = {};
-    for (const [k, qty] of Object.entries(selfInventory)) {
-      const half = Math.floor((qty || 0) / 2);
-      if (half > 0) {
-        tribute[k] = half;
-        selfInventory[k] = qty - half;
-      }
-    }
-    for (const [k, qty] of Object.entries(tribute)) {
-      newTargetInventory[k] = (newTargetInventory[k] || 0) + qty;
-    }
-  }
-
   const badgesToday = todayBadgeCount(target, now);
   const recentThefts = [
     ...(target.recentThefts || []),
@@ -192,7 +183,7 @@ exports.main = async (event) => {
     }),
     selfRef.update({ data: { inventory: selfInventory, companionExp, lastActiveAt: now } }),
     db.collection("townJobLog").add({
-      data: { openid: OPENID, targetOpenid, type: "steal", expGained: STEAL_EXP_GAIN, itemsGained: { [item]: amount }, createdAt: now, punished },
+      data: { openid: OPENID, targetOpenid, type: "steal", expGained: STEAL_EXP_GAIN, itemsGained: { [item]: amount }, createdAt: now },
     }),
   ]);
 
@@ -203,5 +194,5 @@ exports.main = async (event) => {
   // turning into a steal failure.
   await notifyVictim(db, targetOpenid, OPENID, item).catch(() => {});
 
-  return { ok: true, trapped: false, profile: { ...self, inventory: selfInventory, companionExp }, item, amount, punished };
+  return { ok: true, trapped: false, profile: { ...self, inventory: selfInventory, companionExp }, item, amount };
 };
