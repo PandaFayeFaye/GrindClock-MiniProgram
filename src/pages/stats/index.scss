@@ -696,3 +696,48 @@
   font-weight: 700;
   color: var(--accent-coral);
 }
+
+.bars-scroll {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.bar-col-fixed {
+  flex-shrink: 0;
+  width: 64rpx;
+}
+
+.month-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.month-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx 20rpx;
+  border: 1.5px solid var(--border-quiet);
+  border-radius: var(--radius-quiet);
+  background: var(--bg-surface);
+}
+
+.month-summary-label {
+  width: 72rpx;
+  font-weight: 800;
+  font-size: 24rpx;
+}
+
+.month-summary-hours {
+  flex: 1;
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.month-summary-pay {
+  font-weight: 900;
+  font-size: 26rpx;
+  font-family: var(--font-display);
+}

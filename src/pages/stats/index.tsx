@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { View, Text, Input, Image, type ITouchEvent } from "@tarojs/components";
+import { View, Text, Input, Image, Picker, ScrollView, type ITouchEvent } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
 import { fetchEmployers, fetchTimeEntries } from "../../lib/cloud";
 import { toEmployer, toTimeEntry } from "../../lib/adapt";
@@ -14,13 +14,14 @@ import "./index.scss";
 const WEEKDAY_LABELS = ["日", "一", "二", "三", "四", "五", "六"];
 
 type Viz = "trend" | "calendar" | "rank";
-type RangeKey = "today" | "week" | "month" | "all";
+type RangeKey = "today" | "week" | "month" | "all" | "pickMonth" | "pickYear";
 const RANGES: { key: RangeKey; label: string }[] = [
   { key: "today", label: "今日" },
   { key: "week", label: "本周" },
   { key: "month", label: "本月" },
   { key: "all", label: "全部" },
 ];
+const MONTH_LABELS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 const HEAT_HEX = ["#FBF7EC", "#FFEFA8", "#FFD93D", "#E8B400"];
 
 function startOfToday() {
@@ -49,6 +50,11 @@ export default function Stats() {
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current 7 days, 1 = the 7 days before that, ...
   const [monthOffset, setMonthOffset] = useState(0); // 0 = this month, 1 = last month, ...
   const [swipeStartX, setSwipeStartX] = useState<number | null>(null);
+  // Only meaningful while range is "pickMonth"/"pickYear" -- an arbitrary
+  // month or year chosen via the native date picker, independent of
+  // "today"/"now" the way monthOffset/weekOffset are.
+  const [pickedMonthDate, setPickedMonthDate] = useState<Date | null>(null);
+  const [pickedYearNum, setPickedYearNum] = useState<number | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -89,10 +95,30 @@ export default function Stats() {
     });
   }
 
-  const rangeStart = range === "today" ? startOfToday() : range === "week" ? startOfWeek() : range === "month" ? startOfMonth() : 0;
+  // pickMonth/pickYear need a closed [start, end) window -- every other
+  // range is open-ended up to "now", which a single `rangeStart` alone
+  // already covers (filteredEntries only ever sees past entries anyway).
+  const { rangeStart, rangeEnd } = useMemo(() => {
+    if (range === "today") return { rangeStart: startOfToday(), rangeEnd: Infinity };
+    if (range === "week") return { rangeStart: startOfWeek(), rangeEnd: Infinity };
+    if (range === "month") return { rangeStart: startOfMonth(), rangeEnd: Infinity };
+    if (range === "pickMonth" && pickedMonthDate) {
+      const start = new Date(pickedMonthDate.getFullYear(), pickedMonthDate.getMonth(), 1).getTime();
+      const end = new Date(pickedMonthDate.getFullYear(), pickedMonthDate.getMonth() + 1, 1).getTime();
+      return { rangeStart: start, rangeEnd: end };
+    }
+    if (range === "pickYear" && pickedYearNum) {
+      const start = new Date(pickedYearNum, 0, 1).getTime();
+      const end = new Date(pickedYearNum + 1, 0, 1).getTime();
+      return { rangeStart: start, rangeEnd: end };
+    }
+    return { rangeStart: 0, rangeEnd: Infinity };
+  }, [range, pickedMonthDate, pickedYearNum]);
   const filteredEntries = useMemo(
-    () => personalConfirmed.filter((e) => e.startTime >= rangeStart && (filterEmployerIds.size === 0 || filterEmployerIds.has(e.employerId))),
-    [personalConfirmed, rangeStart, filterEmployerIds],
+    () => personalConfirmed.filter((e) =>
+      e.startTime >= rangeStart && e.startTime < rangeEnd && (filterEmployerIds.size === 0 || filterEmployerIds.has(e.employerId)),
+    ),
+    [personalConfirmed, rangeStart, rangeEnd, filterEmployerIds],
   );
   const visibleEmployers = useMemo(
     () => employers.filter((emp) => filterEmployerIds.size === 0 || filterEmployerIds.has(emp.id)),
@@ -126,7 +152,7 @@ export default function Stats() {
     }
     if (range === "all") {
       for (const emp of visibleEmployers) add(emp, lumpSumAllTime(emp, personalConfirmed));
-    } else if (range === "month") {
+    } else if (range === "month" || range === "pickMonth") {
       for (const emp of visibleEmployers) add(emp, lumpSumForPeriod(emp, filteredEntries));
     }
     return map;
@@ -148,16 +174,53 @@ export default function Stats() {
   }, [last7Days]);
   const dailyPay = useMemo(() => payByDay(personalConfirmed, employerById), [personalConfirmed, employerById]);
   const dailyHours = useMemo(() => hoursByDay(personalConfirmed), [personalConfirmed]);
+
+  // Per-month totals for a given year, derived from the same day-keyed maps
+  // above -- used by the "按年" trend/calendar views (12 bars/rows instead
+  // of daily ones).
+  const monthlyTotalsForYear = useCallback((year: number) => {
+    return Array.from({ length: 12 }, (_, month) => {
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      let pay = 0;
+      let hours = 0;
+      for (let day = 1; day <= daysInMonth; day++) {
+        const key = dateKey(new Date(year, month, day).getTime());
+        pay += dailyPay.get(key) ?? 0;
+        hours += dailyHours.get(key) ?? 0;
+      }
+      return { month, pay, hours };
+    });
+  }, [dailyPay, dailyHours]);
   const maxDailyPay = Math.max(1, ...last7Days.map((d) => dailyPay.get(d.key) ?? 0));
 
   const viewedMonth = useMemo(() => {
+    if (range === "pickMonth" && pickedMonthDate) return pickedMonthDate;
     const d = new Date();
     d.setDate(1);
     d.setMonth(d.getMonth() - monthOffset);
     return d;
-  }, [monthOffset]);
+  }, [monthOffset, range, pickedMonthDate]);
   const monthLabel = `${viewedMonth.getFullYear()}年${viewedMonth.getMonth() + 1}月`;
-  const isCurrentMonth = monthOffset === 0;
+  const now0 = new Date();
+  const isCurrentMonth = range === "pickMonth"
+    ? viewedMonth.getFullYear() === now0.getFullYear() && viewedMonth.getMonth() === now0.getMonth()
+    : monthOffset === 0;
+
+  // Shared by the calendar's ‹/› nav and its swipe gesture -- shifts
+  // pickedMonthDate directly when a specific month is picked (not relative
+  // to "today" the way monthOffset is), otherwise falls back to the
+  // existing monthOffset behavior unchanged.
+  function shiftCalendarMonth(direction: 1 | -1) {
+    if (range === "pickMonth" && pickedMonthDate) {
+      const d = new Date(pickedMonthDate.getFullYear(), pickedMonthDate.getMonth() + direction, 1);
+      setPickedMonthDate(d);
+    } else if (direction === -1) {
+      setMonthOffset((o) => o + 1);
+    } else if (monthOffset > 0) {
+      setMonthOffset((o) => o - 1);
+    }
+    setSelectedCalDay(null);
+  }
   const calendarLeadingBlanks = useMemo(
     () => new Date(viewedMonth.getFullYear(), viewedMonth.getMonth(), 1).getDay(),
     [viewedMonth],
@@ -179,6 +242,27 @@ export default function Stats() {
     }));
   }, [dailyPay, dailyHours, viewedMonth]);
   const selectedCalDayInfo = useMemo(() => heatCells.find((c) => c.day === selectedCalDay) ?? null, [heatCells, selectedCalDay]);
+
+  // Trend-tab data for the two picker-driven ranges -- a day-by-day bar row
+  // for a picked month, a month-by-month bar row for a picked year. The
+  // default today/week/month/all ranges keep using last7Days below,
+  // unchanged.
+  const pickedMonthDayBars = useMemo(() => {
+    if (range !== "pickMonth" || !pickedMonthDate) return [];
+    const year = pickedMonthDate.getFullYear();
+    const month = pickedMonthDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const key = dateKey(new Date(year, month, i + 1).getTime());
+      return { label: String(i + 1), pay: dailyPay.get(key) ?? 0, hours: dailyHours.get(key) ?? 0 };
+    });
+  }, [range, pickedMonthDate, dailyPay, dailyHours]);
+  const pickedYearMonthBars = useMemo(() => {
+    if (range !== "pickYear" || !pickedYearNum) return [];
+    return monthlyTotalsForYear(pickedYearNum).map((m) => ({ label: MONTH_LABELS[m.month], pay: m.pay, hours: m.hours }));
+  }, [range, pickedYearNum, monthlyTotalsForYear]);
+  const trendBars = range === "pickMonth" ? pickedMonthDayBars : range === "pickYear" ? pickedYearMonthBars : null;
+  const maxTrendBarPay = Math.max(1, ...(trendBars ?? []).map((b) => b.pay));
 
   const streak = useMemo(() => currentStreak(personalConfirmed), [personalConfirmed]);
   const streakCells = useMemo(() => {
@@ -213,13 +297,43 @@ export default function Stats() {
       <Text className="stats-title">统计</Text>
 
       <View className="range-row-wrap">
-        <View className="range-row">
+        <ScrollView scrollX className="range-row">
           {RANGES.map((r) => (
             <View key={r.key} className={`range-chip${range === r.key ? " active" : ""}`} onClick={() => setRange(r.key)}>
               <Text>{r.label}</Text>
             </View>
           ))}
-        </View>
+          <Picker
+            mode="date"
+            fields="month"
+            value={`${(pickedMonthDate ?? new Date()).getFullYear()}-${String((pickedMonthDate ?? new Date()).getMonth() + 1).padStart(2, "0")}`}
+            onChange={(e) => {
+              const [y, m] = e.detail.value.split("-").map(Number);
+              setPickedMonthDate(new Date(y, m - 1, 1));
+              setRange("pickMonth");
+              setSelectedCalDay(null);
+            }}
+          >
+            <View className={`range-chip${range === "pickMonth" ? " active" : ""}`}>
+              <Text>{range === "pickMonth" && pickedMonthDate ? `${pickedMonthDate.getFullYear()}年${pickedMonthDate.getMonth() + 1}月` : "按月"}</Text>
+            </View>
+          </Picker>
+          <Picker
+            mode="date"
+            fields="year"
+            value={String(pickedYearNum ?? new Date().getFullYear())}
+            onChange={(e) => {
+              const y = Number(e.detail.value.split("-")[0]);
+              setPickedYearNum(y);
+              setRange("pickYear");
+              setSelectedCalDay(null);
+            }}
+          >
+            <View className={`range-chip${range === "pickYear" ? " active" : ""}`}>
+              <Text>{range === "pickYear" && pickedYearNum ? `${pickedYearNum}年` : "按年"}</Text>
+            </View>
+          </Picker>
+        </ScrollView>
         <View className="jump-detail-btn" onClick={jumpToDetail}>
           <Text>看明细 ↓</Text>
         </View>
@@ -287,50 +401,107 @@ export default function Stats() {
 
       {viz === "trend" && (
         <View className="chart-card">
-          <View className="chart-nav-row">
-            <View className="chart-nav-btn" onClick={() => setWeekOffset((o) => o + 1)}><Text>‹</Text></View>
-            <Text className="chart-title">{weekOffset === 0 ? "最近7天" : weekRangeLabel}</Text>
-            <View className={`chart-nav-btn${weekOffset === 0 ? " disabled" : ""}`} onClick={() => weekOffset > 0 && setWeekOffset((o) => o - 1)}><Text>›</Text></View>
-          </View>
-          <View
-            className="bars"
-            onTouchStart={(e: ITouchEvent) => setSwipeStartX(e.touches[0].clientX)}
-            onTouchEnd={(e: ITouchEvent) => {
-              if (swipeStartX === null) return;
-              const dx = e.changedTouches[0].clientX - swipeStartX;
-              if (dx < -40) setWeekOffset((o) => o + 1);
-              else if (dx > 40 && weekOffset > 0) setWeekOffset((o) => o - 1);
-              setSwipeStartX(null);
-            }}
-          >
-            {last7Days.map((d) => {
-              const pay = dailyPay.get(d.key) ?? 0;
-              const hours = dailyHours.get(d.key) ?? 0;
-              return (
-                <View className="bar-col" key={d.key}>
-                  <Text className="bar-pay">{pay > 0 ? `${currencySymbol(DEFAULT_CURRENCY)}${pay.toFixed(0)}` : ""}</Text>
-                  <View className="bar-track">
-                    <View className="bar-stack" style={{ height: `${Math.max(4, (pay / maxDailyPay) * 100)}%` }} />
-                  </View>
-                  <Text className="bar-day">{d.label}</Text>
-                  <Text className="bar-hours">{hours > 0 ? `${hours.toFixed(1)}h` : "–"}</Text>
+          {trendBars ? (
+            <>
+              <View className="chart-nav-row">
+                <Text className="chart-title">
+                  {range === "pickMonth" ? `${monthLabel} 每日收入` : `${pickedYearNum}年 每月收入`}
+                </Text>
+              </View>
+              {range === "pickMonth" ? (
+                // A month can have up to 31 bars -- a plain <view> with
+                // overflow isn't touch-scrollable in WeChat Mini Programs,
+                // only <scroll-view> actually responds to swipes.
+                <ScrollView scrollX className="bars bars-scroll">
+                  {trendBars.map((b, i) => (
+                    <View className="bar-col bar-col-fixed" key={i}>
+                      <Text className="bar-pay">{b.pay > 0 ? `${currencySymbol(DEFAULT_CURRENCY)}${b.pay.toFixed(0)}` : ""}</Text>
+                      <View className="bar-track">
+                        <View className="bar-stack" style={{ height: `${Math.max(4, (b.pay / maxTrendBarPay) * 100)}%` }} />
+                      </View>
+                      <Text className="bar-day">{b.label}</Text>
+                      <Text className="bar-hours">{b.hours > 0 ? `${b.hours.toFixed(1)}h` : "–"}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+              ) : (
+                <View className="bars">
+                  {trendBars.map((b, i) => (
+                    <View className="bar-col" key={i}>
+                      <Text className="bar-pay">{b.pay > 0 ? `${currencySymbol(DEFAULT_CURRENCY)}${b.pay.toFixed(0)}` : ""}</Text>
+                      <View className="bar-track">
+                        <View className="bar-stack" style={{ height: `${Math.max(4, (b.pay / maxTrendBarPay) * 100)}%` }} />
+                      </View>
+                      <Text className="bar-day">{b.label}</Text>
+                      <Text className="bar-hours">{b.hours > 0 ? `${b.hours.toFixed(1)}h` : "–"}</Text>
+                    </View>
+                  ))}
                 </View>
-              );
-            })}
+              )}
+            </>
+          ) : (
+            <>
+              <View className="chart-nav-row">
+                <View className="chart-nav-btn" onClick={() => setWeekOffset((o) => o + 1)}><Text>‹</Text></View>
+                <Text className="chart-title">{weekOffset === 0 ? "最近7天" : weekRangeLabel}</Text>
+                <View className={`chart-nav-btn${weekOffset === 0 ? " disabled" : ""}`} onClick={() => weekOffset > 0 && setWeekOffset((o) => o - 1)}><Text>›</Text></View>
+              </View>
+              <View
+                className="bars"
+                onTouchStart={(e: ITouchEvent) => setSwipeStartX(e.touches[0].clientX)}
+                onTouchEnd={(e: ITouchEvent) => {
+                  if (swipeStartX === null) return;
+                  const dx = e.changedTouches[0].clientX - swipeStartX;
+                  if (dx < -40) setWeekOffset((o) => o + 1);
+                  else if (dx > 40 && weekOffset > 0) setWeekOffset((o) => o - 1);
+                  setSwipeStartX(null);
+                }}
+              >
+                {last7Days.map((d) => {
+                  const pay = dailyPay.get(d.key) ?? 0;
+                  const hours = dailyHours.get(d.key) ?? 0;
+                  return (
+                    <View className="bar-col" key={d.key}>
+                      <Text className="bar-pay">{pay > 0 ? `${currencySymbol(DEFAULT_CURRENCY)}${pay.toFixed(0)}` : ""}</Text>
+                      <View className="bar-track">
+                        <View className="bar-stack" style={{ height: `${Math.max(4, (pay / maxDailyPay) * 100)}%` }} />
+                      </View>
+                      <Text className="bar-day">{d.label}</Text>
+                      <Text className="bar-hours">{hours > 0 ? `${hours.toFixed(1)}h` : "–"}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          )}
+        </View>
+      )}
+
+      {viz === "calendar" && range === "pickYear" && pickedYearNum && (
+        <View className="chart-card">
+          <Text className="chart-title">{pickedYearNum}年 每月汇总</Text>
+          <View className="month-summary-list">
+            {pickedYearMonthBars.map((b, i) => (
+              <View className="month-summary-row" key={i}>
+                <Text className="month-summary-label">{b.label}</Text>
+                <Text className="month-summary-hours">{b.hours > 0 ? `${b.hours.toFixed(1)}h` : "–"}</Text>
+                <Text className="month-summary-pay">{b.pay > 0 ? `${currencySymbol(DEFAULT_CURRENCY)}${b.pay.toFixed(0)}` : "–"}</Text>
+              </View>
+            ))}
           </View>
         </View>
       )}
 
-      {viz === "calendar" && (
+      {viz === "calendar" && range !== "pickYear" && (
         <View className="chart-card">
           <View className="streak-chip">
             <Image className="streak-chip-icon" src="/icons/flame-coral.png" mode="aspectFit" />
             <Text>连续打卡 {streak} 天</Text>
           </View>
           <View className="chart-nav-row">
-            <View className="chart-nav-btn" onClick={() => { setMonthOffset((o) => o + 1); setSelectedCalDay(null); }}><Text>‹</Text></View>
+            <View className="chart-nav-btn" onClick={() => shiftCalendarMonth(-1)}><Text>‹</Text></View>
             <Text className="chart-title">{monthLabel} 收入日历</Text>
-            <View className={`chart-nav-btn${isCurrentMonth ? " disabled" : ""}`} onClick={() => { if (!isCurrentMonth) { setMonthOffset((o) => o - 1); setSelectedCalDay(null); } }}><Text>›</Text></View>
+            <View className={`chart-nav-btn${isCurrentMonth ? " disabled" : ""}`} onClick={() => { if (!isCurrentMonth) shiftCalendarMonth(1); }}><Text>›</Text></View>
           </View>
           <View
             className="weekday-header"
@@ -338,8 +509,8 @@ export default function Stats() {
             onTouchEnd={(e: ITouchEvent) => {
               if (swipeStartX === null) return;
               const dx = e.changedTouches[0].clientX - swipeStartX;
-              if (dx < -40) { setMonthOffset((o) => o + 1); setSelectedCalDay(null); }
-              else if (dx > 40 && !isCurrentMonth) { setMonthOffset((o) => o - 1); setSelectedCalDay(null); }
+              if (dx < -40) shiftCalendarMonth(-1);
+              else if (dx > 40 && !isCurrentMonth) shiftCalendarMonth(1);
               setSwipeStartX(null);
             }}
           >
@@ -451,7 +622,13 @@ export default function Stats() {
       </View>
 
       <View className="list-title-row" id="detail-list-section">
-        <Text className="list-title">明细{range !== "all" ? `（${RANGES.find((r) => r.key === range)!.label}）` : ""}</Text>
+        <Text className="list-title">
+          明细{range !== "all" ? `（${
+            range === "pickMonth" && pickedMonthDate ? `${pickedMonthDate.getFullYear()}年${pickedMonthDate.getMonth() + 1}月` :
+            range === "pickYear" && pickedYearNum ? `${pickedYearNum}年` :
+            RANGES.find((r) => r.key === range)?.label ?? ""
+          }）` : ""}
+        </Text>
         <View className={`export-btn${exportableEntries.length === 0 ? " disabled" : ""}`} onClick={() => exportableEntries.length > 0 && setExportOpen(true)}>
           <Text>导出</Text>
         </View>
