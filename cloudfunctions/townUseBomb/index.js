@@ -27,7 +27,7 @@ const VALID_JOB_KEYS = [
 // atomic _.inc instead of read-modify-write since this touches every
 // profile at once (concurrent checkins/collects elsewhere would otherwise
 // race with a plain read-then-write here).
-const BOMB_SUBSIDY_OXFEED = 10;
+const BOMB_SUBSIDY_OXFEED = 30;
 
 async function paySubsidyToEveryone(jobKey, now) {
   const res = await db.collection("townProfiles").where({ unlocked: true }).limit(100).get();
