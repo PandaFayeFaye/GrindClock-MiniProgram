@@ -144,6 +144,11 @@ export const TOWN_DECORATIONS: TownDecoration[] = [
   { key: "luckyCat", name: "幸运招财猫", icon: "/town/deco-icons/luckyCat.png", costItem: "snackPack", costAmount: 12 },
   { key: "loungeChair", name: "摸鱼躺椅", icon: "/town/deco-icons/loungeChair.png", costItem: "veggie", costAmount: 16 },
   { key: "bossSofa", name: "老板专属沙发", icon: "/town/deco-icons/bossSofa.png", costItem: "dividend", costAmount: 8 },
+  { key: "kanbanBoard", name: "需求优先级看板", icon: "/town/deco-icons/kanbanBoard.png", costItem: "pmBonus", costAmount: 10 },
+  { key: "stethoscope", name: "听诊器摆件", icon: "/town/deco-icons/doctorCoat.png", costItem: "icuBonus", costAmount: 8 },
+  { key: "hashtagNeon", name: "热搜话题霓虹灯", icon: "/town/deco-icons/hashtagNeon.png", costItem: "contentBonus", costAmount: 10 },
+  { key: "miniFaucet", name: "迷你水龙头摆件", icon: "/town/deco-icons/miniFaucet.png", costItem: "blueprintFee", costAmount: 5 },
+  { key: "bullStatue", name: "牛市公牛摆件", icon: "/town/deco-icons/bullStatue.png", costItem: "futuresCommission", costAmount: 8 },
 ];
 
 // Mirrors cloudfunctions/townCriticize's SUBSCRIBE_TEMPLATE_ID -- the

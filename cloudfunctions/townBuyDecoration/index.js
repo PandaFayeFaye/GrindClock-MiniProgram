@@ -21,6 +21,11 @@ const TOWN_DECORATIONS = [
   { key: "luckyCat", costItem: "snackPack", costAmount: 12 },
   { key: "loungeChair", costItem: "veggie", costAmount: 16 },
   { key: "bossSofa", costItem: "dividend", costAmount: 8 },
+  { key: "kanbanBoard", costItem: "pmBonus", costAmount: 10 },
+  { key: "stethoscope", costItem: "icuBonus", costAmount: 8 },
+  { key: "hashtagNeon", costItem: "contentBonus", costAmount: 10 },
+  { key: "miniFaucet", costItem: "blueprintFee", costAmount: 5 },
+  { key: "bullStatue", costItem: "futuresCommission", costAmount: 8 },
 ];
 
 exports.main = async (event) => {
