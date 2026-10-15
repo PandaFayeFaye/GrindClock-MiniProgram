@@ -12,27 +12,32 @@ const db = cloud.database();
 
 const DAILY_RATION = 15;
 const CN_TZ_OFFSET_MS = 8 * 3_600_000;
+// Paid leave pays out as if an 8-hour shift had been worked, regardless of
+// how long the picked job's actual shift runs -- see the per-hour scaling
+// below.
+const LEAVE_PAYOUT_HOURS = 8;
 
 // Mirrors src/lib/town.ts TOWN_JOBS -- only the fields a paid-leave payout
-// needs. nightOnly is deliberately ignored here: this is a stand-in salary,
-// not an actual shift, so time-of-day shouldn't gate which job it's based on.
+// needs (durationMs so the payout can be scaled to a per-hour rate).
+// nightOnly is deliberately ignored here: this is a stand-in salary, not an
+// actual shift, so time-of-day shouldn't gate which job it's based on.
 const TOWN_JOBS = [
-  { key: "milkTeaShop", item: "milkTea", itemAmount: 1, expGain: 5, unlockLevel: 0 },
-  { key: "convenienceStore", item: "snackPack", itemAmount: 1, expGain: 5, unlockLevel: 0 },
-  { key: "barista", item: "coffeeBean", itemAmount: 2, expGain: 8, unlockLevel: 1 },
-  { key: "rider", item: "riderSubsidy", itemAmount: 1, expGain: 5, unlockLevel: 1 },
-  { key: "callCenter", item: "phoneCard", itemAmount: 3, expGain: 12, unlockLevel: 2 },
-  { key: "driver", item: "gasCard", itemAmount: 2, expGain: 10, unlockLevel: 3 },
-  { key: "farmer", item: "veggie", itemAmount: 4, expGain: 12, unlockLevel: 4 },
-  { key: "productManager", item: "pmBonus", itemAmount: 2, expGain: 13, unlockLevel: 4 },
-  { key: "hospital", item: "icuBonus", itemAmount: 2, expGain: 22, unlockLevel: 4 },
-  { key: "bbqStall", item: "bbqCoupon", itemAmount: 3, expGain: 15, unlockLevel: 5 },
-  { key: "designInstitute", item: "blueprintFee", itemAmount: 1, expGain: 25, unlockLevel: 5 },
-  { key: "contentOps", item: "contentBonus", itemAmount: 2, expGain: 11, unlockLevel: 5 },
-  { key: "liveStream", item: "liveCommission", itemAmount: 1, expGain: 15, unlockLevel: 6 },
-  { key: "futuresInstitute", item: "futuresCommission", itemAmount: 2, expGain: 28, unlockLevel: 6 },
-  { key: "tutor", item: "tutorFee", itemAmount: 1, expGain: 18, unlockLevel: 7 },
-  { key: "boardroom", item: "dividend", itemAmount: 1, expGain: 20, unlockLevel: 8 },
+  { key: "milkTeaShop", item: "milkTea", itemAmount: 1, expGain: 5, unlockLevel: 0, durationMs: 1 * 3_600_000 },
+  { key: "convenienceStore", item: "snackPack", itemAmount: 1, expGain: 5, unlockLevel: 0, durationMs: 1.5 * 3_600_000 },
+  { key: "barista", item: "coffeeBean", itemAmount: 2, expGain: 8, unlockLevel: 1, durationMs: 2 * 3_600_000 },
+  { key: "rider", item: "riderSubsidy", itemAmount: 1, expGain: 5, unlockLevel: 1, durationMs: 0.5 * 3_600_000 },
+  { key: "callCenter", item: "phoneCard", itemAmount: 3, expGain: 12, unlockLevel: 2, durationMs: 4 * 3_600_000 },
+  { key: "driver", item: "gasCard", itemAmount: 2, expGain: 10, unlockLevel: 3, durationMs: 3 * 3_600_000 },
+  { key: "farmer", item: "veggie", itemAmount: 4, expGain: 12, unlockLevel: 4, durationMs: 3 * 3_600_000 },
+  { key: "productManager", item: "pmBonus", itemAmount: 2, expGain: 13, unlockLevel: 4, durationMs: 3 * 3_600_000 },
+  { key: "hospital", item: "icuBonus", itemAmount: 2, expGain: 22, unlockLevel: 4, durationMs: 5 * 3_600_000 },
+  { key: "bbqStall", item: "bbqCoupon", itemAmount: 3, expGain: 15, unlockLevel: 5, durationMs: 2 * 3_600_000 },
+  { key: "designInstitute", item: "blueprintFee", itemAmount: 1, expGain: 25, unlockLevel: 5, durationMs: 6 * 3_600_000 },
+  { key: "contentOps", item: "contentBonus", itemAmount: 2, expGain: 11, unlockLevel: 5, durationMs: 2.5 * 3_600_000 },
+  { key: "liveStream", item: "liveCommission", itemAmount: 1, expGain: 15, unlockLevel: 6, durationMs: 2 * 3_600_000 },
+  { key: "futuresInstitute", item: "futuresCommission", itemAmount: 2, expGain: 28, unlockLevel: 6, durationMs: 3 * 3_600_000 },
+  { key: "tutor", item: "tutorFee", itemAmount: 1, expGain: 18, unlockLevel: 7, durationMs: 3 * 3_600_000 },
+  { key: "boardroom", item: "dividend", itemAmount: 1, expGain: 20, unlockLevel: 8, durationMs: 4 * 3_600_000 },
 ];
 
 function cnDateKey(ts) {
@@ -73,16 +78,26 @@ exports.main = async () => {
     data.lastCheckinDateKey = todayKey;
   }
 
-  // Paid leave pays out one job's worth of specialty + exp, as if a shift
-  // had been worked, picked randomly among whatever's unlocked at the
-  // player's current title.
+  // Paid leave pays out as if an LEAVE_PAYOUT_HOURS shift had been worked,
+  // picked randomly among whatever job's unlocked at the player's current
+  // title, then scaled by that job's own per-hour rate -- a short shift
+  // (e.g. rider's 0.5h) and a long one (e.g. designInstitute's 6h) should
+  // both come out to roughly the same day's pay, not the same raw per-shift
+  // amount regardless of how long the shift actually runs.
   const eligibleJobs = TOWN_JOBS.filter((j) => j.unlockLevel <= (profile.titleIndex || 0));
   const payoutJob = eligibleJobs.length > 0 ? eligibleJobs[Math.floor(Math.random() * eligibleJobs.length)] : null;
+  let amountGained = 0;
+  let expGained = 0;
   if (payoutJob) {
+    const jobHours = payoutJob.durationMs / 3_600_000;
+    const scale = LEAVE_PAYOUT_HOURS / jobHours;
+    amountGained = Math.max(1, Math.round(payoutJob.itemAmount * scale));
+    expGained = Math.max(1, Math.round(payoutJob.expGain * scale));
+
     const inventory = { ...(profile.inventory || {}) };
-    inventory[payoutJob.item] = (inventory[payoutJob.item] || 0) + payoutJob.itemAmount;
+    inventory[payoutJob.item] = (inventory[payoutJob.item] || 0) + amountGained;
     data.inventory = inventory;
-    data.companionExp = (profile.companionExp || 0) + payoutJob.expGain;
+    data.companionExp = (profile.companionExp || 0) + expGained;
   }
 
   await ref.update({ data });
@@ -91,8 +106,8 @@ exports.main = async () => {
       openid: OPENID,
       type: "leave_day",
       jobType: payoutJob ? payoutJob.key : undefined,
-      expGained: payoutJob ? payoutJob.expGain : 0,
-      itemsGained: payoutJob ? { [payoutJob.item]: payoutJob.itemAmount } : {},
+      expGained,
+      itemsGained: payoutJob ? { [payoutJob.item]: amountGained } : {},
       createdAt: now,
     },
   });
@@ -101,7 +116,7 @@ exports.main = async () => {
     ok: true,
     profile: { ...profile, ...data },
     itemGained: payoutJob ? payoutJob.item : null,
-    amountGained: payoutJob ? payoutJob.itemAmount : 0,
-    expGained: payoutJob ? payoutJob.expGain : 0,
+    amountGained,
+    expGained,
   };
 };
