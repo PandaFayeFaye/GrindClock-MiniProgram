@@ -8,6 +8,7 @@
 const cloud = require("wx-server-sdk");
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
 const CN_TZ_OFFSET_MS = 8 * 3_600_000;
 function cnDateKey(ts) {
@@ -19,6 +20,31 @@ const VALID_JOB_KEYS = [
   "driver", "farmer", "bbqStall", "liveStream", "tutor",
   "productManager", "contentOps", "hospital", "designInstitute", "futuresInstitute",
 ];
+
+// "阳光普照" -- bombing a job takes it offline for EVERYONE that day, not
+// just whoever the bomber was targeting, so everyone unlocked gets a flat
+// oxFeed subsidy for the shift they can no longer start there. Uses an
+// atomic _.inc instead of read-modify-write since this touches every
+// profile at once (concurrent checkins/collects elsewhere would otherwise
+// race with a plain read-then-write here).
+const BOMB_SUBSIDY_OXFEED = 10;
+
+async function paySubsidyToEveryone(jobKey, now) {
+  const res = await db.collection("townProfiles").where({ unlocked: true }).limit(100).get();
+  const profiles = res.data || [];
+  await Promise.all(
+    profiles.map((p) =>
+      db
+        .collection("townProfiles")
+        .doc(p._id)
+        .update({ data: { oxFeed: _.inc(BOMB_SUBSIDY_OXFEED) } })
+        .catch(() => {}),
+    ),
+  );
+  await db.collection("townJobLog").add({
+    data: { type: "bomb_subsidy", jobType: jobKey, expGained: 0, itemsGained: {}, createdAt: now },
+  });
+}
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
@@ -46,5 +72,7 @@ exports.main = async (event) => {
     data: { openid: OPENID, type: "bomb_used", jobType: jobKey, createdAt: now },
   });
 
-  return { ok: true, bombedUntilDateKey: todayKey };
+  await paySubsidyToEveryone(jobKey, now).catch((err) => console.error("bomb subsidy failed", err));
+
+  return { ok: true, bombedUntilDateKey: todayKey, subsidyAmount: BOMB_SUBSIDY_OXFEED };
 };

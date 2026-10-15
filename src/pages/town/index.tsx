@@ -172,7 +172,8 @@ export default function TownPage() {
     try {
       const res = await useLeaveDay();
       setProfile(res.profile);
-      Taro.showToast({ title: "已请假，今天没人能偷/摊派你啦", icon: "none" });
+      const payout = res.itemGained ? `，照发${ITEM_LABEL[res.itemGained as keyof typeof ITEM_LABEL]}x${res.amountGained}` : "";
+      Taro.showToast({ title: `已请假，今天没人能偷/摊派你啦${payout}`, icon: "none" });
     } catch (err) {
       const msg = (err as Error).message;
       Taro.showToast({ title: msg === "no_leave_days" ? "年假用完了" : msg === "jailed" ? "还在坐牢呢" : "请假失败", icon: "none" });
@@ -182,16 +183,15 @@ export default function TownPage() {
   async function handleUseBomb(jobKey: string, jobName: string) {
     Taro.showModal({
       title: "引爆罢工弹？",
-      content: `「${jobName}」今天之内都不能再进去打工（已经在里面的人不受影响，照常拿工钱）`,
+      content: `「${jobName}」今天之内都不能再进去打工（已经在里面的人不受影响，照常拿工钱，所有人都会收到一笔停工津贴）`,
       confirmText: "炸了",
       cancelText: "算了",
       success: async (res) => {
         if (!res.confirm) return;
         try {
           const r = await useBomb(jobKey);
-          setProfile((p) => (p ? { ...p, bombs: (p.bombs || 0) - 1 } : p));
-          Taro.showToast({ title: `「${jobName}」今天停业啦`, icon: "none" });
-          void r;
+          setProfile((p) => (p ? { ...p, bombs: (p.bombs || 0) - 1, oxFeed: p.oxFeed + r.subsidyAmount } : p));
+          Taro.showToast({ title: `「${jobName}」今天停业啦，全员发了${r.subsidyAmount}停工津贴`, icon: "none" });
         } catch (err) {
           const msg = (err as Error).message;
           Taro.showToast({ title: msg === "no_bombs" ? "没有炸弹了" : "引爆失败", icon: "none" });

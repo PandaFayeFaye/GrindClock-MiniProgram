@@ -128,16 +128,19 @@ export function buyDecoration(key: string) {
 }
 
 /** Spends one banked 带薪年假 day -- counts as today's check-in (keeps the
- * streak alive, still grants the ration) and grants immunity from
- * steal/skim for the rest of the local day. See cloudfunctions/townUseLeaveDay. */
+ * streak alive, still grants the ration), grants immunity from steal/skim
+ * for the rest of the local day, and pays out one job's worth of specialty
+ * + exp as if a shift had been worked. See cloudfunctions/townUseLeaveDay. */
 export function useLeaveDay() {
-  return call<{ profile: TownProfile }>("townUseLeaveDay");
+  return call<{ profile: TownProfile; itemGained: string | null; amountGained: number; expGained: number }>("townUseLeaveDay");
 }
 
 /** Spends one 闭店罢工弹 on a specific job building -- takes it offline for
- * everyone for the rest of the local day. See cloudfunctions/townUseBomb. */
+ * everyone for the rest of the local day, and pays every unlocked player a
+ * flat oxFeed subsidy for the shift they can no longer start there.
+ * See cloudfunctions/townUseBomb. */
 export function useBomb(jobKey: string) {
-  return call<{ bombedUntilDateKey: string }>("townUseBomb", { jobKey });
+  return call<{ bombedUntilDateKey: string; subsidyAmount: number }>("townUseBomb", { jobKey });
 }
 
 /** Reports a boss who's skimmed you REPORT_SKIM_THRESHOLD+ times in the past
