@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { View, Text, Button, Image } from "@tarojs/components";
 import Taro, { useDidShow } from "@tarojs/taro";
-import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, criticizeForNotCheckingIn, type WorldEntry } from "../../lib/cloudTown";
+import { fetchTownProfile, fetchWorld, stealFrom, skimFrom, criticizeForNotCheckingIn, reportBoss, type WorldEntry } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
 import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
 import { ITEM_LABEL, TOWN_SCENE_BG, HUD_ICON_TROPHY, TOWN_DECORATIONS, ALL_SUBSCRIBE_TEMPLATE_IDS, buildingImageSrc } from "../../lib/town";
@@ -101,6 +101,7 @@ export default function TownWorldPage() {
         msg === "jailed" ? "还在坐牢呢，什么都干不了" :
         msg === "steal_cooldown" ? "今天偷TA偷够啦，明天再来" :
         msg === "steal_global_cooldown" ? "手速太快啦，每小时只能出手一次" :
+        msg === "target_on_leave" ? "TA请假了，今天动不了TA" :
         msg === "nothing_to_steal" ? "TA的仓库空空如也" : "偷菜失败";
       Taro.showToast({ title: text, icon: "none" });
     }
@@ -115,6 +116,20 @@ export default function TownWorldPage() {
       const text =
         msg === "already_checked_in" ? "TA已经打卡了，冤枉TA了" :
         msg === "criticize_cooldown" ? "已经批评过了，再等等" : "批评失败";
+      Taro.showToast({ title: text, icon: "none" });
+    }
+  }
+
+  async function handleReportBoss(entry: WorldEntry) {
+    try {
+      const res = await reportBoss(entry.openid);
+      Taro.showToast({ title: "举报成功，TA被禁了几个小时", icon: "none" });
+      void res;
+    } catch (err) {
+      const msg = (err as Error).message;
+      const text =
+        msg === "not_eligible" ? "TA最近没画饼摊派过你，举报不了" :
+        msg === "report_cooldown" ? "已经举报过了，再等等" : "举报失败";
       Taro.showToast({ title: text, icon: "none" });
     }
   }
@@ -137,6 +152,7 @@ export default function TownWorldPage() {
         msg === "jailed" ? "还在坐牢呢，什么都干不了" :
         msg === "skim_cooldown" ? "这个饼刚画过，过会儿再来" :
         msg === "target_already_assigned" ? "TA已经被别人派去打工了，等那份活干完再来" :
+        msg === "target_on_leave" ? "TA请假了，今天动不了TA" :
         msg === "no_job_available" ? "TA暂时没有能派的工作" : "摊派失败";
       Taro.showToast({ title: text, icon: "none" });
     }
@@ -300,6 +316,9 @@ export default function TownWorldPage() {
                       批评TA
                     </Button>
                   )}
+                  <Button className="world-btn criticize" size="mini" onClick={() => handleReportBoss(entry)}>
+                    举报老板
+                  </Button>
                 </View>
                 <Text className="world-meta">仓库里有 {entry.inventoryCount} 件特产 · {relativeTime(entry.lastActiveAt)}</Text>
                 {entry.decorations.length > 0 && (
@@ -364,6 +383,9 @@ export default function TownWorldPage() {
                     批评TA
                   </Button>
                 )}
+                <Button className="world-btn criticize" size="mini" onClick={() => { handleReportBoss(activeEntry); setActiveEntry(null); }}>
+                  举报老板
+                </Button>
               </View>
             )}
           </View>

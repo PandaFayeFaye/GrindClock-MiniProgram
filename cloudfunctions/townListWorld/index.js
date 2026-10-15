@@ -27,6 +27,11 @@ const TOWN_JOBS = [
   { key: "liveStream", item: "liveCommission", itemAmount: 1, expGain: 15, doubleChance: 0.1 },
   { key: "tutor", item: "tutorFee", itemAmount: 1, expGain: 18 },
   { key: "boardroom", item: "dividend", itemAmount: 1, expGain: 20 },
+  { key: "productManager", item: "pmBonus", itemAmount: 2, expGain: 13 },
+  { key: "contentOps", item: "contentBonus", itemAmount: 2, expGain: 11, doubleChance: 0.08 },
+  { key: "hospital", item: "icuBonus", itemAmount: 2, expGain: 22 },
+  { key: "designInstitute", item: "blueprintFee", itemAmount: 1, expGain: 25 },
+  { key: "futuresInstitute", item: "futuresCommission", itemAmount: 2, expGain: 28, doubleChance: 0.1 },
 ];
 
 async function settleAssignedJob(workerOpenid, workerProfile, now) {

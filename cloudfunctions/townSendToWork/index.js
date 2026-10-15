@@ -18,11 +18,29 @@ const TOWN_JOBS = [
   { key: "liveStream", feedCost: 15, durationMs: 2 * 3_600_000, unlockLevel: 6 },
   { key: "tutor", feedCost: 15, durationMs: 3 * 3_600_000, unlockLevel: 7 },
   { key: "boardroom", feedCost: 20, durationMs: 4 * 3_600_000, unlockLevel: 8 },
+  { key: "productManager", feedCost: 10, durationMs: 3 * 3_600_000, unlockLevel: 2 },
+  { key: "contentOps", feedCost: 10, durationMs: 2.5 * 3_600_000, unlockLevel: 3 },
+  { key: "hospital", feedCost: 18, durationMs: 5 * 3_600_000, unlockLevel: 4, nightOnly: true },
+  { key: "designInstitute", feedCost: 20, durationMs: 6 * 3_600_000, unlockLevel: 5 },
+  { key: "futuresInstitute", feedCost: 25, durationMs: 3 * 3_600_000, unlockLevel: 6 },
 ];
 
 function isNight(now) {
   const h = new Date(now + 8 * 3_600_000).getUTCHours();
   return h >= 22 || h < 6;
+}
+
+const CN_TZ_OFFSET_MS = 8 * 3_600_000;
+function cnDateKey(ts) {
+  return new Date(ts + CN_TZ_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+// 闭店罢工弹 (see townUseBomb) takes a specific building offline for
+// everyone for the rest of the local day it was used on.
+async function isBombedToday(jobKey, now) {
+  const stateRes = await db.collection("townWorldState").doc("bombedJobs").get().catch(() => null);
+  const bombed = (stateRes && stateRes.data && stateRes.data.bombed) || {};
+  return bombed[jobKey] === cnDateKey(now);
 }
 
 exports.main = async (event) => {
@@ -41,6 +59,7 @@ exports.main = async (event) => {
 
   const now = Date.now();
   if (job.nightOnly && !isNight(now)) return { ok: false, error: "night_only" };
+  if (await isBombedToday(job.key, now)) return { ok: false, error: "job_bombed" };
 
   const currentJob = { jobKey: job.key, startedAt: now, endsAt: now + job.durationMs };
   const newOxFeed = profile.oxFeed - job.feedCost;

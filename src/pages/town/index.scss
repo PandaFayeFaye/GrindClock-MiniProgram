@@ -753,3 +753,15 @@
 .town-trap-btn {
   margin-bottom: var(--space-3);
 }
+
+.town-bomb-target-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: var(--space-3);
+}
+
+.town-bomb-target-btn {
+  flex: 1 1 auto;
+  min-width: 200rpx;
+}

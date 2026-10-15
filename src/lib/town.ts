@@ -15,7 +15,12 @@ export type TownItemType =
   | "bbqCoupon"
   | "liveCommission"
   | "tutorFee"
-  | "dividend";
+  | "dividend"
+  | "icuBonus"
+  | "blueprintFee"
+  | "futuresCommission"
+  | "pmBonus"
+  | "contentBonus";
 
 export const ITEM_LABEL: Record<TownItemType, string> = {
   milkTea: "奶茶",
@@ -29,6 +34,11 @@ export const ITEM_LABEL: Record<TownItemType, string> = {
   liveCommission: "带货佣金",
   tutorFee: "补习费",
   dividend: "分红",
+  icuBonus: "抢救补贴",
+  blueprintFee: "图纸费",
+  futuresCommission: "期货提成",
+  pmBonus: "产品奖金",
+  contentBonus: "爆款奖金",
 };
 
 export type TownJob = {
@@ -71,6 +81,14 @@ export const TOWN_JOBS: TownJob[] = [
   { key: "bbqStall", name: "深夜烧烤摊", emoji: "🍢", color: "#FFB800", feedCost: 12, durationMs: 2 * 3_600_000, expGain: 15, item: "bbqCoupon", itemAmount: 3, unlockLevel: 5, nightOnly: true, x: 40, y: 75 },
   { key: "liveStream", name: "直播带货", emoji: "📱", color: "#FF6B6B", feedCost: 15, durationMs: 2 * 3_600_000, expGain: 15, item: "liveCommission", itemAmount: 1, unlockLevel: 6, x: 64, y: 70 },
   { key: "tutor", name: "家教老师", emoji: "📚", color: "#5AC8FA", feedCost: 15, durationMs: 3 * 3_600_000, expGain: 18, item: "tutorFee", itemAmount: 1, unlockLevel: 7, x: 87, y: 68, effect: "sway" },
+  // Higher-pressure "real 社畜" white-collar jobs, spread across the
+  // existing mid-tier levels so veteran and mid-progress players both get
+  // new variety instead of just piling onto the top of the ladder.
+  { key: "productManager", name: "产品经理", emoji: "📋", color: "#FF6B6B", feedCost: 10, durationMs: 3 * 3_600_000, expGain: 13, item: "pmBonus", itemAmount: 2, unlockLevel: 2, x: 70, y: 38 },
+  { key: "contentOps", name: "内容运营", emoji: "📣", color: "#39C97A", feedCost: 10, durationMs: 2.5 * 3_600_000, expGain: 11, item: "contentBonus", itemAmount: 2, unlockLevel: 3, x: 30, y: 58 },
+  { key: "hospital", name: "门诊医师", emoji: "🏥", color: "#5AC8FA", feedCost: 18, durationMs: 5 * 3_600_000, expGain: 22, item: "icuBonus", itemAmount: 2, unlockLevel: 4, nightOnly: true, x: 75, y: 40 },
+  { key: "designInstitute", name: "给排水设计师", emoji: "📐", color: "#B084F5", feedCost: 20, durationMs: 6 * 3_600_000, expGain: 25, item: "blueprintFee", itemAmount: 1, unlockLevel: 5, x: 25, y: 47 },
+  { key: "futuresInstitute", name: "期货分析师", emoji: "📈", color: "#FFB800", feedCost: 25, durationMs: 3 * 3_600_000, expGain: 28, item: "futuresCommission", itemAmount: 2, unlockLevel: 6, x: 60, y: 52 },
 ];
 
 // Companion idles here when not working -- up in the open patch above the
@@ -178,6 +196,23 @@ export type TownProfile = {
   recentThefts?: TownRecentTheft[];
   trapSetAt?: number | null;
   jailedUntil?: number | null;
+  // 带薪年假: 1 day banked per LEAVE_DAY_STREAK_REQUIREMENT consecutive daily
+  // check-ins. Spending one (townUseLeaveDay) both counts as that day's
+  // check-in (keeps the streak alive, still grants the ration) AND grants
+  // leaveActiveUntil immunity from steal/skim for the rest of the day.
+  leaveDaysAvailable?: number;
+  checkinStreakCount?: number;
+  lastCheckinDateKey?: string | null;
+  leaveActiveUntil?: number | null;
+  // "闭店罢工弹": small chance per job collected. Spent on a specific
+  // building (townUseBomb) to take it offline for every player for the
+  // rest of the local day -- anyone already mid-shift there keeps working
+  // and still gets paid in full, it just can't be started fresh.
+  bombs?: number;
+  // 举报老板: once per boss per day (see REPORT_COOLDOWN_MS), only if they
+  // skimmed you within REPORT_ELIGIBILITY_WINDOW_MS -- jails them for
+  // REPORT_JAIL_MS, same lockout as the trap/steal jail mechanic.
+  reportCooldowns?: Record<string, number>;
 };
 
 export const STEAL_CATCH_WINDOW_MS = 5 * 60_000;
@@ -196,6 +231,25 @@ export function isJailed(profile: Pick<TownProfile, "jailedUntil">, now = Date.n
 export function trapAlreadySetToday(profile: Pick<TownProfile, "trapSetAt">, now = Date.now()): boolean {
   return !!profile.trapSetAt && isSameLocalDay(profile.trapSetAt, now);
 }
+
+// ---- 带薪年假 (paid leave) ----
+export const LEAVE_DAY_STREAK_REQUIREMENT = 7;
+export const LEAVE_DAYS_MAX = 10;
+
+export function isOnLeave(profile: Pick<TownProfile, "leaveActiveUntil">, now = Date.now()): boolean {
+  return !!profile.leaveActiveUntil && profile.leaveActiveUntil > now;
+}
+
+// ---- 闭店罢工弹 (workplace bomb) ----
+export const BOMB_DROP_CHANCE = 0.04;
+
+// ---- 举报老板 (report your boss) ----
+export const REPORT_JAIL_MS = 4 * 3_600_000;
+export const REPORT_COOLDOWN_MS = 24 * 3_600_000;
+export const REPORT_ELIGIBILITY_WINDOW_MS = 24 * 3_600_000;
+
+// ---- 签到彩蛋 (lucky check-in) -- deliberately all-upside, see townCheckin ----
+export type LuckyTier = "none" | "ji" | "daji" | "dadaji";
 
 /** Whether the next title is reachable: exp threshold met AND materials on
  * hand. Titles never auto-advance on exp alone -- see MOYU_TOWN_SPEC.md 6.3. */

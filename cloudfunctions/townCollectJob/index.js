@@ -18,7 +18,16 @@ const TOWN_JOBS = [
   { key: "liveStream", expGain: 15, item: "liveCommission", itemAmount: 1, doubleChance: 0.1 },
   { key: "tutor", expGain: 18, item: "tutorFee", itemAmount: 1 },
   { key: "boardroom", expGain: 20, item: "dividend", itemAmount: 1 },
+  { key: "productManager", expGain: 13, item: "pmBonus", itemAmount: 2 },
+  { key: "contentOps", expGain: 11, item: "contentBonus", itemAmount: 2, doubleChance: 0.08 },
+  { key: "hospital", expGain: 22, item: "icuBonus", itemAmount: 2 },
+  { key: "designInstitute", expGain: 25, item: "blueprintFee", itemAmount: 1 },
+  { key: "futuresInstitute", expGain: 28, item: "futuresCommission", itemAmount: 2, doubleChance: 0.1 },
 ];
+
+// 闭店罢工弹 (see townUseBomb): a small independent chance per collected
+// shift to earn one, regardless of which job it was.
+const BOMB_DROP_CHANCE = 0.04;
 
 exports.main = async () => {
   const { OPENID } = cloud.getWXContext();
@@ -47,8 +56,11 @@ exports.main = async () => {
   const pending = profile.pendingResumeJob;
   const nextJob = pending ? { jobKey: pending.jobKey, startedAt: now, endsAt: now + pending.remainingMs } : null;
 
+  const bombDropped = Math.random() < BOMB_DROP_CHANCE;
+  const bombs = (profile.bombs || 0) + (bombDropped ? 1 : 0);
+
   await ref.update({
-    data: { inventory, companionExp, currentJob: _.set(nextJob), pendingResumeJob: _.set(null), lastActiveAt: now },
+    data: { inventory, companionExp, bombs, currentJob: _.set(nextJob), pendingResumeJob: _.set(null), lastActiveAt: now },
   });
   await db.collection("townJobLog").add({
     data: {
@@ -95,9 +107,10 @@ exports.main = async () => {
 
   return {
     ok: true,
-    profile: { ...profile, inventory, companionExp, currentJob: nextJob },
+    profile: { ...profile, inventory, companionExp, bombs, currentJob: nextJob },
     itemGained: job.item,
     amountGained: amount,
     expGained: job.expGain,
+    bombDropped,
   };
 };

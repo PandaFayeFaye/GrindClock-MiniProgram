@@ -12,6 +12,8 @@ import {
   buyDecoration,
   setDailyTrap,
   catchThief,
+  useLeaveDay,
+  useBomb,
 } from "../../lib/cloudTown";
 import { fetchUserProfile } from "../../lib/cloud";
 import { characterImageSrc, type AnimalKey } from "../../lib/avatar";
@@ -36,6 +38,7 @@ import {
   STEAL_SUBSCRIBE_TEMPLATE_ID,
   STEAL_CATCH_WINDOW_MS,
   isJailed,
+  isOnLeave,
   todayBadgeCount,
   trapAlreadySetToday,
   type TownJob,
@@ -131,6 +134,7 @@ export default function TownPage() {
   const jailRemainingMin = jailed ? Math.ceil((profile!.jailedUntil! - now) / 60_000) : 0;
   const badgesToday = profile ? todayBadgeCount(profile, now) : 0;
   const trapSetToday = profile ? trapAlreadySetToday(profile, now) : false;
+  const onLeaveToday = profile ? isOnLeave(profile, now) : false;
   const catchableThefts = useMemo(
     () => (profile?.recentThefts || []).filter((th) => now - th.stolenAt <= STEAL_CATCH_WINDOW_MS),
     [profile, now],
@@ -145,10 +149,54 @@ export default function TownPage() {
     try {
       const res = await townCheckin();
       setProfile(res.profile);
-      Taro.showToast({ title: `领到 ${res.gained} 牛马粮`, icon: "none" });
+      const luckyTitle =
+        res.luckyTier === "dadaji" ? "🧧 大大吉！" :
+        res.luckyTier === "daji" ? "🧧 大吉！" :
+        res.luckyTier === "ji" ? "🧧 吉！" : "";
+      if (luckyTitle) {
+        Taro.showModal({
+          title: luckyTitle,
+          content: `今日签到彩蛋，领到 ${res.gained} 牛马粮${res.leaveDayAwarded ? "，还攒到了1天带薪年假！" : ""}`,
+          showCancel: false,
+        });
+      } else {
+        Taro.showToast({ title: `领到 ${res.gained} 牛马粮${res.leaveDayAwarded ? "，攒到1天带薪年假" : ""}`, icon: "none" });
+      }
     } catch (err) {
       Taro.showToast({ title: (err as Error).message === "already_claimed_today" ? "今天已经领过啦" : "领取失败", icon: "none" });
     }
+  }
+
+  async function handleUseLeaveDay() {
+    try {
+      const res = await useLeaveDay();
+      setProfile(res.profile);
+      Taro.showToast({ title: "已请假，今天没人能偷/摊派你啦", icon: "none" });
+    } catch (err) {
+      const msg = (err as Error).message;
+      Taro.showToast({ title: msg === "no_leave_days" ? "年假用完了" : msg === "jailed" ? "还在坐牢呢" : "请假失败", icon: "none" });
+    }
+  }
+
+  async function handleUseBomb(jobKey: string, jobName: string) {
+    Taro.showModal({
+      title: "引爆罢工弹？",
+      content: `「${jobName}」今天之内都不能再进去打工（已经在里面的人不受影响，照常拿工钱）`,
+      confirmText: "炸了",
+      cancelText: "算了",
+      success: async (res) => {
+        if (!res.confirm) return;
+        try {
+          const r = await useBomb(jobKey);
+          setProfile((p) => (p ? { ...p, bombs: (p.bombs || 0) - 1 } : p));
+          Taro.showToast({ title: `「${jobName}」今天停业啦`, icon: "none" });
+          void r;
+        } catch (err) {
+          const msg = (err as Error).message;
+          Taro.showToast({ title: msg === "no_bombs" ? "没有炸弹了" : "引爆失败", icon: "none" });
+        }
+      },
+    });
   }
 
   async function handleFeed() {
@@ -193,7 +241,9 @@ export default function TownPage() {
         msg === "insufficient_oxfeed" ? "牛马粮不够" :
         msg === "level_too_low" ? "职级还不够" :
         msg === "night_only" ? "这个岗位只在夜间开放" :
-        msg === "already_working" ? "搭子还在上班中" : "出发失败";
+        msg === "already_working" ? "搭子还在上班中" :
+        msg === "job_bombed" ? "这里今天被炸了，没法进去打工" :
+        msg === "jailed" ? "还在坐牢呢" : "出发失败";
       Taro.showToast({ title: text, icon: "none" });
     }
   }
@@ -520,6 +570,32 @@ export default function TownPage() {
             >
               {trapSetToday ? "今日陷阱已布置" : "布置今日陷阱（2小时）"}
             </Button>
+
+            <Text className="town-picker-title deco-title">带薪年假</Text>
+            <Text className="town-empty">
+              剩余年假：{profile.leaveDaysAvailable || 0} 天（连续签到{"7"}天攒1天）
+              {onLeaveToday && "，今天已请假"}
+            </Text>
+            <Button
+              className="town-secondary-btn town-trap-btn"
+              size="mini"
+              disabled={(profile.leaveDaysAvailable || 0) <= 0 || onLeaveToday || jailed}
+              onClick={handleUseLeaveDay}
+            >
+              {onLeaveToday ? "今天已经请假啦" : "请假一天（不会被偷/摊派）"}
+            </Button>
+
+            <Text className="town-picker-title deco-title">闭店罢工弹</Text>
+            <Text className="town-empty">拥有：{profile.bombs || 0} 颗（收工时小概率获得）</Text>
+            {(profile.bombs || 0) > 0 && (
+              <View className="town-bomb-target-grid">
+                {TOWN_JOBS.map((j) => (
+                  <Button key={j.key} className="town-secondary-btn town-bomb-target-btn" size="mini" onClick={() => handleUseBomb(j.key, j.name)}>
+                    炸「{j.name}」
+                  </Button>
+                ))}
+              </View>
+            )}
 
             <Text className="town-picker-title deco-title">用特产兑换装饰（去世界页面展示）</Text>
             <ScrollView scrollY className="town-deco-shop-scroll">

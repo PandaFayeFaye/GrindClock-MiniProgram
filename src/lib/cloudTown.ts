@@ -35,7 +35,7 @@ export function unlockTown() {
 }
 
 export function townCheckin() {
-  return call<{ profile: TownProfile; gained: number }>("townCheckin");
+  return call<{ profile: TownProfile; gained: number; luckyTier: "none" | "ji" | "daji" | "dadaji"; leaveDayAwarded: boolean }>("townCheckin");
 }
 
 export function feedCompanionInTown() {
@@ -125,4 +125,23 @@ export function promote() {
 
 export function buyDecoration(key: string) {
   return call<{ profile: TownProfile }>("townBuyDecoration", { key });
+}
+
+/** Spends one banked 带薪年假 day -- counts as today's check-in (keeps the
+ * streak alive, still grants the ration) and grants immunity from
+ * steal/skim for the rest of the local day. See cloudfunctions/townUseLeaveDay. */
+export function useLeaveDay() {
+  return call<{ profile: TownProfile }>("townUseLeaveDay");
+}
+
+/** Spends one 闭店罢工弹 on a specific job building -- takes it offline for
+ * everyone for the rest of the local day. See cloudfunctions/townUseBomb. */
+export function useBomb(jobKey: string) {
+  return call<{ bombedUntilDateKey: string }>("townUseBomb", { jobKey });
+}
+
+/** Reports a boss who skimmed you recently -- jails them for REPORT_JAIL_MS.
+ * See cloudfunctions/townReportBoss. */
+export function reportBoss(bossOpenid: string) {
+  return call<{ jailedUntil: number }>("townReportBoss", { bossOpenid });
 }

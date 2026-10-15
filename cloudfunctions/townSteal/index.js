@@ -106,6 +106,8 @@ exports.main = async (event) => {
 
   const now = Date.now();
   if (isJailed(self, now)) return { ok: false, error: "jailed" };
+  // 带薪年假 immunity -- see townUseLeaveDay.
+  if (target.leaveActiveUntil && target.leaveActiveUntil > now) return { ok: false, error: "target_on_leave" };
 
   const [recentStealsOnTarget, recentStealsAnywhere] = await Promise.all([
     db.collection("townJobLog").where({

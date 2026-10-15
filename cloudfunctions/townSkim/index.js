@@ -25,6 +25,11 @@ const TOWN_JOBS = [
   { key: "liveStream", name: "直播带货", durationMs: 2 * 3_600_000, unlockLevel: 6, item: "liveCommission", itemAmount: 1, expGain: 15, doubleChance: 0.1 },
   { key: "tutor", name: "家教老师", durationMs: 3 * 3_600_000, unlockLevel: 7, item: "tutorFee", itemAmount: 1, expGain: 18 },
   { key: "boardroom", name: "董事会摸鱼", durationMs: 4 * 3_600_000, unlockLevel: 8, item: "dividend", itemAmount: 1, expGain: 20 },
+  { key: "productManager", name: "产品经理", durationMs: 3 * 3_600_000, unlockLevel: 2, item: "pmBonus", itemAmount: 2, expGain: 13 },
+  { key: "contentOps", name: "内容运营", durationMs: 2.5 * 3_600_000, unlockLevel: 3, item: "contentBonus", itemAmount: 2, expGain: 11, doubleChance: 0.08 },
+  { key: "hospital", name: "门诊医师", durationMs: 5 * 3_600_000, unlockLevel: 4, nightOnly: true, item: "icuBonus", itemAmount: 2, expGain: 22 },
+  { key: "designInstitute", name: "给排水设计师", durationMs: 6 * 3_600_000, unlockLevel: 5, item: "blueprintFee", itemAmount: 1, expGain: 25 },
+  { key: "futuresInstitute", name: "期货分析师", durationMs: 3 * 3_600_000, unlockLevel: 6, item: "futuresCommission", itemAmount: 2, expGain: 28, doubleChance: 0.1 },
 ];
 
 // Settles a FORCED (assignedBy-set) shift the moment its time is up --
@@ -104,6 +109,18 @@ function isNight(now) {
   return h >= 22 || h < 6;
 }
 
+const CN_TZ_OFFSET_MS = 8 * 3_600_000;
+function cnDateKey(ts) {
+  return new Date(ts + CN_TZ_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+async function bombedJobKeysToday(now) {
+  const stateRes = await db.collection("townWorldState").doc("bombedJobs").get().catch(() => null);
+  const bombed = (stateRes && stateRes.data && stateRes.data.bombed) || {};
+  const todayKey = cnDateKey(now);
+  return new Set(Object.keys(bombed).filter((k) => bombed[k] === todayKey));
+}
+
 // "名片被访通知" template (公共模板库 #801, 场景说明: "偷菜和摊派") -- see
 // townSteal's copy for the field layout. Same template, best-effort and
 // awaited before returning.
@@ -146,6 +163,7 @@ exports.main = async (event) => {
   if ((self.titleIndex || 0) <= (target.titleIndex || 0)) return { ok: false, error: "not_higher_rank" };
 
   const now = Date.now();
+  if (target.leaveActiveUntil && target.leaveActiveUntil > now) return { ok: false, error: "target_on_leave" };
 
   // While someone else's assigned shift is still running, it can't be
   // hijacked by a second skim -- the first boss's claim on it is protected
@@ -171,7 +189,10 @@ exports.main = async (event) => {
   if (recentSkims.total > 0) return { ok: false, error: "skim_cooldown" };
 
   const night = isNight(now);
-  const eligibleJobs = TOWN_JOBS.filter((j) => j.unlockLevel <= (target.titleIndex || 0) && (!j.nightOnly || night));
+  const bombedToday = await bombedJobKeysToday(now);
+  const eligibleJobs = TOWN_JOBS.filter((j) =>
+    j.unlockLevel <= (target.titleIndex || 0) && (!j.nightOnly || night) && !bombedToday.has(j.key),
+  );
   if (eligibleJobs.length === 0) return { ok: false, error: "no_job_available" };
   const job = eligibleJobs[Math.floor(Math.random() * eligibleJobs.length)];
 
