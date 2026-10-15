@@ -55,7 +55,7 @@
 .town-building {
   position: absolute;
   transform: translate(-50%, -100%);
-  width: 96rpx;
+  width: 76rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -64,13 +64,13 @@
 
 .town-building-imgwrap {
   position: relative;
-  width: 96rpx;
-  height: 168rpx;
+  width: 76rpx;
+  height: 133rpx;
 }
 
 .town-building-img {
-  width: 96rpx;
-  height: 168rpx;
+  width: 76rpx;
+  height: 133rpx;
   filter: drop-shadow(0 6rpx 4rpx rgba(0, 0, 0, 0.4));
 }
 

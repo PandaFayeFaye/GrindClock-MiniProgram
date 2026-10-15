@@ -69,26 +69,27 @@ export type TownJob = {
 // further DOWN from this point. Keep y within roughly 30%-78% so nothing
 // collides with the top HUD bar (~0-15%) or the bottom HUD bar (~84-100%),
 // and stagger x across 4 loose rows so buildings don't crowd each other.
+// Laid out on a deliberate 4x4 grid (x: 12/37/62/87, y: 27/45/63/81) so
+// buildings never crowd each other even at the smaller footprint -- see
+// src/pages/town/index.scss .town-building sizing. Rows progress roughly by
+// unlockLevel top-to-bottom so the screen reads as a visible career ladder.
 export const TOWN_JOBS: TownJob[] = [
-  { key: "milkTeaShop", name: "奶茶店学徒", emoji: "🧋", color: "#FFD93D", feedCost: 5, durationMs: 1 * 3_600_000, expGain: 5, item: "milkTea", itemAmount: 1, unlockLevel: 0, x: 13, y: 27, effect: "steam" },
-  { key: "barista", name: "咖啡师", emoji: "☕", color: "#B084F5", feedCost: 8, durationMs: 2 * 3_600_000, expGain: 8, item: "coffeeBean", itemAmount: 2, unlockLevel: 1, x: 36, y: 28, effect: "steam" },
-  { key: "callCenter", name: "客服接线员", emoji: "📞", color: "#39C97A", feedCost: 10, durationMs: 4 * 3_600_000, expGain: 12, item: "phoneCard", itemAmount: 3, unlockLevel: 2, x: 62, y: 27 },
-  { key: "convenienceStore", name: "便利店收银", emoji: "🏪", color: "#5AC8FA", feedCost: 5, durationMs: 1.5 * 3_600_000, expGain: 5, item: "snackPack", itemAmount: 1, unlockLevel: 0, x: 89, y: 30, effect: "glint" },
-  { key: "rider", name: "外卖骑手", emoji: "🛵", color: "#FF6B6B", feedCost: 8, durationMs: 0.5 * 3_600_000, expGain: 5, item: "riderSubsidy", itemAmount: 1, unlockLevel: 1, x: 9, y: 50, effect: "shake" },
-  { key: "boardroom", name: "董事会摸鱼", emoji: "💼", color: "#1A1A1A", feedCost: 20, durationMs: 4 * 3_600_000, expGain: 20, item: "dividend", itemAmount: 1, unlockLevel: 8, x: 50, y: 47, effect: "glint" },
-  { key: "driver", name: "网约车代驾", emoji: "🚗", color: "#4361EE", feedCost: 10, durationMs: 3 * 3_600_000, expGain: 10, item: "gasCard", itemAmount: 2, unlockLevel: 3, x: 91, y: 53 },
-  { key: "farmer", name: "菜地打工", emoji: "🥬", color: "#39C97A", feedCost: 12, durationMs: 3 * 3_600_000, expGain: 12, item: "veggie", itemAmount: 4, unlockLevel: 4, x: 18, y: 69, effect: "sway" },
-  { key: "bbqStall", name: "深夜烧烤摊", emoji: "🍢", color: "#FFB800", feedCost: 12, durationMs: 2 * 3_600_000, expGain: 15, item: "bbqCoupon", itemAmount: 3, unlockLevel: 5, nightOnly: true, x: 40, y: 75 },
-  { key: "liveStream", name: "直播带货", emoji: "📱", color: "#FF6B6B", feedCost: 15, durationMs: 2 * 3_600_000, expGain: 15, item: "liveCommission", itemAmount: 1, unlockLevel: 6, x: 64, y: 70 },
-  { key: "tutor", name: "家教老师", emoji: "📚", color: "#5AC8FA", feedCost: 15, durationMs: 3 * 3_600_000, expGain: 18, item: "tutorFee", itemAmount: 1, unlockLevel: 7, x: 87, y: 68, effect: "sway" },
-  // Higher-pressure "real 社畜" white-collar jobs, spread across the
-  // existing mid-tier levels so veteran and mid-progress players both get
-  // new variety instead of just piling onto the top of the ladder.
-  { key: "productManager", name: "产品经理", emoji: "📋", color: "#FF6B6B", feedCost: 10, durationMs: 3 * 3_600_000, expGain: 13, item: "pmBonus", itemAmount: 2, unlockLevel: 4, x: 70, y: 38 },
-  { key: "contentOps", name: "内容运营", emoji: "📣", color: "#39C97A", feedCost: 10, durationMs: 2.5 * 3_600_000, expGain: 11, item: "contentBonus", itemAmount: 2, unlockLevel: 5, x: 30, y: 58 },
-  { key: "hospital", name: "门诊医师", emoji: "🏥", color: "#5AC8FA", feedCost: 18, durationMs: 5 * 3_600_000, expGain: 22, item: "icuBonus", itemAmount: 2, unlockLevel: 4, nightOnly: true, x: 75, y: 40 },
-  { key: "designInstitute", name: "给排水设计师", emoji: "📐", color: "#B084F5", feedCost: 20, durationMs: 6 * 3_600_000, expGain: 25, item: "blueprintFee", itemAmount: 1, unlockLevel: 5, x: 25, y: 47 },
-  { key: "futuresInstitute", name: "期货分析师", emoji: "📈", color: "#FFB800", feedCost: 25, durationMs: 3 * 3_600_000, expGain: 28, item: "futuresCommission", itemAmount: 2, unlockLevel: 6, x: 60, y: 52 },
+  { key: "milkTeaShop", name: "奶茶店学徒", emoji: "🧋", color: "#FFD93D", feedCost: 5, durationMs: 1 * 3_600_000, expGain: 5, item: "milkTea", itemAmount: 1, unlockLevel: 0, x: 12, y: 27, effect: "steam" },
+  { key: "barista", name: "咖啡师", emoji: "☕", color: "#B084F5", feedCost: 8, durationMs: 2 * 3_600_000, expGain: 8, item: "coffeeBean", itemAmount: 2, unlockLevel: 1, x: 37, y: 27, effect: "steam" },
+  { key: "convenienceStore", name: "便利店收银", emoji: "🏪", color: "#5AC8FA", feedCost: 5, durationMs: 1.5 * 3_600_000, expGain: 5, item: "snackPack", itemAmount: 1, unlockLevel: 0, x: 62, y: 27, effect: "glint" },
+  { key: "rider", name: "外卖骑手", emoji: "🛵", color: "#FF6B6B", feedCost: 8, durationMs: 0.5 * 3_600_000, expGain: 5, item: "riderSubsidy", itemAmount: 1, unlockLevel: 1, x: 87, y: 27, effect: "shake" },
+  { key: "callCenter", name: "客服接线员", emoji: "📞", color: "#39C97A", feedCost: 10, durationMs: 4 * 3_600_000, expGain: 12, item: "phoneCard", itemAmount: 3, unlockLevel: 2, x: 12, y: 45 },
+  { key: "driver", name: "网约车代驾", emoji: "🚗", color: "#4361EE", feedCost: 10, durationMs: 3 * 3_600_000, expGain: 10, item: "gasCard", itemAmount: 2, unlockLevel: 3, x: 37, y: 45 },
+  { key: "farmer", name: "菜地打工", emoji: "🥬", color: "#39C97A", feedCost: 12, durationMs: 3 * 3_600_000, expGain: 12, item: "veggie", itemAmount: 4, unlockLevel: 4, x: 62, y: 45, effect: "sway" },
+  { key: "productManager", name: "产品经理", emoji: "📋", color: "#FF6B6B", feedCost: 10, durationMs: 3 * 3_600_000, expGain: 13, item: "pmBonus", itemAmount: 2, unlockLevel: 4, x: 87, y: 45 },
+  { key: "hospital", name: "门诊医师", emoji: "🏥", color: "#5AC8FA", feedCost: 18, durationMs: 5 * 3_600_000, expGain: 22, item: "icuBonus", itemAmount: 2, unlockLevel: 4, nightOnly: true, x: 12, y: 63 },
+  { key: "bbqStall", name: "深夜烧烤摊", emoji: "🍢", color: "#FFB800", feedCost: 12, durationMs: 2 * 3_600_000, expGain: 15, item: "bbqCoupon", itemAmount: 3, unlockLevel: 5, nightOnly: true, x: 37, y: 63 },
+  { key: "designInstitute", name: "给排水设计师", emoji: "📐", color: "#B084F5", feedCost: 20, durationMs: 6 * 3_600_000, expGain: 25, item: "blueprintFee", itemAmount: 1, unlockLevel: 5, x: 62, y: 63 },
+  { key: "contentOps", name: "内容运营", emoji: "📣", color: "#39C97A", feedCost: 10, durationMs: 2.5 * 3_600_000, expGain: 11, item: "contentBonus", itemAmount: 2, unlockLevel: 5, x: 87, y: 63 },
+  { key: "liveStream", name: "直播带货", emoji: "📱", color: "#FF6B6B", feedCost: 15, durationMs: 2 * 3_600_000, expGain: 15, item: "liveCommission", itemAmount: 1, unlockLevel: 6, x: 12, y: 81 },
+  { key: "futuresInstitute", name: "期货分析师", emoji: "📈", color: "#FFB800", feedCost: 25, durationMs: 3 * 3_600_000, expGain: 28, item: "futuresCommission", itemAmount: 2, unlockLevel: 6, x: 37, y: 81 },
+  { key: "tutor", name: "家教老师", emoji: "📚", color: "#5AC8FA", feedCost: 15, durationMs: 3 * 3_600_000, expGain: 18, item: "tutorFee", itemAmount: 1, unlockLevel: 7, x: 62, y: 81, effect: "sway" },
+  { key: "boardroom", name: "董事会摸鱼", emoji: "💼", color: "#1A1A1A", feedCost: 20, durationMs: 4 * 3_600_000, expGain: 20, item: "dividend", itemAmount: 1, unlockLevel: 8, x: 87, y: 81, effect: "glint" },
 ];
 
 // Companion idles here when not working -- up in the open patch above the
