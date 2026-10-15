@@ -279,6 +279,7 @@ export const HUD_WOOD_STRIP = "/town/hud/wood_strip.png";
 export const HUD_ICON_CHEST = "/town/hud/chest.png";
 export const HUD_ICON_TROPHY = "/town/hud/trophy.png";
 export const HUD_ICON_FLAG = "/town/hud/flag.png";
+export const HUD_ICON_SHOP = "/town/hud/shop.png";
 export const HUD_ICON_COIN = "/town/hud/coin.png";
 
 // Standalone foliage sprites (from the same CC0 tileset) scattered around

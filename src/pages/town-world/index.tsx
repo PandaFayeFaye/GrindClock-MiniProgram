@@ -318,9 +318,11 @@ export default function TownWorldPage() {
                       批评TA
                     </Button>
                   )}
-                  <Button className="world-btn criticize" size="mini" onClick={() => handleReportBoss(entry)}>
-                    举报老板
-                  </Button>
+                  {entry.titleIndex > myTitleIndex && (
+                    <Button className="world-btn criticize" size="mini" onClick={() => handleReportBoss(entry)}>
+                      举报老板
+                    </Button>
+                  )}
                 </View>
                 <Text className="world-meta">仓库里有 {entry.inventoryCount} 件特产 · {relativeTime(entry.lastActiveAt)}</Text>
                 {entry.decorations.length > 0 && (
@@ -385,9 +387,11 @@ export default function TownWorldPage() {
                     批评TA
                   </Button>
                 )}
-                <Button className="world-btn criticize" size="mini" onClick={() => { handleReportBoss(activeEntry); setActiveEntry(null); }}>
-                  举报老板
-                </Button>
+                {activeEntry.titleIndex > myTitleIndex && (
+                  <Button className="world-btn criticize" size="mini" onClick={() => { handleReportBoss(activeEntry); setActiveEntry(null); }}>
+                    举报老板
+                  </Button>
+                )}
               </View>
             )}
           </View>

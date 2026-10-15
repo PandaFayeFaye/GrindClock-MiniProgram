@@ -31,6 +31,7 @@ import {
   HUD_ICON_CHEST,
   HUD_ICON_TROPHY,
   HUD_ICON_FLAG,
+  HUD_ICON_SHOP,
   HUD_ICON_COIN,
   TOWN_IDLE_SPOT,
   TOWN_DECORATIONS,
@@ -64,7 +65,7 @@ function formatDuration(ms: number): string {
   return `${m}分钟`;
 }
 
-type Drawer = "inventory" | "promote" | "actions" | "checkinPrompt" | "jobReadyPrompt" | null;
+type Drawer = "inventory" | "shop" | "promote" | "actions" | "checkinPrompt" | "jobReadyPrompt" | null;
 
 export default function TownPage() {
   const [profile, setProfile] = useState<TownProfile | null>(null);
@@ -464,6 +465,13 @@ export default function TownPage() {
             <Text>仓库</Text>
           </View>
         </View>
+        <View className="town-hud-btn" onClick={() => setDrawer("shop")} aria-label="打开商店">
+          <Image className="town-hud-btn-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
+          <View className="town-hud-btn-content">
+            <Image className="town-hud-btn-icon" src={HUD_ICON_SHOP} mode="aspectFit" />
+            <Text>商店</Text>
+          </View>
+        </View>
         <View className="town-hud-btn" onClick={() => setDrawer("promote")} aria-label="查看晋升条件">
           <Image className="town-hud-btn-wood" src={HUD_WOOD_STRIP} mode="scaleToFill" />
           <View className="town-hud-btn-content">
@@ -597,7 +605,15 @@ export default function TownPage() {
               </View>
             )}
 
-            <Text className="town-picker-title deco-title">用特产兑换装饰（去世界页面展示）</Text>
+          </View>
+        </View>
+      )}
+
+      {drawer === "shop" && (
+        <View className="town-picker-mask" onClick={() => setDrawer(null)}>
+          <View className="town-picker-sheet" onClick={(e) => e.stopPropagation()}>
+            <Text className="town-picker-title">商店</Text>
+            <Text className="town-empty">用特产兑换装饰（去世界页面展示）</Text>
             <ScrollView scrollY className="town-deco-shop-scroll">
               <View className="town-deco-shop">
                 {TOWN_DECORATIONS.map((deco) => {
