@@ -123,12 +123,14 @@ export default function TownWorldPage() {
   async function handleReportBoss(entry: WorldEntry) {
     try {
       const res = await reportBoss(entry.openid);
-      Taro.showToast({ title: "举报成功，TA被禁了几个小时", icon: "none" });
-      void res;
+      const gained = Object.entries(res.itemsGained || {})
+        .map(([key, amount]) => `${ITEM_LABEL[key as keyof typeof ITEM_LABEL] || key}x${amount}`)
+        .join("、");
+      Taro.showToast({ title: gained ? `举报成功，劳动局赔了你${gained}` : "举报成功", icon: "none" });
     } catch (err) {
       const msg = (err as Error).message;
       const text =
-        msg === "not_eligible" ? "TA最近没画饼摊派过你，举报不了" :
+        msg === "not_eligible" ? "TA这周画饼摊派你还没到7次，举报不了" :
         msg === "report_cooldown" ? "已经举报过了，再等等" : "举报失败";
       Taro.showToast({ title: text, icon: "none" });
     }

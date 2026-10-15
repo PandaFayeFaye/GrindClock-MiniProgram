@@ -140,8 +140,9 @@ export function useBomb(jobKey: string) {
   return call<{ bombedUntilDateKey: string }>("townUseBomb", { jobKey });
 }
 
-/** Reports a boss who skimmed you recently -- jails them for REPORT_JAIL_MS.
+/** Reports a boss who's skimmed you REPORT_SKIM_THRESHOLD+ times in the past
+ * week -- 劳动局 docks a random cut of their inventory and pays it to you.
  * See cloudfunctions/townReportBoss. */
 export function reportBoss(bossOpenid: string) {
-  return call<{ jailedUntil: number }>("townReportBoss", { bossOpenid });
+  return call<{ itemsGained: Record<string, number> }>("townReportBoss", { bossOpenid });
 }

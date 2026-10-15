@@ -84,8 +84,8 @@ export const TOWN_JOBS: TownJob[] = [
   // Higher-pressure "real 社畜" white-collar jobs, spread across the
   // existing mid-tier levels so veteran and mid-progress players both get
   // new variety instead of just piling onto the top of the ladder.
-  { key: "productManager", name: "产品经理", emoji: "📋", color: "#FF6B6B", feedCost: 10, durationMs: 3 * 3_600_000, expGain: 13, item: "pmBonus", itemAmount: 2, unlockLevel: 2, x: 70, y: 38 },
-  { key: "contentOps", name: "内容运营", emoji: "📣", color: "#39C97A", feedCost: 10, durationMs: 2.5 * 3_600_000, expGain: 11, item: "contentBonus", itemAmount: 2, unlockLevel: 3, x: 30, y: 58 },
+  { key: "productManager", name: "产品经理", emoji: "📋", color: "#FF6B6B", feedCost: 10, durationMs: 3 * 3_600_000, expGain: 13, item: "pmBonus", itemAmount: 2, unlockLevel: 4, x: 70, y: 38 },
+  { key: "contentOps", name: "内容运营", emoji: "📣", color: "#39C97A", feedCost: 10, durationMs: 2.5 * 3_600_000, expGain: 11, item: "contentBonus", itemAmount: 2, unlockLevel: 5, x: 30, y: 58 },
   { key: "hospital", name: "门诊医师", emoji: "🏥", color: "#5AC8FA", feedCost: 18, durationMs: 5 * 3_600_000, expGain: 22, item: "icuBonus", itemAmount: 2, unlockLevel: 4, nightOnly: true, x: 75, y: 40 },
   { key: "designInstitute", name: "给排水设计师", emoji: "📐", color: "#B084F5", feedCost: 20, durationMs: 6 * 3_600_000, expGain: 25, item: "blueprintFee", itemAmount: 1, unlockLevel: 5, x: 25, y: 47 },
   { key: "futuresInstitute", name: "期货分析师", emoji: "📈", color: "#FFB800", feedCost: 25, durationMs: 3 * 3_600_000, expGain: 28, item: "futuresCommission", itemAmount: 2, unlockLevel: 6, x: 60, y: 52 },
@@ -210,8 +210,9 @@ export type TownProfile = {
   // and still gets paid in full, it just can't be started fresh.
   bombs?: number;
   // 举报老板: once per boss per day (see REPORT_COOLDOWN_MS), only if they
-  // skimmed you within REPORT_ELIGIBILITY_WINDOW_MS -- jails them for
-  // REPORT_JAIL_MS, same lockout as the trap/steal jail mechanic.
+  // skimmed you at least REPORT_SKIM_THRESHOLD times within
+  // REPORT_ELIGIBILITY_WINDOW_MS -- 劳动局 docks a random cut of their
+  // inventory and pays it to you as compensation.
   reportCooldowns?: Record<string, number>;
 };
 
@@ -244,9 +245,9 @@ export function isOnLeave(profile: Pick<TownProfile, "leaveActiveUntil">, now = 
 export const BOMB_DROP_CHANCE = 0.04;
 
 // ---- 举报老板 (report your boss) ----
-export const REPORT_JAIL_MS = 4 * 3_600_000;
 export const REPORT_COOLDOWN_MS = 24 * 3_600_000;
-export const REPORT_ELIGIBILITY_WINDOW_MS = 24 * 3_600_000;
+export const REPORT_ELIGIBILITY_WINDOW_MS = 7 * 24 * 3_600_000;
+export const REPORT_SKIM_THRESHOLD = 7;
 
 // ---- 签到彩蛋 (lucky check-in) -- deliberately all-upside, see townCheckin ----
 export type LuckyTier = "none" | "ji" | "daji" | "dadaji";
