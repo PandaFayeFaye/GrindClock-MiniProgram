@@ -28,10 +28,10 @@ const MOOD_LABEL: Record<Mood, string> = {
   heartbeat: "心动",
 };
 
-// 10 taps within this window triggers the hidden 摸鱼小镇 unlock prompt --
+// 5 taps within this window triggers the hidden 摸鱼小镇 unlock prompt --
 // see MOYU_TOWN_SPEC.md section 2. Reset if the gap between taps is too long
 // so an idle user slowly tapping over minutes never accidentally triggers it.
-const SECRET_TAP_COUNT = 10;
+const SECRET_TAP_COUNT = 5;
 const SECRET_TAP_WINDOW_MS = 3000;
 
 export function CompanionWidget({
