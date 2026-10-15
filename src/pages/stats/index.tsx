@@ -26,9 +26,13 @@ const MONTH_LABELS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8
 // whole hour of difference is a visibly different shade, not lumped into
 // one of only 3-4 buckets the way a percent-of-max level scheme would.
 const HEAT_EMPTY_HEX = "#FBF7EC";
-const HEAT_LOW_HEX = "#FFEFA8";
-const HEAT_HIGH_HEX = "#B8860B";
-const HEAT_SCALE_MAX_HOURS = 10;
+// Multiple stops (not just two) so the ramp shifts HUE as well as
+// lightness -- pale yellow -> gold -> orange -> dark brown -- which reads
+// as distinct steps far more readily than a single light-to-dark lerp of
+// one color, where several adjacent hour counts end up looking like the
+// same shade just slightly darker.
+const HEAT_STOPS = ["#FFF6D6", "#FFD93D", "#FF8C00", "#8B4513", "#3D1F0D"];
+const HEAT_SCALE_MAX_HOURS = 12;
 
 function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);
@@ -49,7 +53,10 @@ function lerpHex(a: string, b: string, t: number): string {
 function heatColorForHours(hours: number): string {
   if (hours <= 0) return HEAT_EMPTY_HEX;
   const t = Math.min(1, hours / HEAT_SCALE_MAX_HOURS);
-  return lerpHex(HEAT_LOW_HEX, HEAT_HIGH_HEX, t);
+  const segments = HEAT_STOPS.length - 1;
+  const scaled = t * segments;
+  const i = Math.min(segments - 1, Math.floor(scaled));
+  return lerpHex(HEAT_STOPS[i], HEAT_STOPS[i + 1], scaled - i);
 }
 
 function startOfToday() {
@@ -538,7 +545,7 @@ export default function Stats() {
           <View className="heatmap">
             {Array.from({ length: calendarLeadingBlanks }).map((_, i) => <View className="heat-cell blank" key={`b${i}`} />)}
             {heatCells.map(({ day, color, hours }) => {
-              const dark = hours / HEAT_SCALE_MAX_HOURS > 0.5;
+              const dark = hours / HEAT_SCALE_MAX_HOURS > 0.45;
               return (
                 <View
                   key={day}
