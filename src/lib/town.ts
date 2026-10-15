@@ -92,10 +92,15 @@ export const TOWN_JOBS: TownJob[] = [
   { key: "boardroom", name: "董事会摸鱼", emoji: "💼", color: "#1A1A1A", feedCost: 20, durationMs: 4 * 3_600_000, expGain: 20, item: "dividend", itemAmount: 1, unlockLevel: 8, x: 87, y: 81, effect: "glint" },
 ];
 
-// Companion idles here when not working -- up in the open patch above the
-// lower-right cluster of buildings (not dead-center, which reads as
-// mechanically symmetric) and clear of every building's footprint above.
-export const TOWN_IDLE_SPOT = { x: 30, y: 46 };
+// Companion idles here when not working. The 4x4 building grid (see the
+// TOWN_JOBS x/y comment above) packs the whole scene with no interior gap
+// big enough to fit the companion without it overlapping a building's
+// footprint -- the old (30, 46) spot predates that grid and had drifted
+// onto the "driver" building, with the companion's higher z-index
+// swallowing its taps. The one genuinely clear band left is BELOW the
+// bottom row (y > 81, nothing is drawn below a building's own anchor
+// point) and ABOVE the bottom HUD bar.
+export const TOWN_IDLE_SPOT = { x: 50, y: 86 };
 
 export type TownLevel = {
   title: string;
