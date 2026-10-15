@@ -13,6 +13,32 @@ const REPORT_COOLDOWN_MS = 24 * 3_600_000;
 const REPORT_ELIGIBILITY_WINDOW_MS = 7 * 24 * 3_600_000;
 const REPORT_SKIM_THRESHOLD = 7;
 
+// "名片被访通知" template (公共模板库 #801) -- same template townSteal/townSkim
+// already push through, reused here so no extra subscription grant is needed
+// on the client (see src/lib/town.ts ALL_SUBSCRIBE_TEMPLATE_IDS).
+const SUBSCRIBE_TEMPLATE_ID = "2pMbXON4D1mJGcWnyEAnIZEkvCKufeXsfruclncjtdU";
+
+async function notifyReportedBoss(bossOpenid, reporterOpenid) {
+  if (!SUBSCRIBE_TEMPLATE_ID) return;
+  try {
+    const reporterProfileRes = await db.collection("userProfile").where({ _openid: reporterOpenid }).limit(1).get();
+    const reporterNickname = (reporterProfileRes.data[0] && reporterProfileRes.data[0].nickname) || "神秘搭子";
+    await cloud.openapi.subscribeMessage.send({
+      touser: bossOpenid,
+      templateId: SUBSCRIBE_TEMPLATE_ID,
+      page: "pages/town-world/index",
+      data: {
+        name1: { value: reporterNickname.slice(0, 10) },
+        date2: { value: new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10) },
+        thing3: { value: `被${reporterNickname.slice(0, 6)}举报画饼摊派`.slice(0, 20) },
+        thing4: { value: "劳动局查了你，扣了点特产赔给TA" },
+      },
+    });
+  } catch (err) {
+    console.error("subscribeMessage.send (reportBoss) failed", err);
+  }
+}
+
 // Picks 1-3 item types the boss actually holds and docks a small flat
 // 1-3 units of each -- a symbolic fine, not a wipeout.
 function pickDeductions(inventory) {
@@ -67,6 +93,8 @@ exports.main = async (event) => {
   await db.collection("townJobLog").add({
     data: { openid: OPENID, targetOpenid: bossOpenid, type: "report_boss", itemsGained: deductions, createdAt: now },
   });
+
+  await notifyReportedBoss(bossOpenid, OPENID);
 
   return { ok: true, itemsGained: deductions, profile: { ...self, inventory: selfInventory, reportCooldowns: { ...cooldowns, [bossOpenid]: now } } };
 };

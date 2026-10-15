@@ -26,6 +26,14 @@ function seededFraction(seed: string): number {
   return (h % 1000) / 1000;
 }
 
+// Decoration ring layout (see .world-roamer-deco-icon): first ring holds up
+// to this many icons before overflowing onto a second, wider ring, then a
+// third, etc. -- see the per-decoration ring math below.
+const DECO_RING_CAPACITY = 8;
+const DECO_RING_BOX_RPX = 72;
+const DECO_BASE_RADIUS_RPX = 34;
+const DECO_RING_STEP_RPX = 16;
+
 const WANDER_VARIANTS = 8;
 // Golden-ratio (Weyl sequence) spacing: frac(i * 0.618...) spreads N points
 // across 0..1 far more evenly than plain randomness or i/N, which is why
@@ -221,9 +229,22 @@ export default function TownWorldPage() {
                       // items (the common case) that lands one on each side
                       // of the body instead of one on the head and one at
                       // the feet.
-                      const angle = (di / entry.decorations.length) * Math.PI * 2;
-                      const cx = 50 + Math.cos(angle) * 46;
-                      const cy = 50 + Math.sin(angle) * 46;
+                      // Once a ring is full (DECO_RING_CAPACITY items, the
+                      // most it can hold without icons overlapping at this
+                      // size/radius), overflow spills onto a second, third,
+                      // ... ring further out instead of crowding the first.
+                      const ring = Math.floor(di / DECO_RING_CAPACITY);
+                      const ringStart = ring * DECO_RING_CAPACITY;
+                      const ringCount = Math.min(DECO_RING_CAPACITY, entry.decorations.length - ringStart);
+                      const posInRing = di - ringStart;
+                      // Stagger alternate rings by half a slot so outer icons
+                      // don't line up radially behind inner ones.
+                      const angleOffset = ring % 2 === 1 ? Math.PI / ringCount : 0;
+                      const angle = (posInRing / ringCount) * Math.PI * 2 + angleOffset;
+                      const radiusRpx = DECO_BASE_RADIUS_RPX + ring * DECO_RING_STEP_RPX;
+                      const radiusPercent = (radiusRpx / DECO_RING_BOX_RPX) * 100;
+                      const cx = 50 + Math.cos(angle) * radiusPercent;
+                      const cy = 50 + Math.sin(angle) * radiusPercent;
                       return (
                         <Image
                           key={key}
