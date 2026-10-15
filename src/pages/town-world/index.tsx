@@ -40,8 +40,15 @@ const WANDER_VARIANTS = 8;
 // it's the standard trick for "scatter these without clustering" -- used
 // below for both the working-roamer position and the wander-variant pick.
 const GOLDEN_FRACTION = 0.6180339887;
-function weylFraction(i: number, offset: number): number {
-  const v = i * GOLDEN_FRACTION + offset;
+// A second, unrelated irrational step for the Y axis -- two phase-shifted
+// copies of the SAME 1D sequence (e.g. golden-ratio for both x and y) stay
+// correlated and land on a thin diagonal band instead of covering the box,
+// which is exactly why working roamers used to clump along a line. Pairing
+// two irrationals with no simple ratio between them (golden ratio, sqrt(2))
+// decorrelates the two axes for a genuine 2D spread.
+const SQRT2_FRACTION = 0.4142135624;
+function weylFraction(i: number, offset: number, mult: number = GOLDEN_FRACTION): number {
+  const v = i * mult + offset;
   return v - Math.floor(v);
 }
 
@@ -169,6 +176,11 @@ export default function TownWorldPage() {
   }
 
   const plazaEntries = meEntry ? [...list, meEntry] : list;
+  // Separate, dense counter for just the working subset -- indexing the Weyl
+  // sequence by position-among-everyone (working or not) left gaps wherever
+  // an idle roamer's index fell between two working ones, which bunched the
+  // working spots closer together than the sequence actually allows.
+  let workingCounter = 0;
 
   return (
     <View className="world-page">
@@ -197,12 +209,13 @@ export default function TownWorldPage() {
               // (e.g. "打工 可偷x3") is noticeably wider than the sprite
               // itself and was clipping/overlapping the plaza border when a
               // working spot landed near the left:88%-ish edge.
-              const workX = 16 + weylFraction(i, 0.13) * 62;
-              const workY = 18 + weylFraction(i, 0.71) * 52;
+              const working = entry.isWorking;
+              const workIdx = working ? workingCounter++ : 0;
+              const workX = 16 + weylFraction(workIdx, 0.13) * 62;
+              const workY = 18 + weylFraction(workIdx, 0.71, SQRT2_FRACTION) * 52;
               const variant = Math.floor(weylFraction(i, seed) * WANDER_VARIANTS);
               const duration = 16 + (i % 5) * 3;
               const delay = seededFraction(entry.openid + "d") * -duration;
-              const working = entry.isWorking;
               return (
                 <View
                   key={entry.openid}
