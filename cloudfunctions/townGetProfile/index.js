@@ -5,13 +5,15 @@
 const cloud = require("wx-server-sdk");
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
-// Mirrors src/lib/town.ts TOWN_JOBS -- only the fields settleAssignedPayout
-// needs. See townSkim's identical function for the full rationale: the
-// boss who assigned a shift (画饼摊派) gets paid the moment it ends,
-// regardless of whether the worker has collected their own reward yet --
-// this just runs that same check opportunistically whenever the worker
-// opens their own town page.
+// Mirrors src/lib/town.ts TOWN_JOBS -- only the fields settleAssignedJob
+// needs. See townSkim's identical function for the full rationale: a
+// forced shift (画饼摊派) pays out BOTH the worker and the boss, and resumes
+// whatever self-started shift it interrupted, the moment it ends --
+// regardless of whether the worker has opened the app since. This just
+// runs that same check opportunistically whenever the worker opens their
+// own town page.
 const TOWN_JOBS = [
   { key: "milkTeaShop", item: "milkTea", itemAmount: 1, expGain: 5 },
   { key: "convenienceStore", item: "snackPack", itemAmount: 1, expGain: 5 },
@@ -26,20 +28,50 @@ const TOWN_JOBS = [
   { key: "boardroom", item: "dividend", itemAmount: 1, expGain: 20 },
 ];
 
-async function settleAssignedPayout(workerOpenid, workerProfile, now) {
+async function settleAssignedJob(workerOpenid, workerProfile, now) {
   const job = workerProfile && workerProfile.currentJob;
-  if (!job || !job.assignedBy || job.payoutSettled || now < job.endsAt) return;
+  if (!job || !job.assignedBy || job.settled || now < job.endsAt) return false;
   const jobDef = TOWN_JOBS.find((j) => j.key === job.jobKey);
-  if (!jobDef) return;
+  if (!jobDef) return false;
 
-  let amount = jobDef.itemAmount;
-  if (jobDef.doubleChance && Math.random() < jobDef.doubleChance) amount *= 2;
+  let workerAmount = jobDef.itemAmount;
+  if (jobDef.doubleChance && Math.random() < jobDef.doubleChance) workerAmount *= 2;
+  const workerInventory = { ...(workerProfile.inventory || {}) };
+  workerInventory[jobDef.item] = (workerInventory[jobDef.item] || 0) + workerAmount;
+  const workerExp = (workerProfile.companionExp || 0) + jobDef.expGain;
+
+  const pending = workerProfile.pendingResumeJob;
+  const nextJob = pending
+    ? { jobKey: pending.jobKey, startedAt: now, endsAt: now + pending.remainingMs }
+    : null;
+
+  await db.collection("townProfiles").doc(workerOpenid).update({
+    data: {
+      inventory: workerInventory,
+      companionExp: workerExp,
+      currentJob: _.set(nextJob),
+      pendingResumeJob: _.set(null),
+    },
+  });
+  await db.collection("townJobLog").add({
+    data: {
+      openid: workerOpenid,
+      type: "job_complete",
+      jobType: jobDef.key,
+      expGained: jobDef.expGain,
+      itemsGained: { [jobDef.item]: workerAmount },
+      createdAt: now,
+    },
+  });
+
+  let bossAmount = jobDef.itemAmount;
+  if (jobDef.doubleChance && Math.random() < jobDef.doubleChance) bossAmount *= 2;
   const bossRef = db.collection("townProfiles").doc(job.assignedBy);
   const bossRes = await bossRef.get().catch(() => null);
   const boss = bossRes && bossRes.data;
   if (boss) {
     const bossInventory = { ...(boss.inventory || {}) };
-    bossInventory[jobDef.item] = (bossInventory[jobDef.item] || 0) + amount;
+    bossInventory[jobDef.item] = (bossInventory[jobDef.item] || 0) + bossAmount;
     const bossExpGain = Math.ceil(jobDef.expGain / 2);
     await bossRef.update({ data: { inventory: bossInventory, companionExp: (boss.companionExp || 0) + bossExpGain } });
     await db.collection("townJobLog").add({
@@ -49,12 +81,12 @@ async function settleAssignedPayout(workerOpenid, workerProfile, now) {
         type: "skim_payout",
         jobType: jobDef.key,
         expGained: bossExpGain,
-        itemsGained: { [jobDef.item]: amount },
+        itemsGained: { [jobDef.item]: bossAmount },
         createdAt: now,
       },
     });
   }
-  await db.collection("townProfiles").doc(workerOpenid).update({ data: { currentJob: { ...job, payoutSettled: true } } });
+  return true;
 }
 
 function defaultProfile() {
@@ -101,7 +133,11 @@ exports.main = async (event) => {
   }
 
   const now = Date.now();
-  await settleAssignedPayout(OPENID, profile, now).catch(() => {});
+  const settled = await settleAssignedJob(OPENID, profile, now).catch(() => false);
+  if (settled) {
+    const res = await ref.get().catch(() => null);
+    if (res && res.data) profile = res.data;
+  }
   await ref.update({ data: { lastActiveAt: now } });
 
   return { ok: true, profile };

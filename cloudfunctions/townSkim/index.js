@@ -1,9 +1,10 @@
 // "画大饼/摊派" -- only available when the actor's town title outranks the
 // target's. Forces the target's companion into a random unlocked shift
-// (interrupting whatever it was doing, unpaid) instead of just lifting
-// items -- "the boss makes you work, then takes a cut" is the whole joke.
-// The actor's cut is paid out later, in townCollectJob, when the target
-// actually collects that shift. Never touches oxFeed or promotion progress.
+// (interrupting whatever it was doing) instead of just lifting items --
+// "the boss makes you work, then takes a cut" is the whole joke. If the
+// target was already working their OWN (non-assigned) shift, its remaining
+// time is saved (pendingResumeJob) and picked back up automatically once
+// the forced shift ends -- the interruption costs them time, not progress.
 const cloud = require("wx-server-sdk");
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -26,27 +27,62 @@ const TOWN_JOBS = [
   { key: "boardroom", name: "董事会摸鱼", durationMs: 4 * 3_600_000, unlockLevel: 8, item: "dividend", itemAmount: 1, expGain: 20 },
 ];
 
-// Pays the boss their cut the moment a forced shift's time is up, whether or
-// not the worker has collected it themselves yet (collection is a separate
-// event now -- the worker still gets their own, independently-rolled
-// reward whenever they actually collect, in townCollectJob). Called
-// opportunistically wherever a worker's profile happens to be read, so it
-// settles as soon as ANY of those paths runs next, instead of needing a
-// cron job this backend doesn't have. Idempotent via `payoutSettled`.
-async function settleAssignedPayout(workerOpenid, workerProfile, now) {
+// Settles a FORCED (assignedBy-set) shift the moment its time is up --
+// grants the worker their own reward AND the boss's cut in the same step,
+// then either clears currentJob or, if a self-started shift was interrupted
+// to make room for this one, resumes it for whatever time it had left.
+// This is the one case in the whole town where a shift resolves without
+// the player manually collecting it -- the player never chose to do this
+// shift, so there's no "come back and check on it" reason to withhold it
+// the way a voluntary shift still does (see townCollectJob).
+//
+// Called opportunistically wherever a worker's profile happens to be read
+// (townGetProfile, townListWorld, here) since this backend has no cron.
+// Idempotent via `settled`.
+async function settleAssignedJob(workerOpenid, workerProfile, now) {
   const job = workerProfile && workerProfile.currentJob;
-  if (!job || !job.assignedBy || job.payoutSettled || now < job.endsAt) return;
+  if (!job || !job.assignedBy || job.settled || now < job.endsAt) return;
   const jobDef = TOWN_JOBS.find((j) => j.key === job.jobKey);
   if (!jobDef) return;
 
-  let amount = jobDef.itemAmount;
-  if (jobDef.doubleChance && Math.random() < jobDef.doubleChance) amount *= 2;
+  let workerAmount = jobDef.itemAmount;
+  if (jobDef.doubleChance && Math.random() < jobDef.doubleChance) workerAmount *= 2;
+  const workerInventory = { ...(workerProfile.inventory || {}) };
+  workerInventory[jobDef.item] = (workerInventory[jobDef.item] || 0) + workerAmount;
+  const workerExp = (workerProfile.companionExp || 0) + jobDef.expGain;
+
+  const pending = workerProfile.pendingResumeJob;
+  const nextJob = pending
+    ? { jobKey: pending.jobKey, startedAt: now, endsAt: now + pending.remainingMs }
+    : null;
+
+  await db.collection("townProfiles").doc(workerOpenid).update({
+    data: {
+      inventory: workerInventory,
+      companionExp: workerExp,
+      currentJob: _.set(nextJob),
+      pendingResumeJob: _.set(null),
+    },
+  });
+  await db.collection("townJobLog").add({
+    data: {
+      openid: workerOpenid,
+      type: "job_complete",
+      jobType: jobDef.key,
+      expGained: jobDef.expGain,
+      itemsGained: { [jobDef.item]: workerAmount },
+      createdAt: now,
+    },
+  });
+
+  let bossAmount = jobDef.itemAmount;
+  if (jobDef.doubleChance && Math.random() < jobDef.doubleChance) bossAmount *= 2;
   const bossRef = db.collection("townProfiles").doc(job.assignedBy);
   const bossRes = await bossRef.get().catch(() => null);
   const boss = bossRes && bossRes.data;
   if (boss) {
     const bossInventory = { ...(boss.inventory || {}) };
-    bossInventory[jobDef.item] = (bossInventory[jobDef.item] || 0) + amount;
+    bossInventory[jobDef.item] = (bossInventory[jobDef.item] || 0) + bossAmount;
     const bossExpGain = Math.ceil(jobDef.expGain / 2);
     await bossRef.update({ data: { inventory: bossInventory, companionExp: (boss.companionExp || 0) + bossExpGain } });
     await db.collection("townJobLog").add({
@@ -56,12 +92,11 @@ async function settleAssignedPayout(workerOpenid, workerProfile, now) {
         type: "skim_payout",
         jobType: jobDef.key,
         expGained: bossExpGain,
-        itemsGained: { [jobDef.item]: amount },
+        itemsGained: { [jobDef.item]: bossAmount },
         createdAt: now,
       },
     });
   }
-  await db.collection("townProfiles").doc(workerOpenid).update({ data: { currentJob: { ...job, payoutSettled: true } } });
 }
 
 function isNight(now) {
@@ -104,7 +139,7 @@ exports.main = async (event) => {
   const targetRef = db.collection("townProfiles").doc(targetOpenid);
   const [selfRes, targetRes] = await Promise.all([selfRef.get().catch(() => null), targetRef.get().catch(() => null)]);
   const self = selfRes && selfRes.data;
-  const target = targetRes && targetRes.data;
+  let target = targetRes && targetRes.data;
   if (!self || !self.unlocked) return { ok: false, error: "not_unlocked" };
   if (self.jailedUntil && self.jailedUntil > Date.now()) return { ok: false, error: "jailed" };
   if (!target || !target.unlocked) return { ok: false, error: "target_not_found" };
@@ -115,12 +150,19 @@ exports.main = async (event) => {
   // While someone else's assigned shift is still running, it can't be
   // hijacked by a second skim -- the first boss's claim on it is protected
   // until it actually finishes. Once it HAS finished (just sitting
-  // uncollected), it's fair game again, but settle that boss's payout
-  // first so discarding it doesn't cost them their cut.
+  // unsettled), it's fair game again, but settle it first so discarding it
+  // doesn't cost the worker or that boss their cut.
   if (target.currentJob && target.currentJob.assignedBy && target.currentJob.assignedBy !== OPENID && now < target.currentJob.endsAt) {
     return { ok: false, error: "target_already_assigned" };
   }
-  await settleAssignedPayout(targetOpenid, target, now).catch(() => {});
+  await settleAssignedJob(targetOpenid, target, now).catch(() => {});
+  if (target.currentJob && target.currentJob.assignedBy && now >= target.currentJob.endsAt) {
+    // Re-read: settleAssignedJob may have just replaced currentJob with a
+    // resumed self-job (or cleared it), and that's what the interruption
+    // check right below needs to see, not the stale pre-settlement value.
+    const refreshed = await targetRef.get().catch(() => null);
+    target = (refreshed && refreshed.data) || target;
+  }
 
   const recentSkims = await db
     .collection("townJobLog")
@@ -133,11 +175,14 @@ exports.main = async (event) => {
   if (eligibleJobs.length === 0) return { ok: false, error: "no_job_available" };
   const job = eligibleJobs[Math.floor(Math.random() * eligibleJobs.length)];
 
-  // currentJob may currently be `null` -- _.set() forces a full overwrite
-  // instead of merging into null, same pattern as townSendToWork. Whatever
-  // shift the target was already on is simply discarded, unpaid.
-  const currentJob = { jobKey: job.key, startedAt: now, endsAt: now + job.durationMs, assignedBy: OPENID };
-  await targetRef.update({ data: { currentJob: _.set(currentJob), lastActiveAt: now } });
+  // If the target is mid-way through their OWN (non-assigned) shift, save
+  // how much of it is left so it can resume automatically once this forced
+  // one ends -- the interruption costs them time, not their progress on it.
+  const updateData = { currentJob: _.set({ jobKey: job.key, startedAt: now, endsAt: now + job.durationMs, assignedBy: OPENID }), lastActiveAt: now };
+  if (target.currentJob && !target.currentJob.assignedBy && now < target.currentJob.endsAt) {
+    updateData.pendingResumeJob = _.set({ jobKey: target.currentJob.jobKey, remainingMs: target.currentJob.endsAt - now });
+  }
+  await targetRef.update({ data: updateData });
 
   await db.collection("townJobLog").add({
     data: { openid: OPENID, targetOpenid, type: "skim", jobType: job.key, createdAt: now },
@@ -145,5 +190,5 @@ exports.main = async (event) => {
 
   await notifyVictim(targetOpenid, OPENID, job.name).catch(() => {});
 
-  return { ok: true, jobKey: job.key, jobName: job.name, endsAt: currentJob.endsAt };
+  return { ok: true, jobKey: job.key, jobName: job.name, endsAt: now + job.durationMs };
 };

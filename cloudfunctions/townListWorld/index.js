@@ -11,10 +11,10 @@ const _ = db.command;
 
 // Mirrors src/lib/town.ts TOWN_JOBS -- see townSkim's identical function
 // for the full rationale. Settling here means just VIEWING the World
-// screen pays out anyone's pending assigned-job cut, which in practice is
-// the single most reliable trigger for "the boss doesn't have to wait for
-// the worker to collect" -- the boss finding out at all usually means
-// they opened World to check.
+// screen pays out anyone's pending assigned-job/resume state, which in
+// practice is the single most reliable trigger for "the boss doesn't have
+// to wait for the worker to collect" -- the boss finding out at all
+// usually means they opened World to check.
 const TOWN_JOBS = [
   { key: "milkTeaShop", item: "milkTea", itemAmount: 1, expGain: 5 },
   { key: "convenienceStore", item: "snackPack", itemAmount: 1, expGain: 5 },
@@ -29,20 +29,50 @@ const TOWN_JOBS = [
   { key: "boardroom", item: "dividend", itemAmount: 1, expGain: 20 },
 ];
 
-async function settleAssignedPayout(workerOpenid, workerProfile, now) {
+async function settleAssignedJob(workerOpenid, workerProfile, now) {
   const job = workerProfile && workerProfile.currentJob;
-  if (!job || !job.assignedBy || job.payoutSettled || now < job.endsAt) return;
+  if (!job || !job.assignedBy || job.settled || now < job.endsAt) return;
   const jobDef = TOWN_JOBS.find((j) => j.key === job.jobKey);
   if (!jobDef) return;
 
-  let amount = jobDef.itemAmount;
-  if (jobDef.doubleChance && Math.random() < jobDef.doubleChance) amount *= 2;
+  let workerAmount = jobDef.itemAmount;
+  if (jobDef.doubleChance && Math.random() < jobDef.doubleChance) workerAmount *= 2;
+  const workerInventory = { ...(workerProfile.inventory || {}) };
+  workerInventory[jobDef.item] = (workerInventory[jobDef.item] || 0) + workerAmount;
+  const workerExp = (workerProfile.companionExp || 0) + jobDef.expGain;
+
+  const pending = workerProfile.pendingResumeJob;
+  const nextJob = pending
+    ? { jobKey: pending.jobKey, startedAt: now, endsAt: now + pending.remainingMs }
+    : null;
+
+  await db.collection("townProfiles").doc(workerOpenid).update({
+    data: {
+      inventory: workerInventory,
+      companionExp: workerExp,
+      currentJob: _.set(nextJob),
+      pendingResumeJob: _.set(null),
+    },
+  });
+  await db.collection("townJobLog").add({
+    data: {
+      openid: workerOpenid,
+      type: "job_complete",
+      jobType: jobDef.key,
+      expGained: jobDef.expGain,
+      itemsGained: { [jobDef.item]: workerAmount },
+      createdAt: now,
+    },
+  });
+
+  let bossAmount = jobDef.itemAmount;
+  if (jobDef.doubleChance && Math.random() < jobDef.doubleChance) bossAmount *= 2;
   const bossRef = db.collection("townProfiles").doc(job.assignedBy);
   const bossRes = await bossRef.get().catch(() => null);
   const boss = bossRes && bossRes.data;
   if (boss) {
     const bossInventory = { ...(boss.inventory || {}) };
-    bossInventory[jobDef.item] = (bossInventory[jobDef.item] || 0) + amount;
+    bossInventory[jobDef.item] = (bossInventory[jobDef.item] || 0) + bossAmount;
     const bossExpGain = Math.ceil(jobDef.expGain / 2);
     await bossRef.update({ data: { inventory: bossInventory, companionExp: (boss.companionExp || 0) + bossExpGain } });
     await db.collection("townJobLog").add({
@@ -52,12 +82,11 @@ async function settleAssignedPayout(workerOpenid, workerProfile, now) {
         type: "skim_payout",
         jobType: jobDef.key,
         expGained: bossExpGain,
-        itemsGained: { [jobDef.item]: amount },
+        itemsGained: { [jobDef.item]: bossAmount },
         createdAt: now,
       },
     });
   }
-  await db.collection("townProfiles").doc(workerOpenid).update({ data: { currentJob: { ...job, payoutSettled: true } } });
 }
 
 const TOWN_LEVEL_TITLES = [
@@ -81,7 +110,7 @@ exports.main = async () => {
   const profiles = res.data || [];
 
   const now = Date.now();
-  await Promise.all(profiles.map((p) => settleAssignedPayout(p._id, p, now).catch(() => {})));
+  await Promise.all(profiles.map((p) => settleAssignedJob(p._id, p, now).catch(() => {})));
 
   const openids = profiles.map((p) => p._id);
   let userInfoByOpenid = {};

@@ -41,8 +41,14 @@ exports.main = async () => {
   inventory[job.item] = (inventory[job.item] || 0) + amount;
   const companionExp = (profile.companionExp || 0) + job.expGain;
 
+  // If this was a forced shift (画饼摊派) that interrupted a self-started one,
+  // pick that one back up for whatever time it had left instead of just
+  // clearing to idle.
+  const pending = profile.pendingResumeJob;
+  const nextJob = pending ? { jobKey: pending.jobKey, startedAt: now, endsAt: now + pending.remainingMs } : null;
+
   await ref.update({
-    data: { inventory, companionExp, currentJob: _.set(null), lastActiveAt: now },
+    data: { inventory, companionExp, currentJob: _.set(nextJob), pendingResumeJob: _.set(null), lastActiveAt: now },
   });
   await db.collection("townJobLog").add({
     data: {
@@ -57,13 +63,13 @@ exports.main = async () => {
 
   // Whoever forced this shift on the caller (townSkim's "画饼摊派") normally
   // already got paid automatically the moment it ended -- see
-  // settleAssignedPayout in townGetProfile/townListWorld/townSkim, which
-  // runs opportunistically on any of those and doesn't wait for the worker
-  // to collect. This is just a safety net for the rare case none of those
-  // ran first: `payoutSettled` makes it a no-op if one of them already
-  // paid out, so this can never double-pay the boss.
+  // settleAssignedJob in townGetProfile/townListWorld/townSkim, which runs
+  // opportunistically on any of those and doesn't wait for the worker to
+  // collect. This is just a safety net for the rare case none of those ran
+  // first: `settled` makes it a no-op if one of them already paid out, so
+  // this can never double-pay the boss.
   const assignedBy = profile.currentJob.assignedBy;
-  if (assignedBy && assignedBy !== OPENID && !profile.currentJob.payoutSettled) {
+  if (assignedBy && assignedBy !== OPENID && !profile.currentJob.settled) {
     const bossRef = db.collection("townProfiles").doc(assignedBy);
     const bossRes = await bossRef.get().catch(() => null);
     const boss = bossRes && bossRes.data;
@@ -89,7 +95,7 @@ exports.main = async () => {
 
   return {
     ok: true,
-    profile: { ...profile, inventory, companionExp, currentJob: null },
+    profile: { ...profile, inventory, companionExp, currentJob: nextJob },
     itemGained: job.item,
     amountGained: amount,
     expGained: job.expGain,

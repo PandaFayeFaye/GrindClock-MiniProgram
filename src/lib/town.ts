@@ -159,7 +159,12 @@ export type TownProfile = {
   lastFedAt: number | null;
   companionExp: number;
   titleIndex: number;
-  currentJob: { jobKey: string; startedAt: number; endsAt: number; assignedBy?: string } | null;
+  currentJob: { jobKey: string; startedAt: number; endsAt: number; assignedBy?: string; settled?: boolean } | null;
+  // Set when a forced shift (画饼摊派) interrupts a self-started one still in
+  // progress -- the remaining time at the moment of interruption, so it can
+  // resume automatically for exactly that long once the forced shift ends
+  // (see cloudfunctions/townSkim's settleAssignedJob).
+  pendingResumeJob?: { jobKey: string; remainingMs: number } | null;
   inventory: TownInventory;
   promotionSubmissions: Record<string, TownInventory>;
   decorations: string[];
