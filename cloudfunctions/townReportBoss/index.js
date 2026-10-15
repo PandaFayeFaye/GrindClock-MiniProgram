@@ -13,8 +13,8 @@ const REPORT_COOLDOWN_MS = 24 * 3_600_000;
 const REPORT_ELIGIBILITY_WINDOW_MS = 7 * 24 * 3_600_000;
 const REPORT_SKIM_THRESHOLD = 7;
 
-// Picks 1-3 item types the boss actually holds and docks 30%-70% of each,
-// rounded up so a report always takes something, never zero.
+// Picks 1-3 item types the boss actually holds and docks a small flat
+// 1-3 units of each -- a symbolic fine, not a wipeout.
 function pickDeductions(inventory) {
   const keys = Object.keys(inventory || {}).filter((k) => (inventory[k] || 0) > 0);
   if (keys.length === 0) return {};
@@ -23,7 +23,7 @@ function pickDeductions(inventory) {
   const deductions = {};
   picked.forEach((k) => {
     const have = inventory[k];
-    const amount = Math.min(have, Math.max(1, Math.round(have * (0.3 + Math.random() * 0.4))));
+    const amount = Math.min(have, 1 + Math.floor(Math.random() * 3));
     deductions[k] = amount;
   });
   return deductions;
