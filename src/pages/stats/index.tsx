@@ -20,7 +20,37 @@ const RANGES: { key: RangeKey; label: string }[] = [
   { key: "month", label: "本月" },
 ];
 const MONTH_LABELS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
-const HEAT_HEX = ["#FBF7EC", "#FFEFA8", "#FFD93D", "#E8B400"];
+// A fixed (not per-month-relative) hours scale, so "5h" always renders the
+// same color everywhere instead of shifting depending on what the busiest
+// day elsewhere in that particular month happened to be -- and so every
+// whole hour of difference is a visibly different shade, not lumped into
+// one of only 3-4 buckets the way a percent-of-max level scheme would.
+const HEAT_EMPTY_HEX = "#FBF7EC";
+const HEAT_LOW_HEX = "#FFEFA8";
+const HEAT_HIGH_HEX = "#B8860B";
+const HEAT_SCALE_MAX_HOURS = 10;
+
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function lerpHex(a: string, b: string, t: number): string {
+  const [ar, ag, ab] = hexToRgb(a);
+  const [br, bg, bb] = hexToRgb(b);
+  const r = Math.round(ar + (br - ar) * t);
+  const g = Math.round(ag + (bg - ag) * t);
+  const bl = Math.round(ab + (bb - ab) * t);
+  return `#${[r, g, bl].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+}
+
+/** Fixed-scale hours -> color, continuous (not discrete levels) so each
+ * additional hour worked is a visibly distinct shade. */
+function heatColorForHours(hours: number): string {
+  if (hours <= 0) return HEAT_EMPTY_HEX;
+  const t = Math.min(1, hours / HEAT_SCALE_MAX_HOURS);
+  return lerpHex(HEAT_LOW_HEX, HEAT_HIGH_HEX, t);
+}
 
 function startOfToday() {
   const d = new Date();
@@ -231,10 +261,9 @@ export default function Stats() {
       const key = dateKey(new Date(year, month, i + 1).getTime());
       return { pay: dailyPay.get(key) ?? 0, hours: dailyHours.get(key) ?? 0 };
     });
-    const max = Math.max(1, ...values.map((v) => v.pay));
     return values.map((v, i) => ({
       day: i + 1,
-      level: v.pay === 0 ? 0 : v.pay / max > 0.66 ? 3 : v.pay / max > 0.33 ? 2 : 1,
+      color: heatColorForHours(v.hours),
       pay: v.pay,
       hours: v.hours,
     }));
@@ -508,23 +537,29 @@ export default function Stats() {
           </View>
           <View className="heatmap">
             {Array.from({ length: calendarLeadingBlanks }).map((_, i) => <View className="heat-cell blank" key={`b${i}`} />)}
-            {heatCells.map(({ day, level, pay, hours }) => (
-              <View
-                key={day}
-                className={`heat-cell${selectedCalDay === day ? " selected" : ""}`}
-                style={{ background: HEAT_HEX[level] }}
-                onClick={() => setSelectedCalDay(day)}
-              >
-                <Text className="cell-day">{day}</Text>
-                {(pay > 0 || hours > 0) && <View className="cell-dot" />}
-              </View>
-            ))}
+            {heatCells.map(({ day, color, hours }) => {
+              const dark = hours / HEAT_SCALE_MAX_HOURS > 0.5;
+              return (
+                <View
+                  key={day}
+                  className={`heat-cell${selectedCalDay === day ? " selected" : ""}`}
+                  style={{ background: color }}
+                  onClick={() => setSelectedCalDay(day)}
+                >
+                  <Text className="cell-day" style={dark ? { color: "rgba(255,255,255,0.75)" } : undefined}>{day}</Text>
+                  {hours > 0 && (
+                    <Text className="cell-hours" style={dark ? { color: "#fff" } : undefined}>{hours.toFixed(1)}</Text>
+                  )}
+                </View>
+              );
+            })}
           </View>
           <View className="heat-legend">
             <Text>少</Text>
-            {HEAT_HEX.map((hex) => <View key={hex} className="legend-swatch" style={{ background: hex }} />)}
+            <View className="legend-gradient" />
             <Text>多</Text>
           </View>
+          <Text className="heat-legend-note">颜色按当天工时固定映射（0 - {HEAT_SCALE_MAX_HOURS}h+），每差1小时颜色都会有明显变化</Text>
           {selectedCalDayInfo && (
             <Text className="cal-day-detail">
               {viewedMonth.getMonth() + 1}月{selectedCalDay}日：工作 {selectedCalDayInfo.hours.toFixed(1)}h，赚了 {currencySymbol(DEFAULT_CURRENCY)}{selectedCalDayInfo.pay.toFixed(0)}

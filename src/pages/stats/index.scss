@@ -385,6 +385,32 @@
   border: 1px solid rgba(26, 26, 26, 0.15);
 }
 
+.legend-gradient {
+  width: 160rpx;
+  height: 20rpx;
+  border-radius: 6rpx;
+  border: 1px solid rgba(26, 26, 26, 0.15);
+  background: linear-gradient(to right, #FFEFA8, #B8860B);
+}
+
+.heat-legend-note {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 18rpx;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.cell-hours {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20rpx;
+  font-weight: 800;
+  color: rgba(26, 26, 26, 0.75);
+}
+
 .cal-day-detail {
   display: block;
   margin-top: 20rpx;
