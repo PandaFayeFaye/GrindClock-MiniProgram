@@ -566,7 +566,6 @@ export default function Stats() {
             <View className="legend-gradient" />
             <Text>多</Text>
           </View>
-          <Text className="heat-legend-note">颜色按当天工时固定映射（0 - {HEAT_SCALE_MAX_HOURS}h+），每差1小时颜色都会有明显变化</Text>
           {selectedCalDayInfo && (
             <Text className="cal-day-detail">
               {viewedMonth.getMonth() + 1}月{selectedCalDay}日：工作 {selectedCalDayInfo.hours.toFixed(1)}h，赚了 {currencySymbol(DEFAULT_CURRENCY)}{selectedCalDayInfo.pay.toFixed(0)}
