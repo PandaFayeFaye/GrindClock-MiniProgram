@@ -596,13 +596,15 @@ export default function TownPage() {
             <Text className="town-picker-title deco-title">闭店罢工弹</Text>
             <Text className="town-empty">拥有：{profile.bombs || 0} 颗（收工时小概率获得）</Text>
             {(profile.bombs || 0) > 0 && (
-              <View className="town-bomb-target-grid">
-                {TOWN_JOBS.map((j) => (
-                  <Button key={j.key} className="town-secondary-btn town-bomb-target-btn" size="mini" onClick={() => handleUseBomb(j.key, j.name)}>
-                    炸「{j.name}」
-                  </Button>
-                ))}
-              </View>
+              <ScrollView scrollY className="town-bomb-target-scroll">
+                <View className="town-bomb-target-grid">
+                  {TOWN_JOBS.map((j) => (
+                    <Button key={j.key} className="town-secondary-btn town-bomb-target-btn" size="mini" onClick={() => handleUseBomb(j.key, j.name)}>
+                      炸「{j.name}」
+                    </Button>
+                  ))}
+                </View>
+              </ScrollView>
             )}
 
           </View>

@@ -617,6 +617,13 @@
   flex-direction: column;
   gap: var(--space-3);
   box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.35);
+  // max-height alone does nothing without this -- WXSS defaults to visible
+  // overflow, so a long section (e.g. the 16-job bomb-target list) just
+  // overflowed the sheet and pushed the rest of the page down/out of view
+  // instead of being clipped. This is a last-resort safety net: sections
+  // that can grow large (bomb targets, decoration shop) should still use
+  // their own inner ScrollView so the sheet's OTHER sections stay put.
+  overflow-y: auto;
 }
 
 .town-picker-header {
@@ -752,6 +759,13 @@
 
 .town-trap-btn {
   margin-bottom: var(--space-3);
+}
+
+// 16 jobs' worth of bomb-target buttons was enough to push 防盗设置/带薪年假
+// off the top of the sheet entirely (see .town-picker-sheet overflow-y
+// note) -- same inner-scroll treatment as .town-deco-shop-scroll.
+.town-bomb-target-scroll {
+  max-height: 360rpx;
 }
 
 .town-bomb-target-grid {
